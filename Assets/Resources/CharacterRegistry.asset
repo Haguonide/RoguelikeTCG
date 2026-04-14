@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1209fd23f23a4f43b778acff90d029f, type: 3}
+  m_Name: CharacterRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CharacterRegistry
+  allCharacters:
+  - {fileID: 11400000, guid: 876b50d16c3c06046b2516179ebe7a0e, type: 2}
+  - {fileID: 11400000, guid: 95f3440a27135c4438e61cd8346d99b5, type: 2}

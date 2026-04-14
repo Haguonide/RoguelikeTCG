@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
+  m_Name: PluieDeFlech
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
+  cardName: "Pluie de Fl\xE8ches"
+  description: "Inflige 2 d\xE9g\xE2ts \xE0 toutes les unit\xE9s ennemies."
+  artwork: {fileID: 7628721502613674829, guid: 20ee2bdee99e7a743a8c2a2b1e3dd3bc, type: 3}
+  cardType: 1
+  rarity: 2
+  manaCost: 2
+  attackPower: 0
+  maxHP: 0
+  spellTarget: 4
+  effects:
+  - effectType: 0
+    value: 2
+    target: 4
+  upgradedVersion: {fileID: 11400000, guid: 61c165079e2ee264aa2483fd0ed94190, type: 2}

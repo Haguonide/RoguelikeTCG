@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
+  m_Name: Berserk+
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
+  cardName: Berserk+
+  description: "Une furie incontr\xF4lable. Il frappe plus fort, et encaisse."
+  artwork: {fileID: 7628721502613674829, guid: 20ee2bdee99e7a743a8c2a2b1e3dd3bc, type: 3}
+  cardType: 0
+  rarity: 0
+  manaCost: 0
+  attackPower: 7
+  maxHP: 3
+  spellTarget: 0
+  effects: []
+  upgradedVersion: {fileID: 0}
