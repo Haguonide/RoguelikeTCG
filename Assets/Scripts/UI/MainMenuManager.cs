@@ -27,6 +27,9 @@ namespace RoguelikeTCG.UI
                 go.AddComponent<RunPersistence>();
             }
 
+            // S'assurer qu'AccountData existe (auto-créé si absent, charge depuis le disque)
+            _ = AccountData.Instance;
+
             bool hasSave = DiskSave.HasSave();
             if (continueButtonGO != null)
                 continueButtonGO.SetActive(hasSave);
@@ -39,7 +42,13 @@ namespace RoguelikeTCG.UI
 
         public void OnNewGame()
         {
-            RunPersistence.Instance?.ResetRun();
+            // Si une run était en cours lors d'un abandon (retour au menu sans défaite
+            // ni victoire boss), attribuer l'XP des nœuds déjà visités avant de réinitialiser.
+            if (RunPersistence.Instance != null && RunPersistence.Instance.HasActiveRun)
+                RunPersistence.Instance.AwardRunXPAndReset();
+            else
+                RunPersistence.Instance?.ResetRun();
+
             SceneManager.LoadScene("CharacterSelect");
         }
     }

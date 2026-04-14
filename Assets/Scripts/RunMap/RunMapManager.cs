@@ -78,6 +78,7 @@ namespace RoguelikeTCG.RunMap
 
             node.state  = NodeState.Visited;
             CurrentNode = node;
+            RunPersistence.Instance?.RecordNodeVisited();
 
             foreach (var row in Map)
                 foreach (var n in row)

@@ -561,6 +561,8 @@ namespace RoguelikeTCG.Combat
             Log($"+ {_lastGoldEarned} or");
 
             var nodeType = RunPersistence.Instance?.CurrentNode?.type ?? NodeType.Combat;
+            RunPersistence.Instance?.RecordCombatWin(nodeType);
+
             if (nodeType == NodeType.Elite || nodeType == NodeType.Boss)
                 ShowRelicReward();
             else
@@ -807,13 +809,18 @@ namespace RoguelikeTCG.Combat
             titleTMP.alignment = TextAlignmentOptions.Center;
             titleTMP.color     = won ? new Color(0.30f, 1.00f, 0.40f) : new Color(1.00f, 0.28f, 0.28f);
 
+            // Victoire de boss = fin de run ; victoire normale = retour à la carte
+            bool isBossVictory = won &&
+                (RunPersistence.Instance?.CurrentNode?.type == NodeType.Boss);
+
             // Sous-titre
             var subGO = new GameObject("Sub", typeof(RectTransform));
             subGO.transform.SetParent(overlayGO.transform, false);
             SetOverlayAnchors(subGO, 0.15f, 0.44f, 0.85f, 0.57f);
             var subTMP = subGO.AddComponent<TextMeshProUGUI>();
-            subTMP.text      = won ? "Tous les boards ennemis ont été vaincus !"
-                                   : "Vos points de vie sont tombés à zéro.";
+            subTMP.text = isBossVictory ? "Vous avez triomphé du boss — la run est terminée !"
+                        : won           ? "Tous les boards ennemis ont été vaincus !"
+                                        : "Vos points de vie sont tombés à zéro.";
             subTMP.fontSize  = 20f;
             subTMP.alignment = TextAlignmentOptions.Center;
             subTMP.color     = new Color(0.82f, 0.80f, 0.75f);
@@ -830,21 +837,25 @@ namespace RoguelikeTCG.Combat
             labelGO.transform.SetParent(btnGO.transform, false);
             SetOverlayAnchors(labelGO, 0f, 0f, 1f, 1f);
             var labelTMP = labelGO.AddComponent<TextMeshProUGUI>();
-            labelTMP.text          = won ? "Retour à la carte" : "Menu principal";
+            labelTMP.text          = isBossVictory ? "Terminer la run"
+                                   : won           ? "Retour à la carte"
+                                                   : "Menu principal";
             labelTMP.fontSize      = 22f;
             labelTMP.fontStyle     = FontStyles.Bold;
             labelTMP.alignment     = TextAlignmentOptions.Center;
             labelTMP.color         = Color.white;
             labelTMP.raycastTarget = false;
 
-            bool capturedWon = won;
+            bool capturedWon       = won;
+            bool capturedBossVict  = isBossVictory;
             btn.onClick.AddListener(() =>
             {
-                if (capturedWon)
+                if (capturedWon && !capturedBossVict)
                     SceneManager.LoadScene("RunMap");
                 else
                 {
-                    RunPersistence.Instance?.ResetRun();
+                    // Défaite OU victoire boss : fin de run → XP puis menu
+                    RunPersistence.Instance?.AwardRunXPAndReset();
                     SceneManager.LoadScene("MainMenu");
                 }
             });

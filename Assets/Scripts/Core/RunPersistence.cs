@@ -51,6 +51,12 @@ namespace RoguelikeTCG.Core
         // ── Reliques ──────────────────────────────────────────────────────────
         public List<RelicData> PlayerRelics = new List<RelicData>();
 
+        // ── Statistiques de run (pour le calcul d'XP en fin de run) ──────────
+        public int NodesVisited = 0;
+        public int CombatWins   = 0;
+        public int EliteWins    = 0;
+        public int BossWins     = 0;
+
         private void Awake()
         {
             if (Instance != null) { Destroy(gameObject); return; }
@@ -109,15 +115,58 @@ namespace RoguelikeTCG.Core
 
         public void SaveToDisk() => DiskSave.Save(this);
 
+        // ── Tracking de run ───────────────────────────────────────────────────
+
+        /// <summary>Appeler depuis RunMapManager.VisitNode() à chaque visite de nœud joueur.</summary>
+        public void RecordNodeVisited()
+        {
+            NodesVisited++;
+        }
+
+        /// <summary>Appeler depuis CombatManager.OnVictory() avec le type du nœud vaincu.</summary>
+        public void RecordCombatWin(NodeType type)
+        {
+            switch (type)
+            {
+                case NodeType.Elite: EliteWins++;  break;
+                case NodeType.Boss:  BossWins++;   break;
+                default:             CombatWins++; break;
+            }
+        }
+
+        /// <summary>
+        /// Calcule l'XP gagnée lors de la run, l'attribue à AccountData, puis réinitialise la run.
+        /// À utiliser à la place de ResetRun() pour tout fin de run (victoire boss ou défaite).
+        /// </summary>
+        public void AwardRunXPAndReset()
+        {
+            int xp = NodesVisited * 10
+                   + CombatWins   * 15
+                   + EliteWins    * 30
+                   + BossWins     * 50;
+
+            Debug.Log($"[RunPersistence] Fin de run — {NodesVisited} nœuds, "
+                    + $"{CombatWins}+{EliteWins}(élite)+{BossWins}(boss) combats → {xp} XP");
+
+            // AccountData est un singleton auto-créé (ne nécessite pas de présence en scène)
+            AccountData.Instance.AddXP(xp);
+
+            ResetRun();
+        }
+
         public void ResetRun()
         {
-            Map              = null;
-            CurrentNode      = null;
-            PlayerHP         = -1;
-            PlayerDeck       = null;
+            Map               = null;
+            CurrentNode       = null;
+            PlayerHP          = -1;
+            PlayerDeck        = null;
             PlayerGold        = 0;
             PlayerRelics      = new List<RelicData>();
             SelectedCharacter = null;
+            NodesVisited      = 0;
+            CombatWins        = 0;
+            EliteWins         = 0;
+            BossWins          = 0;
             DiskSave.DeleteSave();
         }
     }
