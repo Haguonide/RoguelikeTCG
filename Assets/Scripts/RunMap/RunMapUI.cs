@@ -56,9 +56,7 @@ namespace RoguelikeTCG.RunMap
         private float _introBottomPad;
         private int   _introTotalRows;
 
-        // Fraction du nodeSize dont le label dépasse EN DESSOUS du bas du cercle.
-        // Doit rester synchronisée avec labelRT.anchorMin.y dans CreateNodeGO.
-        private const float LabelBelowFraction = 0.42f;
+        public bool IsIntroPlaying { get; private set; }
 
         // -------------------------------------------------------
         // Lifecycle
@@ -159,6 +157,9 @@ namespace RoguelikeTCG.RunMap
 
             if (p != null && p.IsNewRun)
             {
+                // Cacher tout immédiatement (même frame que BuildMap) pour éviter le flash
+                HideAllNodesAndEdges();
+
                 // Consommer le flag immédiatement pour éviter un double-déclenchement
                 p.IsNewRun = false;
 
@@ -197,7 +198,7 @@ namespace RoguelikeTCG.RunMap
                 Destroy(child.gameObject);
 
             int   totalRows   = map.Count;
-            float bottomPad   = nodeSize * (0.5f + LabelBelowFraction) + 20f;
+            float bottomPad   = nodeSize * 0.5f + 20f;
             float topPad      = 40f;
             float totalHeight = bottomPad + (totalRows - 1) * rowSpacing + nodeSize + topPad;
             contentRT.sizeDelta = new Vector2(contentRT.sizeDelta.x, totalHeight);
@@ -272,12 +273,8 @@ namespace RoguelikeTCG.RunMap
         /// Révèle l'arbre rangée par rangée avec un effet de bump et
         /// fait défiler la caméra de bas en haut jusqu'au boss.
         /// </summary>
-        private IEnumerator PlayIntroAnimation()
+        private void HideAllNodesAndEdges()
         {
-            var sr = contentRT.GetComponentInParent<ScrollRect>();
-            if (sr == null) yield break;
-
-            // --- Cacher tout ---
             foreach (var list in _rowNodeGOs.Values)
                 foreach (var go in list)
                     if (go) go.transform.localScale = Vector3.zero;
@@ -291,6 +288,17 @@ namespace RoguelikeTCG.RunMap
                     foreach (var dash in ev.Dashes)
                         if (dash) dash.localScale = Vector3.zero;
                 }
+        }
+
+        private IEnumerator PlayIntroAnimation()
+        {
+            var sr = contentRT.GetComponentInParent<ScrollRect>();
+            if (sr == null) yield break;
+
+            IsIntroPlaying = true;
+
+            // --- Cacher tout (au cas où HideAllNodesAndEdges n'aurait pas été appelé) ---
+            HideAllNodesAndEdges();
 
             const float bumpDur = 1.90f;   // durée du bump d'un nœud
             const float fadeDur = 1.40f;   // durée du tracé d'une arête
@@ -334,6 +342,8 @@ namespace RoguelikeTCG.RunMap
             // --- Pause au boss, puis retour en bas ---
             yield return new WaitForSeconds(3.0f);
             yield return StartCoroutine(SmoothScrollTo(sr, 0f, 4.25f));
+
+            IsIntroPlaying = false;
         }
 
         // -------------------------------------------------------
@@ -355,13 +365,19 @@ namespace RoguelikeTCG.RunMap
 
             const float navDuration = 1.5f;
 
-            float fromNorm = NormForRow(from.row);
-            float toNorm   = NormForRow(to.row);
+            float currentPos = _scrollRect.verticalNormalizedPosition;
+            float fromNorm   = NormForRow(from.row);
+            float toNorm     = NormForRow(to.row);
 
-            // Snap immédiat sur la rangée source (imperceptible si la caméra y est déjà)
-            _scrollRect.verticalNormalizedPosition = fromNorm;
+            // Phase 1 : recentrage fluide vers le nœud source (si la caméra n'y est pas déjà)
+            float distPre = Mathf.Abs(currentPos - fromNorm);
+            if (distPre > 0.001f)
+            {
+                float preDuration = Mathf.Clamp(distPre * 2.0f, 0.25f, 0.75f);
+                yield return StartCoroutine(SmoothScrollFromTo(_scrollRect, currentPos, fromNorm, preDuration));
+            }
 
-            // Récupérer l'arête entre les deux nœuds
+            // Phase 2 : navigation vers le nœud cible + verdissement de l'arête
             _edgeViewMap.TryGetValue((from.row, from.col, to.row, to.col), out var edgeView);
 
             float t = 0f;
@@ -370,10 +386,8 @@ namespace RoguelikeTCG.RunMap
                 t += Time.deltaTime;
                 float n = EaseInOutQuad(Mathf.Clamp01(t / navDuration));
 
-                // Caméra suit le tracé
                 _scrollRect.verticalNormalizedPosition = Mathf.Lerp(fromNorm, toNorm, n);
 
-                // Pointillés verdissent au fur et à mesure que le "front" avance
                 if (edgeView != null)
                 {
                     float halfW = edgeView.HalfLength;
@@ -557,21 +571,6 @@ namespace RoguelikeTCG.RunMap
             var iconImg = iconGO.GetComponent<Image>();
             iconImg.raycastTarget  = false;
             iconImg.preserveAspect = true;
-
-            var labelGO  = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGO.transform.SetParent(go.transform, false);
-            var labelRT  = labelGO.GetComponent<RectTransform>();
-            labelRT.anchorMin        = new Vector2(-0.20f, -LabelBelowFraction);
-            labelRT.anchorMax        = new Vector2( 1.20f,  0.00f);
-            labelRT.sizeDelta        = Vector2.zero;
-            labelRT.anchoredPosition = Vector2.zero;
-
-            var tmp = labelGO.GetComponent<TextMeshProUGUI>();
-            tmp.alignment     = TextAlignmentOptions.Center;
-            tmp.fontSize      = 22f;
-            tmp.color         = Color.white;
-            tmp.fontStyle     = FontStyles.Bold;
-            tmp.raycastTarget = false;
 
             var nv = go.AddComponent<NodeView>();
             nv.Setup(node, GetIcon(node.type));

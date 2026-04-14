@@ -71,6 +71,7 @@ namespace RoguelikeTCG.RunMap
         public void VisitNode(RunNode node)
         {
             if (!CanVisit(node)) return;
+            if (RunMapUI.Instance != null && RunMapUI.Instance.IsIntroPlaying) return;
             AudioManager.Instance.PlaySFX("sfx_node_select");
 
             var fromNode = CurrentNode;   // capturer avant mise à jour

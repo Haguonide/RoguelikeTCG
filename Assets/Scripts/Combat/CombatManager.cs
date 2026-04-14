@@ -151,7 +151,9 @@ namespace RoguelikeTCG.Combat
         public bool TryPlayUnit(CardInstance card, Lane lane)
         {
             if (gameOver) return false;
+            if (CombatAnimator.Instance != null && CombatAnimator.Instance.IsAnimating) return false;
             if (!turnManager.IsPlayerTurn || !turnManager.CanPlayCard) return false;
+            if (boardManager.ActiveBoard.IsDefeated) return false;
             if (!card.IsUnit || lane.IsOccupied || !lane.isPlayerLane) return false;
 
             lane.PlaceCard(card);
@@ -195,6 +197,8 @@ namespace RoguelikeTCG.Combat
         private bool CanCastSpell(CardInstance card)
         {
             if (gameOver) return false;
+            if (CombatAnimator.Instance != null && CombatAnimator.Instance.IsAnimating) return false;
+            if (boardManager.ActiveBoard.IsDefeated) return false;
             if (!turnManager.IsPlayerTurn || !turnManager.CanPlayCard) return false;
             if (card.IsUnit) return false;
             if (!manaManager.CanAfford(card.data.manaCost)) return false;
@@ -351,6 +355,7 @@ namespace RoguelikeTCG.Combat
         public void EndPlayerTurn()
         {
             if (gameOver || !turnManager.IsPlayerTurn) return;
+            if (CombatAnimator.Instance != null && CombatAnimator.Instance.IsAnimating) return;
             AudioManager.Instance.PlaySFX("sfx_end_turn");
             Log("--- Fin de votre tour ---");
             turnManager.EndPlayerTurn();

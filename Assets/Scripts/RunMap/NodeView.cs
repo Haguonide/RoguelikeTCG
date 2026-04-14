@@ -1,26 +1,21 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
+using UnityEngine.EventSystems;
 
 namespace RoguelikeTCG.RunMap
 {
     [RequireComponent(typeof(Button))]
     [RequireComponent(typeof(Image))]
-    public class NodeView : MonoBehaviour
+    public class NodeView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         public RunNode Node { get; private set; }
 
-        private Button             _button;
-        private Image              _bg;
-        private Image              _icon;
-        private TextMeshProUGUI    _label;
+        private Button          _button;
+        private Image           _bg;
+        private Image           _icon;
+        private Outline         _iconOutline;
 
-        // -------------------------------------------------------
-        // Couleurs selon état
-        // -------------------------------------------------------
-        private static readonly Color ColLocked    = new Color(0.30f, 0.30f, 0.30f, 1f);
-        private static readonly Color ColVisited   = new Color(0.12f, 0.40f, 0.12f, 1f);
-        private static readonly Color ColAvailable = new Color(0.28f, 0.80f, 0.28f, 1f);
+        private static readonly Color OutlineColor = new Color(1f, 0.85f, 0.1f, 1f);
 
         // -------------------------------------------------------
         // Initialisation
@@ -31,41 +26,60 @@ namespace RoguelikeTCG.RunMap
             _button = GetComponent<Button>();
             _bg     = GetComponent<Image>();
 
-            var iconT  = transform.Find("Icon");
-            var labelT = transform.Find("Label");
-            if (iconT)  _icon  = iconT.GetComponent<Image>();
-            if (labelT) _label = labelT.GetComponent<TextMeshProUGUI>();
+            var iconT = transform.Find("Icon");
+            if (iconT) _icon = iconT.GetComponent<Image>();
 
             if (_icon != null && iconSprite != null) _icon.sprite = iconSprite;
 
-            if (_label != null) _label.text = NodeLabel(node.type);
+            // Outline sur l'icône, masqué par défaut
+            if (_icon != null)
+            {
+                _iconOutline = _icon.GetComponent<Outline>() ?? _icon.gameObject.AddComponent<Outline>();
+                _iconOutline.effectColor    = OutlineColor;
+                _iconOutline.effectDistance = new Vector2(3f, -3f);
+                _iconOutline.enabled        = false;
+            }
 
             _button.onClick.AddListener(OnClick);
             RefreshState();
         }
 
         // -------------------------------------------------------
-        // Rafraîchir la couleur selon l'état courant
+        // Rafraîchir l'état (interactivité uniquement — bg toujours transparent)
         // -------------------------------------------------------
         public void RefreshState()
         {
             if (_bg == null) return;
 
+            // Cercle invisible — l'icône seule porte l'information visuelle
+            _bg.color = Color.clear;
+
             switch (Node.state)
             {
                 case NodeState.Locked:
-                    _bg.color          = ColLocked;
-                    _button.interactable = false;
-                    break;
                 case NodeState.Visited:
-                    _bg.color          = ColVisited;
                     _button.interactable = false;
+                    if (_iconOutline != null) _iconOutline.enabled = false;
                     break;
                 case NodeState.Available:
-                    _bg.color          = ColAvailable;
                     _button.interactable = true;
                     break;
             }
+        }
+
+        // -------------------------------------------------------
+        // Hover
+        // -------------------------------------------------------
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (_iconOutline != null && Node?.state == NodeState.Available)
+                _iconOutline.enabled = true;
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (_iconOutline != null)
+                _iconOutline.enabled = false;
         }
 
         // -------------------------------------------------------
@@ -73,21 +87,5 @@ namespace RoguelikeTCG.RunMap
         // -------------------------------------------------------
         private void OnClick() => RunMapManager.Instance?.VisitNode(Node);
 
-        // -------------------------------------------------------
-        // Libellé textuel du type de nœud
-        // -------------------------------------------------------
-        private static string NodeLabel(NodeType type) => type switch
-        {
-            NodeType.Start   => "DÉPART",
-            NodeType.Combat  => "COMBAT",
-            NodeType.Elite   => "ELITE",
-            NodeType.Boss    => "BOSS",
-            NodeType.Event   => "EVENT",
-            NodeType.Shop    => "SHOP",
-            NodeType.Forge   => "FORGE",
-            NodeType.Rest    => "REPOS",
-            NodeType.Mystery => "???",
-            _                => "?"
-        };
     }
 }

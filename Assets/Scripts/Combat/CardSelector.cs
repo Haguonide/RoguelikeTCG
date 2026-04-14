@@ -173,19 +173,19 @@ namespace RoguelikeTCG.Combat
             {
                 case TargetingMode.AwaitingLane:
                     foreach (var s in allSlots)
-                        if (s.isPlayerLane && s.Lane != null && !s.Lane.IsOccupied)
+                        if (s.isPlayerLane && s.Lane != null && !s.Lane.IsOccupied && !IsOnDefeatedBoard(s))
                             s.SetHighlight(true, HighlightSlot);
                     break;
 
                 case TargetingMode.AwaitingAllyUnit:
                     foreach (var s in allSlots)
-                        if (s.isPlayerLane && s.Lane != null && s.Lane.IsOccupied)
+                        if (s.isPlayerLane && s.Lane != null && s.Lane.IsOccupied && !IsOnDefeatedBoard(s))
                             s.SetHighlight(true, HighlightSlot);
                     break;
 
                 case TargetingMode.AwaitingEnemyUnit:
                     foreach (var s in allSlots)
-                        if (!s.isPlayerLane && s.Lane != null && s.Lane.IsOccupied)
+                        if (!s.isPlayerLane && s.Lane != null && s.Lane.IsOccupied && !IsOnDefeatedBoard(s))
                             s.SetHighlight(true, HighlightSlot);
                     break;
 
@@ -199,10 +199,23 @@ namespace RoguelikeTCG.Combat
 
                 case TargetingMode.AwaitingAoEConfirm:
                     foreach (var s in allSlots)
-                        if (!s.isPlayerLane)
+                        if (!s.isPlayerLane && !IsOnDefeatedBoard(s))
                             s.SetHighlight(true, new Color(1f, 0.35f, 0.1f, 0.45f));
                     break;
             }
+        }
+
+        private static bool IsOnDefeatedBoard(LaneSlotUI slot)
+        {
+            if (slot.Lane == null || CombatManager.Instance == null) return false;
+            foreach (var board in CombatManager.Instance.boardManager.boards)
+            {
+                foreach (var l in board.playerLanes)
+                    if (l == slot.Lane) return board.IsDefeated;
+                foreach (var l in board.enemyLanes)
+                    if (l == slot.Lane) return board.IsDefeated;
+            }
+            return false;
         }
 
         private void ClearHighlights()

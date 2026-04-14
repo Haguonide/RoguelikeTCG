@@ -22,6 +22,9 @@ namespace RoguelikeTCG.Combat
         private static readonly Color ColAtk = new Color(1.00f, 0.82f, 0.22f);
         private static readonly Color ColHP  = new Color(1.00f, 0.40f, 0.40f);
 
+        private int _animCount = 0;
+        public bool IsAnimating => _animCount > 0;
+
         private void Awake()
         {
             if (Instance != null) { Destroy(gameObject); return; }
@@ -41,6 +44,7 @@ namespace RoguelikeTCG.Combat
             var rt = slot.PlayedCard.animatedRoot;
             if (rt == null) yield break;
 
+            _animCount++;
             Vector2 origin = rt.anchoredPosition;
 
             float windUpY = isPlayerAttacking ? -10f :  10f;
@@ -53,6 +57,7 @@ namespace RoguelikeTCG.Combat
             yield return LerpPos(rt, origin + new Vector2(0f, lungeY), origin, 0.28f);
 
             rt.anchoredPosition = origin;
+            _animCount--;
         }
 
         // ── Death (shake → shrink) ────────────────────────────────────────────
@@ -64,6 +69,7 @@ namespace RoguelikeTCG.Combat
             var rt = slot.PlayedCard.animatedRoot;
             if (rt == null) yield break;
 
+            _animCount++;
             AudioManager.Instance.PlaySFX("sfx_death");
 
             // Phase 1 — Shake + scale-up (0.12s)
@@ -92,6 +98,7 @@ namespace RoguelikeTCG.Combat
             }
 
             // Pas de reset — le PlayedCard sera détruit par Refresh() juste après
+            _animCount--;
         }
 
         // ── Board slide transition ────────────────────────────────────────────
@@ -113,6 +120,7 @@ namespace RoguelikeTCG.Combat
             var toView   = views[toIndex];
             if (fromView == null || toView == null) yield break;
 
+            _animCount++;
             var fromRT = fromView.GetComponent<RectTransform>();
             var toRT   = toView.GetComponent<RectTransform>();
 
@@ -140,6 +148,7 @@ namespace RoguelikeTCG.Combat
 
             fromRT.anchoredPosition = fromOrigin;
             toRT.anchoredPosition   = toOrigin;
+            _animCount--;
         }
 
         // ── Hit Shake (survives) ──────────────────────────────────────────────
@@ -153,6 +162,7 @@ namespace RoguelikeTCG.Combat
             var rt = slot.PlayedCard.animatedRoot;
             if (rt == null) yield break;
 
+            _animCount++;
             AudioManager.Instance.PlaySFX("sfx_hit");
 
             float elapsed = 0f;
@@ -165,6 +175,7 @@ namespace RoguelikeTCG.Combat
                 yield return null;
             }
             rt.localEulerAngles = Vector3.zero;
+            _animCount--;
         }
 
         // ── Card Play Anim (fly from hand + spin + top-down land) ────────────
@@ -180,6 +191,7 @@ namespace RoguelikeTCG.Combat
             var canvas = Object.FindObjectOfType<Canvas>();
             if (canvas == null) yield break;
 
+            _animCount++;
             var ghost = BuildGhostCard(canvas.transform, cardInst, cardSize);
             ghost.transform.position = fromWorldPos;
 
@@ -230,7 +242,7 @@ namespace RoguelikeTCG.Combat
             Object.Destroy(ghost);
 
             // ─ 5. Top-down landing: card falls onto the table (1.40x → 0.90x → 1.0x)
-            if (placed?.animatedRoot == null) yield break;
+            if (placed?.animatedRoot == null) { _animCount--; yield break; }
             AudioManager.Instance.PlaySFX("sfx_card_place");
 
             placed.animatedRoot.localScale = new Vector3(scaleHigh, scaleHigh, 1f);
@@ -257,6 +269,7 @@ namespace RoguelikeTCG.Combat
                 yield return null;
             }
             placed.animatedRoot.localScale = Vector3.one;
+            _animCount--;
         }
 
         // ── Place Anim (bounce) — enemy card placement ───────────────────────
@@ -267,6 +280,7 @@ namespace RoguelikeTCG.Combat
             var rt = slot.PlayedCard.animatedRoot;
             if (rt == null) yield break;
 
+            _animCount++;
             float t = 0f;
             while (t < 1f)
             {
@@ -286,6 +300,7 @@ namespace RoguelikeTCG.Combat
                 yield return null;
             }
             rt.localScale = Vector3.one;
+            _animCount--;
         }
 
         // ── Ghost Card ────────────────────────────────────────────────────────
