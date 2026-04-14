@@ -19,10 +19,6 @@ namespace RoguelikeTCG.UI
         public Button confirmButton;
         public Image  confirmBtnImage;
 
-        private static readonly Color BorderNormal   = new Color(0.35f, 0.30f, 0.22f);
-        private static readonly Color BorderSelected = new Color(0.90f, 0.75f, 0.25f);
-        private static readonly Color CardNormal     = new Color(0.14f, 0.12f, 0.10f);
-        private static readonly Color CardSelected   = new Color(0.28f, 0.22f, 0.10f);
         private static readonly Color BtnInactive    = new Color(0.22f, 0.22f, 0.26f);
         private static readonly Color BtnActive      = new Color(0.22f, 0.48f, 0.22f);
 
@@ -46,11 +42,7 @@ namespace RoguelikeTCG.UI
             _selected = cards[index].character;
 
             for (int i = 0; i < cards.Length; i++)
-            {
-                bool sel = i == index;
-                if (cards[i].borderImage) cards[i].borderImage.color = sel ? BorderSelected : BorderNormal;
-                if (cards[i].bgImage)     cards[i].bgImage.color     = sel ? CardSelected   : CardNormal;
-            }
+                cards[i].SetSelected(i == index);
 
             SetConfirmState(true);
         }

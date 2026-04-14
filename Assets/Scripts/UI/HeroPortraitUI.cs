@@ -14,14 +14,14 @@ namespace RoguelikeTCG.UI
         [Tooltip("True = player's own portrait. False = enemy portrait.")]
         public bool isPlayerPortrait;
 
-        [Tooltip("Image enfant qui affiche le portrait du héros (masqué par RectMask2D du parent).")]
-        public Image portraitImage;
-
+        private Image   _image;
         private Outline _outline;
         private static readonly Color HeroHighlightColor = new Color(1f, 0.92f, 0.2f, 1f);
 
         private void Awake()
         {
+            _image = GetComponent<Image>();
+
             _outline = gameObject.AddComponent<Outline>();
             _outline.effectColor = HeroHighlightColor;
             _outline.effectDistance = new Vector2(6, -6);
@@ -35,8 +35,7 @@ namespace RoguelikeTCG.UI
 
         public void SetPortrait(Sprite sprite)
         {
-            if (portraitImage != null)
-                portraitImage.sprite = sprite;
+            if (_image != null) _image.sprite = sprite;
         }
 
         public void OnPointerClick(PointerEventData eventData)
