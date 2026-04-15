@@ -38,11 +38,13 @@ namespace RoguelikeTCG.UI
 
         public void Show()
         {
+            Time.timeScale = 0f;
             if (window != null) window.SetActive(true);
         }
 
         public void Hide()
         {
+            Time.timeScale = 1f;
             if (window != null) window.SetActive(false);
         }
 
@@ -58,6 +60,7 @@ namespace RoguelikeTCG.UI
 
         public void OnAbandonRun()
         {
+            Time.timeScale = 1f;
             if (RunPersistence.Instance != null && RunPersistence.Instance.HasActiveRun)
                 RunPersistence.Instance.AwardRunXPAndReset();
             SceneManager.LoadScene("MainMenu");
