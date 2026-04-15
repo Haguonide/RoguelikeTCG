@@ -35,6 +35,7 @@ namespace RoguelikeTCG.UI
 
         public void SetPortrait(Sprite sprite)
         {
+            if (_image == null) _image = GetComponent<Image>();
             if (_image != null) _image.sprite = sprite;
         }
 

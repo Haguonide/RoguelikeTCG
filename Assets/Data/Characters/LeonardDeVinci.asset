@@ -15,7 +15,7 @@ MonoBehaviour:
   characterName: "L\xE9onard de Vinci"
   description: "G\xE9nie universel. Son deck m\xEAle unit\xE9s polyvalentes et sorts
     ing\xE9nieux."
-  portrait: {fileID: 21300000, guid: 0ad898da3547ebe4e980e355bbf7c14b, type: 3}
+  portrait: {fileID: 21300000, guid: c16b1b736eee80c44999e82daa9c5228, type: 3}
   maxHP: 80
   startingDeck:
   - {fileID: 11400000, guid: 67d7966b3dbef1c46827fd780b453b5f, type: 2}

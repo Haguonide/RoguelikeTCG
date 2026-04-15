@@ -40,6 +40,11 @@ namespace RoguelikeTCG.UI
             SceneManager.LoadScene("RunMap");
         }
 
+        public void OnOptions()
+        {
+            OptionsPanel.Instance?.Show();
+        }
+
         public void OnNewGame()
         {
             // Si une run était en cours lors d'un abandon (retour au menu sans défaite
