@@ -35,10 +35,10 @@
 
 Roguelike deckbuilder de type stratégique, inspiré de **Slay the Spire** et **The Royal Writ**.
 
-- **Univers** : Tournoi de cartes entre Figures Historiques (ex : Léonard de Vinci, Jules César…)
-- **Ambiance** : Médiévale / taverne. Sérieuse avec touches d'humour subtil.
-- **Perspective** : Top-down. Le plateau ressemble à une table de taverne ou une arène.
-- **Style graphique** : Illustration papier, grainée et texturée, sobre, légèrement désaturée. Textures papier, grain, hachures légères, contours doux légèrement irréguliers. Palette légèrement désaturée pour effet d'illustration peinte. Cohérence graphique stricte sur tous les éléments (plateau, cartes, boutons, UI).
+- **Univers** : Un dieu fatigué organise un tournoi de cartes pour trouver son successeur. Les participants sont des figures historiques réinterprétées de façon absurde et anachronique (ex : Léonard de Vinci inventeur alcoolique, Jules César agent immobilier "Veni Vidi Vendu", Marie Curie baronne de la drogue…).
+- **Ton** : Absurde assumé. Humour noir, anachronisme volontaire, grotesque maîtrisé.
+- **Structure narrative** : 5 chapitres organisés autour de 4 régions du royaume (Le Vice, Le Contrôle, La Guerre, Le Spectacle). Boss final : Jules César. Destination finale : le Bureau du Dieu.
+- **Style graphique** : Inspiré de **Wildfrost** — personnages aux proportions trapues (stocky), contours épais et gras (bold outlines), cel shading flat, couleurs vives légèrement désaturées (bright muted colors). Template de carte en métal industriel avec rivets. Cohérence graphique stricte sur tous les éléments.
 
 ---
 
@@ -64,8 +64,8 @@ Roguelike deckbuilder de type stratégique, inspiré de **Slay the Spire** et **
     - Héros allié : image placée sous le board allié.
     - Héros ennemi : image placée au-dessus du board ennemi.
   - **Sorts ciblant les unités sur le terrain**.
-- **Format des cartes** : TCG classique (style Pokémon / Magic).
-- **Raretés** : commune → légendaire.
+- **Format des cartes** : TCG classique (style Pokémon / Magic). Template métal industriel avec rivets.
+- **Raretés** : Commune / Rare / Épique / Légendaire.
 - Les cartes peuvent être **upgradées**.
 - Pas d'effets cumulables ou de réactions complexes pendant le combat.
 
@@ -135,18 +135,31 @@ Roguelike deckbuilder de type stratégique, inspiré de **Slay the Spire** et **
 | Mystère | Inconnu jusqu'à l'arrivée |
 
 ### Marchand
-- Acheter une carte
+- Acheter une carte (du pool du personnage joué, toutes raretés)
 - Acheter une relique
 - Vendre une carte du deck
 - (La forge est un nœud séparé)
+
+### Récompenses de combat
+- Après victoire : choisir 1 carte parmi 3 proposées (tirées du pool du personnage, toutes raretés, **uniquement les versions de base** — jamais de carte upgradée)
+- Les cartes upgradées (+) s'obtiennent **exclusivement à la Forge**
+
+### Forge — Système de fusion
+- Déposer **3 copies identiques** d'une même carte → obtenir **1 exemplaire de cette carte upgradée (+)**
+- **Coût en or : aucun** — le coût, c'est le sacrifice des 3 copies
+- Le deck perd 2 cartes nettes (3 → 1)
+- **Fusion bloquée si le deck descend sous 20 cartes** (règle de deck minimum)
+- **Une seule chaîne d'upgrade** : Normal → + (pas de ++)
+- Les cartes upgradées ne sont jamais proposées en récompense de combat ni au Shop
 
 ---
 
 ## 🏆 Structure d'un Run
 
-- **Chapitre introductif** : 10 lignes, sert à tester toutes les features.
+- **5 chapitres** au total, organisés autour de 4 régions : Le Vice, Le Contrôle, La Guerre, Le Spectacle.
+- **Chapitre introductif** : 10 lignes, sert à tester toutes les features. Priorité : niveau introductif 100% fonctionnel avant d'étendre.
 - Le chapitre introductif comporte un **mini-boss** (déblocage d'une relique).
-- Structure à étendre dans les chapitres suivants (à définir ultérieurement).
+- Chapitres suivants : à définir ultérieurement.
 
 ---
 
@@ -157,12 +170,35 @@ Roguelike deckbuilder de type stratégique, inspiré de **Slay the Spire** et **
 
 ---
 
-## 🧙 Personnages (niveau introductif)
+## 🧙 Personnages
 
-| Rôle | Personnage |
-|---|---|
-| Joueur | **Léonard de Vinci** |
-| Ennemis, mini-boss, boss | **Jules César** |
+### Niveau introductif (prototype en cours)
+
+| Rôle | Personnage | Personnalité |
+|---|---|---|
+| Joueur | **Léonard de Vinci** | Inventeur alcoolique |
+| Joueur (futur) | **Marie Curie** | Baronne de la drogue |
+| Mini-boss / ennemis | **Jules César** | Agent immobilier ("Veni Vidi Vendu") |
+| Boss final | **Jules César** | — |
+
+### Decks prévus
+
+**Léonard de Vinci — Contrôle / Survie**
+Unités défensives solides, heal abondant, dégâts modérés. Survit par les HP.
+9 unités illustrées + 4 sorts illustrés, thème inventions ratées mêlant XVe siècle et modernité.
+
+**Marie Curie — Contrôle par l'affaiblissement (Poison/Débuff)**
+Neutralise les unités ennemies via des sorts qui réduisent leur ATK avant le clash. Survit en rendant les ennemis inoffensifs. Moins de heal que De Vinci, pas de gros sort burst.
+Nouveau type d'effet requis : `ReduceEnemyUnitATK` (valeur négative appliquée à une unité ennemie ciblée).
+
+**Jules César — Agression / Puissance brute (Boss)**
+Unités avec meilleurs stats que les persos jouables, sorts 20-30% plus forts à coût égal. Écrase par la puissance brute.
+- Autres personnages du roster en cours de définition (Napoléon startup founder, Ada Lovelace, Attila, Shakespeare, Cléopâtre…)
+
+### Assets portraits disponibles
+- Léonard de Vinci ✅
+- Marie Curie ✅
+- Jules César ✅
 
 ---
 
@@ -183,6 +219,7 @@ Assets/
 │   │   └── Spells/
 │   ├── Characters/
 │   │   ├── LeonardDeVinci/
+│   │   ├── MarieCurie/
 │   │   └── JulesCesar/
 │   ├── UI/
 │   ├── Boards/
@@ -221,19 +258,25 @@ Assets/
 
 ---
 
-## 📋 Ordre de développement prévu
+## 📋 État d'avancement et priorités
 
-1. **Scène Combat** (en premier) :
-   - Architecture ScriptableObjects (cartes, reliques, personnages)
-   - Boards + lanes + slots
-   - Système deck / main / défausse
-   - Système mana + tour par tour
-   - IA ennemie simple
-   - Résolution des attaques board par board + animations
-   - UI complète (infos joueur, infos ennemis, logs, boutons boards, clic droit carte)
-   - Sauvegarde
-2. **Scène MenuPrincipal**
-3. **Scène RunMap** (arbre de progression procédural)
+### ✅ Réalisé
+- Scène Combat complète (boards, lanes, deck, mana, IA, animations, UI)
+- Scène RunMap (arbre de progression, nœuds, scroll)
+- Scène MainMenu + CharacterSelect
+- Nœuds non-combat (Rest, Forge, Shop, Event, Mystery)
+- Système or, reliques, sauvegarde disque, leveling de compte
+- Assets : portraits De Vinci / Curie / César, icônes map, icônes stats (HP/ATK)
+- 13 illustrations deck De Vinci (9 unités + 4 sorts)
+
+### 🔄 En cours / Priorité immédiate
+- **Réécriture des 3 decks** (De Vinci, Marie Curie, César) avec équilibrage poussé — les cartes existantes sont à remplacer
+- **Niveau introductif 100% fonctionnel** pour premiers tests joueurs
+
+### 📌 Après le prototype introductif
+- Chapitres suivants (régions, structure narrative)
+- Roster complet (en cours de définition)
+- Équilibrage approfondi
 
 ---
 

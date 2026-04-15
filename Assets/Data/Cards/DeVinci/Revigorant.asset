@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
+  m_Name: Revigorant
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
+  cardName: Revigorant
+  description: "La recette secr\xE8te de L\xE9onard. Go\xFBt de vinaigre, effets
+    miraculeux. Ne demandez pas les ingr\xE9dients."
+  artwork: {fileID: 0}
+  cardType: 1
+  rarity: 2
+  manaCost: 2
+  attackPower: 0
+  maxHP: 0
+  spellTarget: 0
+  effects:
+  - effectType: 1
+    value: 8
+    target: 0
+  upgradedVersion: {fileID: 11400000, guid: 4510b1dcca4cb524d9a41c90764cec2a, type: 2}

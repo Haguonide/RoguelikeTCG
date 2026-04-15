@@ -59,11 +59,10 @@ namespace RoguelikeTCG.UI
 
             // Couche 2 : illustration
             var illuGO  = MakeChild("Illustration", go);
-            SetAnchors(illuGO, 0.03f, 0.38f, 0.97f, 0.80f);
+            SetAnchors(illuGO, 0f, 0f, 1f, 1f);
             var illuImg = illuGO.GetComponent<Image>();
-            illuImg.color          = Color.white;
-            illuImg.preserveAspect = true;
-            illuImg.raycastTarget  = false;
+            illuImg.color         = Color.white;
+            illuImg.raycastTarget = false;
 
             // Couche 3 : devant
             var frontGO  = MakeChild("Front", go);
