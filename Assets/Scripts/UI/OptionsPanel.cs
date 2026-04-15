@@ -23,6 +23,8 @@ namespace RoguelikeTCG.UI
         private const string KEY_LANGUAGE   = "opt_language";
         private const string KEY_FULLSCREEN = "opt_fullscreen";
 
+        public bool IsOpen => window != null && window.activeSelf;
+
         private void Awake()
         {
             if (Instance != null) { Destroy(this); return; }
