@@ -38,4 +38,16 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f2456969720e9824a879a70546bbdf4a, type: 2}
   - {fileID: 11400000, guid: 666e14bc7b767f04291a3c495aacbf7a, type: 2}
   - {fileID: 11400000, guid: 666e14bc7b767f04291a3c495aacbf7a, type: 2}
+  cardPool:
+  - {fileID: 11400000, guid: 562acc9a8cd7b8e43add8159526e97e4, type: 2}
+  - {fileID: 11400000, guid: e75d05818f22b004b919321d09a2d556, type: 2}
+  - {fileID: 11400000, guid: f842001b58d10b7418ff5ba2d44a3a66, type: 2}
+  - {fileID: 11400000, guid: dc099bf27af6c7547bb21419879d3ae3, type: 2}
+  - {fileID: 11400000, guid: 6de2219515d79244c9c2f8550da55c0f, type: 2}
+  - {fileID: 11400000, guid: 519d575321e2a544c89f8068c233f712, type: 2}
+  - {fileID: 11400000, guid: 881a9b7e768ca6243b5cc73663ed8f73, type: 2}
+  - {fileID: 11400000, guid: f2456969720e9824a879a70546bbdf4a, type: 2}
+  - {fileID: 11400000, guid: 666e14bc7b767f04291a3c495aacbf7a, type: 2}
+  - {fileID: 11400000, guid: aeb5fbc5baea4204ca7ddf176fbca8c6, type: 2}
+  - {fileID: 11400000, guid: 9c1c08df32ede394a81dcccf27a2d912, type: 2}
   startingRelic: {fileID: 0}

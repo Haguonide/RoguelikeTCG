@@ -17,6 +17,9 @@ namespace RoguelikeTCG.Data
         [Header("Starting Deck")]
         public List<CardData> startingDeck; // 20 cards
 
+        [Header("Card Pool (récompenses de combat — cartes de base uniquement, jamais de +)")]
+        public List<CardData> cardPool;
+
         [Header("Starting Relic")]
         public RelicData startingRelic;
     }

@@ -80,6 +80,10 @@ namespace RoguelikeTCG.Combat
             if (persistence?.SelectedCharacter != null)
                 playerCharacter = persistence.SelectedCharacter;
 
+            // Pool de récompenses : utiliser le cardPool du personnage s'il est défini
+            if (playerCharacter?.cardPool != null && playerCharacter.cardPool.Count > 0)
+                rewardCardPool = new List<CardData>(playerCharacter.cardPool);
+
             // HP joueur : reprendre depuis RunPersistence si disponible
             if (persistence != null && persistence.PlayerHP > 0)
             {
