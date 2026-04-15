@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: "R\xE9veil explosif"
   description: "Le r\xE9veil de L\xE9onard. N'a jamais fonctionn\xE9 comme pr\xE9vu.
     Tr\xE8s efficace autrement."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: ab9551e9f2e81444da0b1e5210a81b78, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 2

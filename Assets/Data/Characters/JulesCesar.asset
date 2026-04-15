@@ -13,28 +13,29 @@ MonoBehaviour:
   m_Name: JulesCesar
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CharacterData
   characterName: "Jules C\xE9sar"
-  description: 
+  description: "Agent immobilier. Veni Vidi Vendu. Son deck vous \xE9crase par la
+    puissance brute."
   portrait: {fileID: 21300000, guid: c16b1b736eee80c44999e82daa9c5228, type: 3}
-  maxHP: 60
+  maxHP: 100
   startingDeck:
-  - {fileID: 11400000, guid: 67d7966b3dbef1c46827fd780b453b5f, type: 2}
-  - {fileID: 11400000, guid: 67d7966b3dbef1c46827fd780b453b5f, type: 2}
-  - {fileID: 11400000, guid: 67d7966b3dbef1c46827fd780b453b5f, type: 2}
-  - {fileID: 11400000, guid: 57ef639e70c8e594d9ccfb856d288ff8, type: 2}
-  - {fileID: 11400000, guid: 57ef639e70c8e594d9ccfb856d288ff8, type: 2}
-  - {fileID: 11400000, guid: 57ef639e70c8e594d9ccfb856d288ff8, type: 2}
-  - {fileID: 11400000, guid: 8a0e4f84314cc704291f7f101bb93202, type: 2}
-  - {fileID: 11400000, guid: 8a0e4f84314cc704291f7f101bb93202, type: 2}
-  - {fileID: 11400000, guid: 8a0e4f84314cc704291f7f101bb93202, type: 2}
-  - {fileID: 11400000, guid: 02efc721896c4b7488df446c7f06ad11, type: 2}
-  - {fileID: 11400000, guid: 02efc721896c4b7488df446c7f06ad11, type: 2}
-  - {fileID: 11400000, guid: 02efc721896c4b7488df446c7f06ad11, type: 2}
-  - {fileID: 11400000, guid: f4a6ccb3a1ce46643b837301b5dba1d5, type: 2}
-  - {fileID: 11400000, guid: f4a6ccb3a1ce46643b837301b5dba1d5, type: 2}
-  - {fileID: 11400000, guid: a5c2e90126ccb2443b8884f2c799752d, type: 2}
-  - {fileID: 11400000, guid: a5c2e90126ccb2443b8884f2c799752d, type: 2}
-  - {fileID: 11400000, guid: 3d04b1e9e1f48d44ab6d1147928469e3, type: 2}
-  - {fileID: 11400000, guid: 3d04b1e9e1f48d44ab6d1147928469e3, type: 2}
-  - {fileID: 11400000, guid: 9d2541c9cb105a24d83fffedb0bdce90, type: 2}
-  - {fileID: 11400000, guid: f5b9b5678476b784c9d1f3c267978502, type: 2}
+  - {fileID: 11400000, guid: 562acc9a8cd7b8e43add8159526e97e4, type: 2}
+  - {fileID: 11400000, guid: 562acc9a8cd7b8e43add8159526e97e4, type: 2}
+  - {fileID: 11400000, guid: 562acc9a8cd7b8e43add8159526e97e4, type: 2}
+  - {fileID: 11400000, guid: e75d05818f22b004b919321d09a2d556, type: 2}
+  - {fileID: 11400000, guid: e75d05818f22b004b919321d09a2d556, type: 2}
+  - {fileID: 11400000, guid: e75d05818f22b004b919321d09a2d556, type: 2}
+  - {fileID: 11400000, guid: f842001b58d10b7418ff5ba2d44a3a66, type: 2}
+  - {fileID: 11400000, guid: f842001b58d10b7418ff5ba2d44a3a66, type: 2}
+  - {fileID: 11400000, guid: dc099bf27af6c7547bb21419879d3ae3, type: 2}
+  - {fileID: 11400000, guid: dc099bf27af6c7547bb21419879d3ae3, type: 2}
+  - {fileID: 11400000, guid: 6de2219515d79244c9c2f8550da55c0f, type: 2}
+  - {fileID: 11400000, guid: 6de2219515d79244c9c2f8550da55c0f, type: 2}
+  - {fileID: 11400000, guid: 519d575321e2a544c89f8068c233f712, type: 2}
+  - {fileID: 11400000, guid: 519d575321e2a544c89f8068c233f712, type: 2}
+  - {fileID: 11400000, guid: 881a9b7e768ca6243b5cc73663ed8f73, type: 2}
+  - {fileID: 11400000, guid: 881a9b7e768ca6243b5cc73663ed8f73, type: 2}
+  - {fileID: 11400000, guid: f2456969720e9824a879a70546bbdf4a, type: 2}
+  - {fileID: 11400000, guid: f2456969720e9824a879a70546bbdf4a, type: 2}
+  - {fileID: 11400000, guid: 666e14bc7b767f04291a3c495aacbf7a, type: 2}
+  - {fileID: 11400000, guid: 666e14bc7b767f04291a3c495aacbf7a, type: 2}
   startingRelic: {fileID: 0}

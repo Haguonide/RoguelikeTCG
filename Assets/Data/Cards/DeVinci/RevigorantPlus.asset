@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Revigorant+
   description: "Recette am\xE9lior\xE9e. L\xE9onard a ajout\xE9 un ingr\xE9dient
     secret. Il ne s'en souvient plus."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: cdcd957e5b2770d409bc9bf4b3c3093c, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 1

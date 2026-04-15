@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
+  m_Name: MC_UnitRare2Plus
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
+  cardName: MC_UnitRare2Plus
+  description: Endurance maximale. Elle ne mourra probablement pas avant la fin du
+    combat.
+  artwork: {fileID: 0}
+  cardType: 0
+  rarity: 2
+  manaCost: 0
+  attackPower: 1
+  maxHP: 4
+  spellTarget: 0
+  effects: []
+  upgradedVersion: {fileID: 0}

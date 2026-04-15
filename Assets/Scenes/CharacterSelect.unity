@@ -2452,8 +2452,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf66cd0339b6f1f4d8a50b60e2b6018d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.UI.CharacterCardUI
-  character: {fileID: 11400000, guid: 95f3440a27135c4438e61cd8346d99b5, type: 2}
+  character: {fileID: 11400000, guid: 22e8a553d120f0b4db5ee84b910b4355, type: 2}
   portraitImage: {fileID: 1339897462}
+  nameText: {fileID: 538521898}
+  descText: {fileID: 401374858}
+  hpText: {fileID: 666896884}
+  relicText: {fileID: 254546169}
 --- !u!1 &498503677
 GameObject:
   m_ObjectHideFlags: 0
@@ -3217,6 +3221,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.UI.CharacterCardUI
   character: {fileID: 11400000, guid: 876b50d16c3c06046b2516179ebe7a0e, type: 2}
   portraitImage: {fileID: 874149925}
+  nameText: {fileID: 1183630502}
+  descText: {fileID: 307445586}
+  hpText: {fileID: 1403520714}
+  relicText: {fileID: 1969283208}
 --- !u!1 &741840310
 GameObject:
   m_ObjectHideFlags: 0

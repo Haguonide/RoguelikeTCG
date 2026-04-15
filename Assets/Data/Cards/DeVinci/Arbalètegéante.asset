@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: "Arbal\xE8te g\xE9ante"
   description: "Sur roues. Longue \xE0 recharger. D\xE9vastatrice quand \xE7a marche.
     \xC7a marche rarement."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: 401a587fb6bf7ab418f607f6f92eaeda, type: 3}
   cardType: 0
   rarity: 2
   manaCost: 0

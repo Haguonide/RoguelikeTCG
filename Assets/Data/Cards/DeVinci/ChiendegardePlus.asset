@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Chien de garde+
   description: "L'oreille manquante a \xE9t\xE9 retrouv\xE9e. Et fix\xE9e du mauvais
     c\xF4t\xE9."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: 24e8fefe208203a4e8ce24d278ae4be3, type: 3}
   cardType: 0
   rarity: 2
   manaCost: 0

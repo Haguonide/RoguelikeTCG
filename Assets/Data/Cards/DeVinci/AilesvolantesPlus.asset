@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Ailes volantes+
   description: "Mieux fix\xE9es cette fois. L'unit\xE9 atteint des vitesses inqui\xE9tantes."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: b00acc12a746e974682a3cf39307dc5f, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 1

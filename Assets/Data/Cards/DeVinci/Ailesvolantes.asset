@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Ailes volantes
   description: "Attacher des ailes \xE0 n'importe quoi. R\xE9sultat : \xE7a va plus
     vite et \xE7a fait beaucoup plus mal."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: b00acc12a746e974682a3cf39307dc5f, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 2

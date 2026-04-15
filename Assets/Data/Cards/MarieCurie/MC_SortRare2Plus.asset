@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
+  m_Name: MC_SortRare2Plus
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
+  cardName: MC_SortRare2Plus
+  description: "Antidote purifi\xE9. Beaucoup plus efficace. Marie a enfin trouv\xE9
+    la bonne formule."
+  artwork: {fileID: 0}
+  cardType: 1
+  rarity: 2
+  manaCost: 1
+  attackPower: 0
+  maxHP: 0
+  spellTarget: 0
+  effects:
+  - effectType: 1
+    value: 6
+    target: 0
+  upgradedVersion: {fileID: 0}

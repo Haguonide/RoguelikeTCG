@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Dragon
   description: Robot-dragon. Une seule aile, trois pattes. Instable. Terriblement
     redoutable.
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: bcfbeaaa871751147bf79612de6ae648, type: 3}
   cardType: 0
   rarity: 3
   manaCost: 0

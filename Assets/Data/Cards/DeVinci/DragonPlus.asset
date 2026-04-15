@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Dragon+
   description: "La deuxi\xE8me aile a \xE9t\xE9 retrouv\xE9e. Deux ailes, trois pattes,
     d\xE9g\xE2ts doubl\xE9s."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: bcfbeaaa871751147bf79612de6ae648, type: 3}
   cardType: 0
   rarity: 3
   manaCost: 0

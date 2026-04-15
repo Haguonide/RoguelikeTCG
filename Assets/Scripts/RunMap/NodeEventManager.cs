@@ -96,38 +96,88 @@ namespace RoguelikeTCG.RunMap
 
         private void ShowForge()
         {
-            var deck = RunPersistence.Instance?.PlayerDeck;
-            var upgradable = new List<CardData>();
-            if (deck != null)
-                foreach (var c in deck)
-                    if (c != null && c.upgradedVersion != null)
-                        upgradable.Add(c);
+            var p    = RunPersistence.Instance;
+            var deck = p?.PlayerDeck;
 
             var overlay = MakeOverlay("ForgeOverlay");
             MakeTitle(overlay, "Forge");
 
-            if (upgradable.Count == 0)
+            // Compter les copies de chaque carte
+            var counts = new Dictionary<CardData, int>();
+            if (deck != null)
+                foreach (var c in deck)
+                    if (c != null && c.upgradedVersion != null)
+                        counts[c] = counts.ContainsKey(c) ? counts[c] + 1 : 1;
+
+            // Cartes éligibles : ≥ 3 copies
+            var eligible = new List<CardData>();
+            foreach (var kv in counts)
+                if (kv.Value >= 3) eligible.Add(kv.Key);
+
+            bool deckTooSmall = deck == null || deck.Count < 22; // 3→1 = −2, plancher 20
+
+            if (eligible.Count == 0 || deckTooSmall)
             {
-                MakeSubtitle(overlay, "Aucune de vos cartes ne peut être améliorée pour le moment.");
+                string msg = deckTooSmall
+                    ? "Votre deck est trop petit pour fusionner (minimum 22 cartes requis)."
+                    : "Vous n'avez pas 3 copies identiques d'une même carte.";
+                MakeSubtitle(overlay, msg);
                 var ok = MakeButton(overlay, "BtnOk", 0.38f, 0.35f, 0.62f, 0.45f,
                     new Color(0.22f, 0.22f, 0.26f), "Continuer");
                 ok.onClick.AddListener(() => Destroy(overlay));
                 return;
             }
 
-            MakeSubtitle(overlay, "Choisissez une carte à améliorer.");
+            MakeSubtitle(overlay, "Fusionnez 3 copies identiques → 1 carte améliorée (+). Le deck perd 2 cartes.");
 
-            ShowCardGrid(overlay, upgradable, card =>
+            // Grille : une entrée par carte unique éligible (max 5)
+            int count = Mathf.Min(eligible.Count, 5);
+            float totalW = count * 0.16f + (count - 1) * 0.02f;
+            float startX = 0.5f - totalW / 2f;
+
+            for (int i = 0; i < count; i++)
             {
-                var p = RunPersistence.Instance;
-                if (p?.PlayerDeck != null)
+                var card = eligible[i];
+                int copies = counts[card];
+                float x0 = startX + i * 0.18f;
+                float x1 = x0 + 0.16f;
+
+                var cardGO = new GameObject($"ForgeCard_{i}", typeof(RectTransform));
+                cardGO.transform.SetParent(overlay.transform, false);
+                SetAnchors(cardGO, x0, 0.22f, x1, 0.72f);
+                cardGO.AddComponent<Image>();
+                var btn = cardGO.AddComponent<Button>();
+                CardUIBuilder.ApplyTemplate(card, cardGO);
+
+                // Label "×N / 3 requis"
+                var labelGO = new GameObject($"CopiesLabel_{i}", typeof(RectTransform));
+                labelGO.transform.SetParent(overlay.transform, false);
+                SetAnchors(labelGO, x0, 0.14f, x1, 0.22f);
+                var lbl = labelGO.AddComponent<TextMeshProUGUI>();
+                lbl.text      = $"×{copies} (3 requis)";
+                lbl.fontSize  = 14f;
+                lbl.alignment = TextAlignmentOptions.Center;
+                lbl.color     = new Color(1f, 0.85f, 0.1f);
+
+                var capturedCard = card;
+                var capturedOverlay = overlay;
+                btn.onClick.AddListener(() =>
                 {
-                    int idx = p.PlayerDeck.IndexOf(card);
-                    if (idx >= 0) p.PlayerDeck[idx] = card.upgradedVersion;
-                    p.SaveToDisk();
-                }
-                Destroy(overlay);
-            });
+                    var run = RunPersistence.Instance;
+                    if (run?.PlayerDeck == null) return;
+
+                    // Retirer 3 copies
+                    int removed = 0;
+                    for (int j = run.PlayerDeck.Count - 1; j >= 0 && removed < 3; j--)
+                        if (run.PlayerDeck[j] == capturedCard) { run.PlayerDeck.RemoveAt(j); removed++; }
+
+                    // Ajouter 1 version upgradée
+                    run.PlayerDeck.Add(capturedCard.upgradedVersion);
+                    run.SaveToDisk();
+
+                    Destroy(capturedOverlay);
+                });
+            }
 
             var skipBtn = MakeButton(overlay, "BtnSkip", 0.38f, 0.05f, 0.62f, 0.14f,
                 new Color(0.22f, 0.22f, 0.26f), "Passer");

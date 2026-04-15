@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: "R\xE9veil explosif+"
   description: "Encore plus explosif. L\xE9onard lui-m\xEAme a \xE9t\xE9 surpris
     du r\xE9sultat."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: ab9551e9f2e81444da0b1e5210a81b78, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 2
