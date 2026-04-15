@@ -39,6 +39,7 @@ namespace RoguelikeTCG.UI
 
         public void Show()
         {
+            transform.SetAsLastSibling(); // Toujours au-dessus du PauseMenu
             RefreshUI();
             if (window != null) window.SetActive(true);
         }
