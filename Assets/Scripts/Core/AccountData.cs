@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
+using RoguelikeTCG.Data;
 using RoguelikeTCG.SaveSystem;
 
 namespace RoguelikeTCG.Core
@@ -34,6 +36,8 @@ namespace RoguelikeTCG.Core
         /// <summary>Déclenché après chaque changement d'XP ou de niveau.</summary>
         public event System.Action OnProgressChanged;
 
+        private AccountLevelReward[] _allRewards = new AccountLevelReward[0];
+
         // ── Cycle de vie Unity ────────────────────────────────────────────────
 
         private void Awake()
@@ -42,6 +46,7 @@ namespace RoguelikeTCG.Core
             _instance = this;
             DontDestroyOnLoad(gameObject);
             AccountSave.LoadInto(this);
+            _allRewards = Resources.LoadAll<AccountLevelReward>("LevelRewards");
         }
 
         // ── XP et niveaux ─────────────────────────────────────────────────────
@@ -94,10 +99,26 @@ namespace RoguelikeTCG.Core
             Debug.Log($"[AccountData] +{amount} XP → Niv.{AccountLevel} ({CurrentXP}/{GetXPRequiredForLevel(AccountLevel)} XP)");
         }
 
+        /// <summary>
+        /// Retourne toutes les récompenses débloquées pour un personnage donné
+        /// (level requis &lt;= niveau actuel, filtre personnage respecté).
+        /// </summary>
+        public List<AccountLevelReward> GetUnlockedRewards(CharacterData character)
+        {
+            var result = new List<AccountLevelReward>();
+            foreach (var r in _allRewards)
+            {
+                if (r == null) continue;
+                if (r.requiredLevel > AccountLevel) continue;
+                if (r.characterFilter != null && r.characterFilter != character) continue;
+                result.Add(r);
+            }
+            return result;
+        }
+
         private void OnLevelUp(int newLevel)
         {
             Debug.Log($"[AccountData] *** NIVEAU {newLevel} ATTEINT ! ***");
-            // Future : distribuer les récompenses du niveau (AccountLevelReward)
         }
 
         // ── Initialisation interne (appelée depuis AccountSave.LoadInto) ──────

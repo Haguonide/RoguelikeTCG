@@ -204,10 +204,9 @@ namespace RoguelikeTCG.RunMap
             goldTMP.alignment = TextAlignmentOptions.Center;
             goldTMP.color     = new Color(0.95f, 0.82f, 0.35f);
 
-            // Utiliser le cardPool du personnage sélectionné, pas toutes les cartes
-            var character = p?.SelectedCharacter;
-            var sourcePool = (character != null && character.cardPool != null && character.cardPool.Count > 0)
-                ? character.cardPool
+            // Utiliser le pool effectif de la run (cardPool + épiques débloquées via leveling)
+            var sourcePool = (p?.EffectiveCardPool != null && p.EffectiveCardPool.Count > 0)
+                ? p.EffectiveCardPool
                 : (registry != null ? registry.allCards : null);
 
             if (sourcePool == null || sourcePool.Count == 0)

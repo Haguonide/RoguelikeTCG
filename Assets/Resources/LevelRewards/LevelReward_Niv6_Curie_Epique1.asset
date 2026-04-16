@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d28478d7d353bd4fbc2e9e4f6b803fb, type: 3}
+  m_Name: LevelReward_Niv6_Curie_Epique1
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.AccountLevelReward
+  requiredLevel: 6
+  characterFilter: {fileID: 11400000, guid: 22e8a553d120f0b4db5ee84b910b4355, type: 2}
+  rewardType: 3
+  cardReward: {fileID: 11400000, guid: b1ab473dc0af5754e9de82b63b23d06c, type: 2}
+  relicReward: {fileID: 0}
+  description: "Niveau 6 \u2014 Marie Curie d\xE9bloque l'Unit\xE9 \xE9pique 1 dans son pool de r\xE9compenses."

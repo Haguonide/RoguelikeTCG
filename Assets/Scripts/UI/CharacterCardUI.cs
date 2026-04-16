@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using RoguelikeTCG.Core;
 using RoguelikeTCG.Data;
 
 namespace RoguelikeTCG.UI
@@ -46,14 +47,43 @@ namespace RoguelikeTCG.UI
             if (descText  != null) descText.text  = character.description;
             if (hpText    != null) hpText.text    = $"❤ {character.maxHP} HP";
             if (relicText != null)
-                relicText.text = character.startingRelic != null
-                    ? character.startingRelic.relicName
-                    : "—";
+                relicText.text = GetRelicDisplayText();
         }
 
         public void SetSelected(bool selected)
         {
             if (_outline != null) _outline.enabled = selected;
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────
+
+        private string GetRelicDisplayText()
+        {
+            if (character == null) return "—";
+
+            var acct = AccountData.Instance;
+            var rewards = acct.GetUnlockedRewards(character);
+
+            // Chercher une StartingRelic déjà débloquée pour ce personnage
+            foreach (var r in rewards)
+            {
+                if (r.rewardType == AccountRewardType.StartingRelic && r.relicReward != null)
+                    return r.relicReward.relicName;
+            }
+
+            // Aucune relique débloquée — trouver le prochain palier
+            var allRewards = Resources.LoadAll<AccountLevelReward>("LevelRewards");
+            int nextLevel = int.MaxValue;
+            foreach (var r in allRewards)
+            {
+                if (r == null) continue;
+                if (r.rewardType != AccountRewardType.StartingRelic) continue;
+                if (r.characterFilter != null && r.characterFilter != character) continue;
+                if (r.requiredLevel > acct.AccountLevel && r.requiredLevel < nextLevel)
+                    nextLevel = r.requiredLevel;
+            }
+
+            return nextLevel != int.MaxValue ? $"Niv.{nextLevel} (relique)" : "—";
         }
     }
 }

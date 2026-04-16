@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d28478d7d353bd4fbc2e9e4f6b803fb, type: 3}
+  m_Name: LevelReward_Niv2_DeVinci_CarnetDeGenie
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.AccountLevelReward
+  requiredLevel: 2
+  characterFilter: {fileID: 11400000, guid: 876b50d16c3c06046b2516179ebe7a0e, type: 2}
+  rewardType: 2
+  cardReward: {fileID: 0}
+  relicReward: {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 2}
+  description: "Niveau 2 \u2014 L\xE9onard d\xE9bloque le Carnet de G\xE9nie : pioche +1 carte par tour."

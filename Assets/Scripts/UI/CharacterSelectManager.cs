@@ -56,13 +56,9 @@ namespace RoguelikeTCG.UI
             var persistence = RunPersistence.Instance;
             if (persistence != null)
             {
-                persistence.SelectedCharacter = _selected;
-                persistence.PlayerMaxHP       = _selected.maxHP;
-                persistence.PlayerHP          = _selected.maxHP;
-            }
-
-            if (persistence != null)
+                persistence.InitRun(_selected);
                 persistence.IsNewRun = true;
+            }
 
             SceneManager.LoadScene("RunMap");
         }

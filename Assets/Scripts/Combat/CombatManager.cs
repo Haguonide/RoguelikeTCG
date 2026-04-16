@@ -80,8 +80,10 @@ namespace RoguelikeTCG.Combat
             if (persistence?.SelectedCharacter != null)
                 playerCharacter = persistence.SelectedCharacter;
 
-            // Pool de récompenses : utiliser le cardPool du personnage s'il est défini
-            if (playerCharacter?.cardPool != null && playerCharacter.cardPool.Count > 0)
+            // Pool de récompenses : EffectiveCardPool de la run (cardPool de base + épiques débloquées)
+            if (persistence?.EffectiveCardPool != null && persistence.EffectiveCardPool.Count > 0)
+                rewardCardPool = new List<CardData>(persistence.EffectiveCardPool);
+            else if (playerCharacter?.cardPool != null && playerCharacter.cardPool.Count > 0)
                 rewardCardPool = new List<CardData>(playerCharacter.cardPool);
 
             // HP joueur : reprendre depuis RunPersistence si disponible
@@ -114,17 +116,6 @@ namespace RoguelikeTCG.Combat
                 enemyDeck.InitializeDeck(enemyCharacter.startingDeck, false);
             else
                 enemyDeck.InitializeDeck(new List<CardData>(), false);
-
-            // Relique de départ (premier combat de la run uniquement)
-            if (persistence != null &&
-                (persistence.PlayerRelics == null || persistence.PlayerRelics.Count == 0) &&
-                playerCharacter?.startingRelic != null)
-            {
-                persistence.AddRelic(playerCharacter.startingRelic);
-                // Récupérer l'HP mis à jour si MaxHPBonus
-                playerMaxHP = persistence.PlayerMaxHP;
-                playerHP    = persistence.PlayerHP > 0 ? persistence.PlayerHP : playerMaxHP;
-            }
 
             // Portraits héros
             if (playerCharacter?.portrait != null)

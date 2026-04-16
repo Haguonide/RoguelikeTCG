@@ -51,6 +51,10 @@ namespace RoguelikeTCG.Core
         // ── Reliques ──────────────────────────────────────────────────────────
         public List<RelicData> PlayerRelics = new List<RelicData>();
 
+        // ── Pool de cartes effectif (deck de base + épiques débloquées via leveling) ─
+        // Reconstruit à chaque démarrage / chargement de run. N'est pas sauvegardé sur disque.
+        public List<CardData> EffectiveCardPool = new List<CardData>();
+
         // ── Statistiques de run (pour le calcul d'XP en fin de run) ──────────
         public int NodesVisited = 0;
         public int CombatWins   = 0;
@@ -65,10 +69,65 @@ namespace RoguelikeTCG.Core
 
             // Si pas de run en mémoire, tenter de charger depuis le disque
             if (!HasActiveRun && DiskSave.HasSave())
+            {
                 DiskSave.LoadInto(this);
+                // Reconstruire le pool effectif pour la run chargée
+                if (HasActiveRun && SelectedCharacter != null)
+                    BuildEffectiveCardPool();
+            }
         }
 
         public bool HasActiveRun => Map != null;
+
+        // ── Initialisation d'une nouvelle run ─────────────────────────────────
+
+        /// <summary>
+        /// Point d'entrée unique pour démarrer une nouvelle run.
+        /// Définit le personnage, les HP, le pool effectif et les reliques de leveling.
+        /// </summary>
+        public void InitRun(CharacterData character)
+        {
+            SelectedCharacter = character;
+            PlayerMaxHP       = character.maxHP;
+            PlayerHP          = character.maxHP;
+            BuildEffectiveCardPool();
+            ApplyLevelingRelics();
+        }
+
+        /// <summary>
+        /// Reconstruit EffectiveCardPool = cardPool de base + cartes épiques
+        /// débloquées via le système de leveling pour le personnage sélectionné.
+        /// </summary>
+        private void BuildEffectiveCardPool()
+        {
+            EffectiveCardPool = SelectedCharacter?.cardPool != null
+                ? new List<CardData>(SelectedCharacter.cardPool)
+                : new List<CardData>();
+
+            var rewards = AccountData.Instance.GetUnlockedRewards(SelectedCharacter);
+            foreach (var r in rewards)
+            {
+                if (r.rewardType != AccountRewardType.UnlockCardInPool) continue;
+                if (r.cardReward == null) continue;
+                if (!EffectiveCardPool.Contains(r.cardReward))
+                    EffectiveCardPool.Add(r.cardReward);
+            }
+        }
+
+        /// <summary>
+        /// Applique les reliques débloquées via leveling au démarrage d'une nouvelle run.
+        /// À appeler uniquement à l'init (pas au chargement d'une run sauvegardée).
+        /// </summary>
+        private void ApplyLevelingRelics()
+        {
+            PlayerRelics = new List<RelicData>();
+            var rewards = AccountData.Instance.GetUnlockedRewards(SelectedCharacter);
+            foreach (var r in rewards)
+            {
+                if (r.rewardType == AccountRewardType.StartingRelic && r.relicReward != null)
+                    AddRelic(r.relicReward);
+            }
+        }
 
         public void SavePlayerHP(int hp, int maxHP)
         {
@@ -162,6 +221,7 @@ namespace RoguelikeTCG.Core
             PlayerDeck        = null;
             PlayerGold        = 0;
             PlayerRelics      = new List<RelicData>();
+            EffectiveCardPool = new List<CardData>();
             SelectedCharacter = null;
             NodesVisited      = 0;
             CombatWins        = 0;
