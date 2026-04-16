@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: MC_UnitEpique2Plus
   description: "Am\xE9lior\xE9e. Elle explose mieux."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 3
   manaCost: 0

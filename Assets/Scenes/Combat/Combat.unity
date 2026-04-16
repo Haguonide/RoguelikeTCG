@@ -5941,7 +5941,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 4bb65787d436aa945b80c4f93a742ccd, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c16b1b736eee80c44999e82daa9c5228, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -11748,6 +11748,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd9de3e5e1bd0c442b2ef191f0407e97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.UI.RelicBarUI
+  iconGold: {fileID: 21300000, guid: 98599095cd573f8458f52b7f88f09ec1, type: 3}
+  iconRelique: {fileID: 21300000, guid: 9c9d5b6dea4d3ee4da3ea97a6de6ef8c, type: 3}
 --- !u!1 &983052471
 GameObject:
   m_ObjectHideFlags: 0

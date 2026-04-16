@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: JC_SortRare3Plus
   description: "Prime exceptionnelle. Votre unit\xE9 a \xE9t\xE9 promue PDG. Elle
     frappe encore plus fort."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 1

@@ -204,7 +204,13 @@ namespace RoguelikeTCG.RunMap
             goldTMP.alignment = TextAlignmentOptions.Center;
             goldTMP.color     = new Color(0.95f, 0.82f, 0.35f);
 
-            if (registry == null || registry.allCards == null || registry.allCards.Count == 0)
+            // Utiliser le cardPool du personnage sélectionné, pas toutes les cartes
+            var character = p?.SelectedCharacter;
+            var sourcePool = (character != null && character.cardPool != null && character.cardPool.Count > 0)
+                ? character.cardPool
+                : (registry != null ? registry.allCards : null);
+
+            if (sourcePool == null || sourcePool.Count == 0)
             {
                 MakeSubtitle(overlay, "Le marchand n'a rien à vendre aujourd'hui.");
                 var ok = MakeButton(overlay, "BtnOk", 0.38f, 0.35f, 0.62f, 0.45f,
@@ -215,8 +221,8 @@ namespace RoguelikeTCG.RunMap
 
             MakeSubtitle(overlay, "Achetez une carte ou vendez une carte de votre deck.");
 
-            // Tirer 3 cartes aléatoires
-            var pool = new List<CardData>(registry.allCards);
+            // Tirer 3 cartes aléatoires parmi les cartes de base uniquement (jamais les upgradées)
+            var pool = sourcePool.FindAll(c => c != null && !c.cardName.EndsWith("+"));
             for (int i = pool.Count - 1; i > 0; i--)
             {
                 int j = Random.Range(0, i + 1);
