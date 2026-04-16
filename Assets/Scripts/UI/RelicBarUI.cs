@@ -101,13 +101,15 @@ namespace RoguelikeTCG.UI
                 {
                     if (relics[i] == null) continue;
                     float y = -(padY + (i + 1) * (iconSz + rowGap));
-                    AddIcon($"RelicIcon_{i}", iconRelique, padX, y, iconSz);
+                    var iconGO = AddIcon($"RelicIcon_{i}", iconRelique, padX, y, iconSz, hoverable: true);
+                    var hover  = iconGO.AddComponent<RelicIconHover>();
+                    hover.relic = relics[i];
                 }
             }
         }
 
-        private void AddIcon(string goName, Sprite sprite, float x, float y, float size,
-            Color? tint = null)
+        private GameObject AddIcon(string goName, Sprite sprite, float x, float y, float size,
+            Color? tint = null, bool hoverable = false)
         {
             var go = new GameObject(goName, typeof(RectTransform), typeof(Image));
             go.transform.SetParent(_panel.transform, false);
@@ -121,7 +123,8 @@ namespace RoguelikeTCG.UI
             img.sprite         = sprite;
             img.preserveAspect = true;
             img.color          = tint ?? Color.white;
-            img.raycastTarget  = false;
+            img.raycastTarget  = hoverable; // true uniquement pour les reliques interactives
+            return go;
         }
     }
 }
