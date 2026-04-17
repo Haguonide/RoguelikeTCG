@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
   m_Name: MC_UnitRare2
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
-  cardName: MC_UnitRare2
+  cardName: Cobaye volontaire
   description: Endurante. Elle encaisse. C'est son seul talent mais il est remarquable.
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
