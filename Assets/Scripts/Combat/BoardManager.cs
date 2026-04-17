@@ -24,10 +24,17 @@ namespace RoguelikeTCG.Combat
             }
         }
 
+        public void SetActiveBoardCount(int count)
+        {
+            for (int i = 0; i < boards.Count; i++)
+                boards[i].isActive = i < count;
+            activeBoardIndex = 0;
+        }
+
         public bool AllBoardsDefeated()
         {
             foreach (var board in boards)
-                if (!board.IsDefeated) return false;
+                if (board.isActive && !board.IsDefeated) return false;
             return true;
         }
     }

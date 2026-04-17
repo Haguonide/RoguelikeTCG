@@ -60,7 +60,7 @@ namespace RoguelikeTCG.AI
             for (int bi = 0; bi < boardManager.boards.Count; bi++)
             {
                 var board = boardManager.boards[bi];
-                if (board.IsDefeated) continue;
+                if (!board.isActive || board.IsDefeated) continue;
 
                 foreach (var eLane in board.enemyLanes)
                 {
@@ -170,7 +170,7 @@ namespace RoguelikeTCG.AI
 
             foreach (var board in boardManager.boards)
             {
-                if (board.IsDefeated) continue;
+                if (!board.isActive || board.IsDefeated) continue;
                 foreach (var pLane in board.playerLanes)
                 {
                     if (pLane == null || !pLane.IsOccupied) continue;
@@ -193,7 +193,7 @@ namespace RoguelikeTCG.AI
 
             foreach (var board in boardManager.boards)
             {
-                if (board.IsDefeated) continue;
+                if (!board.isActive || board.IsDefeated) continue;
                 foreach (var eLane in board.enemyLanes)
                 {
                     if (eLane == null || !eLane.IsOccupied) continue;
@@ -384,7 +384,7 @@ namespace RoguelikeTCG.AI
             float total = 0f; int count = 0;
             foreach (var board in boardManager.boards)
             {
-                if (board.IsDefeated) continue;
+                if (!board.isActive || board.IsDefeated) continue;
                 total += (float)board.enemyCurrentHP / Mathf.Max(1, board.enemyMaxHP);
                 count++;
             }
@@ -396,7 +396,7 @@ namespace RoguelikeTCG.AI
             Board best = null; float bestRatio = 2f;
             foreach (var board in boardManager.boards)
             {
-                if (board.IsDefeated) continue;
+                if (!board.isActive || board.IsDefeated) continue;
                 float r = (float)board.enemyCurrentHP / Mathf.Max(1, board.enemyMaxHP);
                 if (r < bestRatio) { bestRatio = r; best = board; }
             }

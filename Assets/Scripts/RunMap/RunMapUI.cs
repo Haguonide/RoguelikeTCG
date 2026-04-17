@@ -48,6 +48,7 @@ namespace RoguelikeTCG.RunMap
         private readonly Dictionary<int, List<GameObject>>                  _rowEdgeGOs  = new Dictionary<int, List<GameObject>>();
         // Clé : (fromRow, fromCol, toRow, toCol) — identifiant unique d'une arête
         private readonly Dictionary<(int, int, int, int), EdgeView>         _edgeViewMap = new Dictionary<(int, int, int, int), EdgeView>();
+        private List<List<RunNode>> _map;
         private Sprite      _circleSprite;
         private ScrollRect  _scrollRect;   // mis en cache dans BuildMap
 
@@ -187,6 +188,7 @@ namespace RoguelikeTCG.RunMap
             Debug.Log($"[RunMapUI] BuildMap — {map?.Count} rows, iconCombat={(iconCombat != null ? "OK" : "NULL")}");
             if (contentRT == null) { Debug.LogError("[RunMapUI] contentRT non assigné !"); return; }
 
+            _map = map;
             _nodeViews.Clear();
             _nodePos.Clear();
             _rowNodeGOs.Clear();
@@ -254,15 +256,64 @@ namespace RoguelikeTCG.RunMap
             Canvas.ForceUpdateCanvases();
             var sr2 = contentRT.GetComponentInParent<ScrollRect>();
             if (sr2 != null) sr2.verticalNormalizedPosition = 0f;
+
+            // Restaurer les couleurs correctes dès le build (retour de combat, chargement save)
+            RefreshNodeStates();
+            RefreshEdgeStates();
         }
 
         // -------------------------------------------------------
-        // Rafraîchir toutes les couleurs (après visite)
+        // Rafraîchir les états visuels (après visite ou rebuild)
         // -------------------------------------------------------
         public void RefreshNodeStates()
         {
             foreach (var kv in _nodeViews)
                 kv.Value.RefreshState();
+        }
+
+        /// <summary>
+        /// Colorie toutes les arêtes selon l'état courant des nœuds :
+        /// vert = chemin parcouru, rouge = définitivement inaccessible, gris = normal.
+        /// Appelé à la fin de BuildMap et après l'animation de navigation.
+        /// </summary>
+        public void RefreshEdgeStates()
+        {
+            foreach (var kv in _edgeViewMap)
+            {
+                var (fromRow, fromCol, toRow, toCol) = kv.Key;
+                var edgeView = kv.Value;
+
+                RunNode fromNode = GetNode(fromRow, fromCol);
+                RunNode toNode   = GetNode(toRow,   toCol);
+
+                Color targetColor;
+                if (fromNode?.state == NodeState.Visited && toNode?.state == NodeState.Visited)
+                    targetColor = EdgeView.ColEdgeVisited;
+                else if (toNode != null && IsNodePermanentlyInaccessible(toNode))
+                    targetColor = EdgeView.ColEdgeInaccessible;
+                else
+                    targetColor = EdgeView.ColEdge;
+
+                foreach (var img in edgeView.DashImages)
+                    if (img) img.color = targetColor;
+            }
+        }
+
+        private static bool IsNodePermanentlyInaccessible(RunNode node)
+        {
+            if (node.state != NodeState.Locked) return false;
+            if (node.parents.Count == 0) return false;
+            foreach (var parent in node.parents)
+                if (parent.state == NodeState.Available) return false;
+            return true;
+        }
+
+        private RunNode GetNode(int row, int col)
+        {
+            if (_map == null || row < 0 || row >= _map.Count) return null;
+            var r = _map[row];
+            if (col < 0 || col >= r.Count) return null;
+            return r[col];
         }
 
         // -------------------------------------------------------
@@ -415,6 +466,10 @@ namespace RoguelikeTCG.RunMap
                     if (img) img.color = EdgeView.ColEdgeVisited;
 
             yield return new WaitForSeconds(0.35f);
+
+            // Mettre à jour les arêtes coupées en rouge, maintenant que l'animation du vert est finie
+            RefreshEdgeStates();
+
             onComplete?.Invoke();
         }
 

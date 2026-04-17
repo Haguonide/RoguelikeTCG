@@ -27,12 +27,17 @@ namespace RoguelikeTCG.UI
             for (int i = 0; i < boardButtons.Length; i++)
             {
                 int index = i;
+                bool active = i < boardManager.boards.Count && boardManager.boards[i].isActive;
                 if (boardButtons[i] != null)
-                    boardButtons[i].onClick.AddListener(() =>
-                    {
-                        if (CombatAnimator.Instance != null && CombatAnimator.Instance.IsAnimating) return;
-                        boardManager.SetActiveBoard(index);
-                    });
+                {
+                    boardButtons[i].gameObject.SetActive(active);
+                    if (active)
+                        boardButtons[i].onClick.AddListener(() =>
+                        {
+                            if (CombatAnimator.Instance != null && CombatAnimator.Instance.IsAnimating) return;
+                            boardManager.SetActiveBoard(index);
+                        });
+                }
             }
 
             OnBoardChanged(boardManager.ActiveBoardIndex);

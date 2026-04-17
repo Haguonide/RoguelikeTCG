@@ -14,6 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CharacterRegistry
   allCharacters:
   - {fileID: 11400000, guid: 876b50d16c3c06046b2516179ebe7a0e, type: 2}
-  - {fileID: 11400000, guid: 95f3440a27135c4438e61cd8346d99b5, type: 2}
   - {fileID: 11400000, guid: 22e8a553d120f0b4db5ee84b910b4355, type: 2}
   - {fileID: 11400000, guid: 63537d2a357614c44ae931b8d021e6c6, type: 2}

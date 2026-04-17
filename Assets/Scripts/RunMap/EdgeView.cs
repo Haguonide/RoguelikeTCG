@@ -12,8 +12,9 @@ namespace RoguelikeTCG.RunMap
     [RequireComponent(typeof(RectTransform))]
     public class EdgeView : MonoBehaviour
     {
-        public static readonly Color ColEdge        = new Color(0.55f, 0.55f, 0.55f, 0.6f);
-        public static readonly Color ColEdgeVisited = new Color(0.18f, 0.60f, 0.18f, 0.9f);
+        public static readonly Color ColEdge             = new Color(0.55f, 0.55f, 0.55f, 0.6f);
+        public static readonly Color ColEdgeVisited      = new Color(0.18f, 0.60f, 0.18f, 0.9f);
+        public static readonly Color ColEdgeInaccessible = new Color(0.65f, 0.15f, 0.15f, 0.6f);
 
         private const float DashLen = 10f;
         private const float GapLen  =  8f;

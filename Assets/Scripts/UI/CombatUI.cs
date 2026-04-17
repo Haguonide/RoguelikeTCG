@@ -31,6 +31,14 @@ namespace RoguelikeTCG.UI
             if (playerGoldText) playerGoldText.text = $"Or: {gold}";
         }
 
+        public void ClearEnemyBoard(int boardIndex)
+        {
+            if (boardIndex < enemyHPTexts.Length && enemyHPTexts[boardIndex] != null)
+                enemyHPTexts[boardIndex].text = "";
+            if (boardAreaHPTexts != null && boardIndex < boardAreaHPTexts.Length && boardAreaHPTexts[boardIndex] != null)
+                boardAreaHPTexts[boardIndex].text = "";
+        }
+
         public void RefreshEnemyBoard(int boardIndex, int hp, int maxHP, bool hasDangerUnit)
         {
             if (boardIndex < enemyHPTexts.Length && enemyHPTexts[boardIndex] != null)

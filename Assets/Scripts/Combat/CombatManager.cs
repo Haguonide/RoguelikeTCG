@@ -62,6 +62,14 @@ namespace RoguelikeTCG.Combat
         {
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
+            ConfigureBoardCount();
+        }
+
+        private void ConfigureBoardCount()
+        {
+            var nodeType = RunPersistence.Instance?.CurrentNode?.type;
+            int count = (nodeType == NodeType.Combat) ? Random.Range(1, 3) : 3;
+            boardManager?.SetActiveBoardCount(count);
         }
 
         private void Start()
@@ -231,7 +239,7 @@ namespace RoguelikeTCG.Combat
                             foreach (var lane in board.playerLanes)
                                 if (lane != null && lane.IsOccupied)
                                     lane.Occupant.bonusAttack += effect.value;
-                        Log($"  → +{effect.value} ATK à toutes vos unités");
+                        Log($"  → {(effect.value >= 0 ? $"+{effect.value}" : $"{effect.value}")} ATK à toutes vos unités");
                         break;
                     case EffectType.DrawCard:
                         playerDeck.DrawCards(effect.value);
@@ -279,7 +287,7 @@ namespace RoguelikeTCG.Combat
                         break;
                     case EffectType.BuffAttack:
                         target.bonusAttack += effect.value;
-                        Log($"  → {target.data.cardName} gagne +{effect.value} ATK ({target.CurrentAttack} ATK)");
+                        Log($"  → {target.data.cardName} {(effect.value >= 0 ? $"gagne +{effect.value}" : $"perd {-effect.value}")} ATK ({target.CurrentAttack} ATK)");
                         break;
                     case EffectType.BuffHP:
                         target.data.maxHP   += effect.value;
@@ -363,7 +371,7 @@ namespace RoguelikeTCG.Combat
             for (int i = 0; i < boardManager.boards.Count; i++)
             {
                 var board = boardManager.boards[i];
-                if (board.IsDefeated) continue;
+                if (!board.isActive || board.IsDefeated) continue;
 
                 if (combatAnimator != null && i != boardManager.ActiveBoardIndex)
                     yield return StartCoroutine(combatAnimator.PlayBoardSlide(boardManager.ActiveBoardIndex, i));
@@ -395,7 +403,7 @@ namespace RoguelikeTCG.Combat
             for (int i = 0; i < boardManager.boards.Count; i++)
             {
                 var board = boardManager.boards[i];
-                if (board.IsDefeated) continue;
+                if (!board.isActive || board.IsDefeated) continue;
 
                 if (combatAnimator != null && i != boardManager.ActiveBoardIndex)
                     yield return StartCoroutine(combatAnimator.PlayBoardSlide(boardManager.ActiveBoardIndex, i));
@@ -878,6 +886,7 @@ namespace RoguelikeTCG.Combat
                 for (int i = 0; i < boardManager.boards.Count; i++)
                 {
                     var b = boardManager.boards[i];
+                    if (!b.isActive) { combatUI.ClearEnemyBoard(i); continue; }
                     combatUI.RefreshEnemyBoard(i, b.enemyCurrentHP, b.enemyMaxHP, b.HasDangerousEnemyUnit());
                 }
             }

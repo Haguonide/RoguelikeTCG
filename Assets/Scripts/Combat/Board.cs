@@ -11,6 +11,7 @@ namespace RoguelikeTCG.Combat
         public Lane[] playerLanes = new Lane[3];
         public Lane[] enemyLanes = new Lane[3];
 
+        public bool isActive    = true;
         public bool IsDefeated => enemyCurrentHP <= 0;
 
         private void Awake()

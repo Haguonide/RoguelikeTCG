@@ -45,26 +45,42 @@ namespace RoguelikeTCG.RunMap
         }
 
         // -------------------------------------------------------
-        // Rafraîchir l'état (interactivité uniquement — bg toujours transparent)
+        // Rafraîchir l'état (interactivité + couleur icône)
         // -------------------------------------------------------
         public void RefreshState()
         {
             if (_bg == null) return;
 
-            // Cercle invisible — l'icône seule porte l'information visuelle
             _bg.color = Color.clear;
+            if (_iconOutline != null) _iconOutline.enabled = false;
 
             switch (Node.state)
             {
                 case NodeState.Locked:
+                    _button.interactable = false;
+                    if (_icon != null)
+                        _icon.color = IsPermanentlyInaccessible()
+                            ? new Color(0.35f, 0.35f, 0.35f, 0.4f)
+                            : Color.white;
+                    break;
                 case NodeState.Visited:
                     _button.interactable = false;
-                    if (_iconOutline != null) _iconOutline.enabled = false;
+                    if (_icon != null) _icon.color = Color.white;
                     break;
                 case NodeState.Available:
                     _button.interactable = true;
+                    if (_icon != null) _icon.color = Color.white;
                     break;
             }
+        }
+
+        private bool IsPermanentlyInaccessible()
+        {
+            if (Node.state != NodeState.Locked) return false;
+            if (Node.parents.Count == 0) return false;
+            foreach (var parent in Node.parents)
+                if (parent.state == NodeState.Available) return false;
+            return true;
         }
 
         // -------------------------------------------------------
