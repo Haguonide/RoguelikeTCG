@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: JC_SortCommun
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Contrat sign\xE9"
-  description: "Veni Vidi Vendu. Le contrat est sign\xE9. Vous perdez des HP."
+  description: "4 d\xE9g\xE2ts au h\xE9ros ennemi.\nLa clause de responsabilit\xE9
+    \xE9tait en petits caract\xE8res."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 1
   rarity: 0

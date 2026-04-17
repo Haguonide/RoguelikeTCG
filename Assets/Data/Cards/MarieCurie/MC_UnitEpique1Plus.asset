@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: MC_UnitEpique1Plus
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Baron de la Pechblende +
-  description: "Un colosse encore plus patient. Et encore plus d\xE9vastateur quand
-    il se d\xE9cide."
+  description: "Contr\xF4le l'approvisionnement radioactif de trois r\xE9gions. Porte
+    des lunettes de s\xE9curit\xE9 par principe."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 3

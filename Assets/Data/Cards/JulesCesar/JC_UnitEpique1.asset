@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: JC_UnitEpique1
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Proconsul de la mort
-  description: "Un g\xE9n\xE9ral. Vieux, sage, impitoyable. C\xE9sar le loue tr\xE8s
-    cher."
+  description: Gouverne sa province d'une main de fer dans un gant en bronze. Le
+    bronze, c'est plus pratique.
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 3

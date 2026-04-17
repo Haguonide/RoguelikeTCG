@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: MC_UnitRare4
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Chimiste v\xE9reux"
-  description: "\xC9quilibr\xE9e. Attaque et r\xE9siste. Le compromis parfait."
+  description: "Dipl\xF4m\xE9 de Sorbonne. Reconverti dans le trafic de substances
+    non-r\xE9glement\xE9es."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 2

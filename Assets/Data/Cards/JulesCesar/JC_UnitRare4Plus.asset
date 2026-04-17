@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: JC_UnitRare4Plus
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Tribun militaire +
-  description: "Tout est am\xE9lior\xE9. C\xE9sar n'est toujours pas satisfait."
+  description: Assure la liaison entre le terrain et le bureau. Survit aux deux.
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 2

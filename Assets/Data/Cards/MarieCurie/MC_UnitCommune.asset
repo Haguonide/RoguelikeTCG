@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: MC_UnitCommune
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Assistante contamin\xE9e"
-  description: "Une unit\xE9 de base. Suffisante pour tenir le front pendant que
-    la chimie op\xE8re."
+  description: "L\xE9g\xE8rement irradi\xE9e. Tr\xE8s motiv\xE9e. Ne pas serrer la
+    main."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 0

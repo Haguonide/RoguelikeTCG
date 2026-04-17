@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: MC_UnitEpique2
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Monstre de Polonium
-  description: Explosive. Elle n'attend pas, elle. Heureusement qu'il y a des sorts
-    pour compenser.
+  description: "Personne ne sait d'o\xF9 il vient. Il brille dans le noir depuis
+    toujours."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 3

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: JC_SortRare2
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Liquidation d'actifs
-  description: "Offre de rachat group\xE9e. Tout le monde est concern\xE9. Personne
-    ne survivra."
+  description: "3 d\xE9g\xE2ts \xE0 toutes les unit\xE9s ennemies.\nLa restructuration
+    \xE9tait in\xE9vitable."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 1
   rarity: 2

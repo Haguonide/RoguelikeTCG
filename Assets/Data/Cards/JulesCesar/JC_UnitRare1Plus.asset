@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: JC_UnitRare1Plus
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Centurion agressif +
-  description: "Encore plus rapide. Encore plus brutal. C\xE9sar a mis une prime."
+  description: "Manage une \xE9quipe de dix. Sa m\xE9thode de motivation est controvers\xE9e."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 2

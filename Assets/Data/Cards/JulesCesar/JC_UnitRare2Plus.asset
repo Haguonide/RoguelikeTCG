@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: JC_UnitRare2Plus
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Gladiateur kamikaze +
-  description: "Un peu moins fragile. Toujours aussi d\xE9vastateur. Progr\xE8s."
+  description: "ATK maximale, HP minimaux. Un investissement \xE0 haut risque."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 2
