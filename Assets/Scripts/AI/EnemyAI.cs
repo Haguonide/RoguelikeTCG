@@ -269,6 +269,7 @@ namespace RoguelikeTCG.AI
                 ApplySpellEffects(cs);
                 enemyDeck.PlayCard(cs.spell);
                 AudioManager.Instance.PlaySFX(cs.isAoE ? "sfx_spell_aoe" : "sfx_spell_cast");
+                CombatManager.Instance?.RefreshAllUI();
             }
         }
 
@@ -315,7 +316,7 @@ namespace RoguelikeTCG.AI
             switch (effect.effectType)
             {
                 case EffectType.Damage:
-                    cm.playerHP = Mathf.Max(0, cm.playerHP - effect.value);
+                    cm.DamagePlayer(effect.value);
                     Log($"> L'ennemi lance {spellName} ! Vous perdez {effect.value} HP ({cm.playerHP}/{cm.playerMaxHP})");
                     break;
             }
@@ -357,7 +358,17 @@ namespace RoguelikeTCG.AI
                         dmg -= absorbed;
                     }
                     unit.currentHP -= dmg;
-                    if (!unit.IsAlive) lane.ClearCard();
+                    if (!unit.IsAlive)
+                    {
+                        var killedUnit = unit;
+                        lane.ClearCard();
+                        var cm = CombatManager.Instance;
+                        if (cm != null)
+                        {
+                            var board = FindBoardContaining(lane);
+                            cm.TriggerOnDeathPassives(killedUnit, null, board, false);
+                        }
+                    }
                     break;
                 case EffectType.Heal:
                     unit.currentHP = Mathf.Min(unit.data.maxHP, unit.currentHP + effect.value);
@@ -372,6 +383,16 @@ namespace RoguelikeTCG.AI
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
+
+        private Board FindBoardContaining(Lane lane)
+        {
+            foreach (var board in boardManager.boards)
+            {
+                foreach (var l in board.playerLanes) if (l == lane) return board;
+                foreach (var l in board.enemyLanes)  if (l == lane) return board;
+            }
+            return boardManager.ActiveBoard;
+        }
 
         private int EffectValue(CardInstance spell, EffectType type)
         {

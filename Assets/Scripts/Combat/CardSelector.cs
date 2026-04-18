@@ -14,7 +14,7 @@ namespace RoguelikeTCG.Combat
     {
         public static CardSelector Instance { get; private set; }
 
-        private enum TargetingMode { None, AwaitingLane, AwaitingHero, AwaitingAllyUnit, AwaitingEnemyUnit, AwaitingAoEConfirm }
+        private enum TargetingMode { None, AwaitingLane, AwaitingHero, AwaitingAllyUnit, AwaitingEnemyUnit, AwaitingAoEConfirm, AwaitingBricolage }
 
         private CardView     selectedView;
         private TargetingMode mode = TargetingMode.None;
@@ -28,7 +28,7 @@ namespace RoguelikeTCG.Combat
             Instance = this;
         }
 
-        public bool HasSelection => selectedView != null;
+        public bool HasSelection => selectedView != null || mode == TargetingMode.AwaitingBricolage;
 
         // ── Select a card from hand ────────────────────────────────────────────
 
@@ -72,6 +72,16 @@ namespace RoguelikeTCG.Combat
             RefreshHighlights();
         }
 
+        public void SelectBricolage()
+        {
+            var cm = CombatManager.Instance;
+            if (cm == null || cm.gearCount < 3 || !cm.IsDeVinciRun()) return;
+            Deselect();
+            mode = TargetingMode.AwaitingBricolage;
+            RefreshHighlights();
+            AudioManager.Instance.PlaySFX("sfx_card_select");
+        }
+
         public void Deselect()
         {
             if (selectedView == null) return;
@@ -85,7 +95,19 @@ namespace RoguelikeTCG.Combat
 
         public void OnLaneClicked(LaneSlotUI slot)
         {
-            if (selectedView == null || slot == null) return;
+            if (slot == null) return;
+
+            if (mode == TargetingMode.AwaitingBricolage)
+            {
+                if (!slot.isPlayerLane || slot.Lane == null || slot.Lane.IsOccupied) return;
+                if (IsOnDefeatedBoard(slot)) return;
+                CombatManager.Instance?.TryPlayBricolage(slot.Lane);
+                mode = TargetingMode.None;
+                ClearHighlights();
+                return;
+            }
+
+            if (selectedView == null) return;
             var card = selectedView.CardInstance;
             if (card == null) return;
 
@@ -138,6 +160,7 @@ namespace RoguelikeTCG.Combat
                     if (CombatManager.Instance.TryPlayAoESpell(card))
                         Deselect();
                     break;
+
             }
         }
 
@@ -201,6 +224,12 @@ namespace RoguelikeTCG.Combat
                     foreach (var s in allSlots)
                         if (!s.isPlayerLane && !IsOnDefeatedBoard(s))
                             s.SetHighlight(true, new Color(1f, 0.35f, 0.1f, 0.45f));
+                    break;
+
+                case TargetingMode.AwaitingBricolage:
+                    foreach (var s in allSlots)
+                        if (s.isPlayerLane && s.Lane != null && !s.Lane.IsOccupied && !IsOnDefeatedBoard(s))
+                            s.SetHighlight(true, HighlightSlot);
                     break;
             }
         }

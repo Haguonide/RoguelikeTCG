@@ -92,9 +92,12 @@ namespace RoguelikeTCG.Combat
                 string shieldStr = card.shieldHP > 0
                     ? $"  <color=#55AAFF>🛡 {card.shieldHP}</color>"
                     : "";
+                string poisonStr = card.poisonStacks > 0
+                    ? $"  <color=#88FF44>🧪 {card.poisonStacks}</color>"
+                    : "";
                 statsText.text = $"<color=#{ColorUtility.ToHtmlStringRGB(ColAtk)}>⚔ {card.CurrentAttack}</color>" +
                                  $"  <color=#{ColorUtility.ToHtmlStringRGB(ColHP)}>❤ {card.currentHP}</color>" +
-                                 shieldStr;
+                                 shieldStr + poisonStr;
             }
         }
 

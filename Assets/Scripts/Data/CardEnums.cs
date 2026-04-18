@@ -30,6 +30,9 @@ namespace RoguelikeTCG.Data
 
         // Triggered at the start of the player's attack phase
         AoEStartOfTurn,         // Deal value dmg to all enemy units on this board
+
+        // Triggered when this unit successfully hits an enemy unit (player side only)
+        ApplyPoisonOnHit,       // Apply value poison stacks to the enemy unit that was hit
     }
 
     public enum CardType
@@ -63,6 +66,7 @@ namespace RoguelikeTCG.Data
         BuffAttack,
         BuffHP,
         DrawCard,
-        Shield
+        Shield,
+        ApplyPoison     // Apply value poison stacks to the target unit
     }
 }

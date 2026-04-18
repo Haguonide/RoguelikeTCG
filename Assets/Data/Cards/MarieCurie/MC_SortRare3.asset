@@ -20,9 +20,13 @@ MonoBehaviour:
   manaCost: 2
   attackPower: 0
   maxHP: 0
+  unitPassives: []
   spellTarget: 3
   effects:
   - effectType: 0
     value: 3
     target: 3
+  - effectType: 6
+    value: 2
+    target: 0
   upgradedVersion: {fileID: 11400000, guid: 0ce4daf8ebb81d74383cdd030764ed1c, type: 2}

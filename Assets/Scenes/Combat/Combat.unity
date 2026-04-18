@@ -3987,6 +3987,7 @@ MonoBehaviour:
   - {fileID: 2126012144}
   - {fileID: 1578762166}
   - {fileID: 936659075}
+  isActive: 1
 --- !u!1 &355967839
 GameObject:
   m_ObjectHideFlags: 0
@@ -7752,8 +7753,13 @@ MonoBehaviour:
   relicRewardPool:
   - {fileID: 11400000, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7, type: 2}
   - {fileID: 11400000, guid: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8, type: 2}
+  bricolageCardData: {fileID: 11400000, guid: 10181d2b77b5fae4fbf0ddd9860536e2, type: 2}
   playerHP: 0
   playerMaxHP: 0
+  playerShieldHP: 0
+  gearCount: 0
+  gearCumulatedATK: 0
+  gearCumulatedHP: 0
 --- !u!4 &702531323
 Transform:
   m_ObjectHideFlags: 0
@@ -15757,6 +15763,7 @@ MonoBehaviour:
   - {fileID: 1801272797}
   - {fileID: 1260204386}
   - {fileID: 879687039}
+  isActive: 1
 --- !u!1 &1296204294
 GameObject:
   m_ObjectHideFlags: 0
@@ -21874,6 +21881,7 @@ MonoBehaviour:
   - {fileID: 1574015834}
   - {fileID: 275574558}
   - {fileID: 1325333002}
+  isActive: 1
 --- !u!1 &1814896775
 GameObject:
   m_ObjectHideFlags: 0

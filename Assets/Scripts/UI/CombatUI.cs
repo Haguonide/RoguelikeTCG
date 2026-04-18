@@ -18,9 +18,9 @@ namespace RoguelikeTCG.UI
         [Header("In-board Enemy HP — label inside each BoardArea")]
         public TextMeshProUGUI[] boardAreaHPTexts;
 
-        public void RefreshPlayerInfo(int hp, int maxHP, int mana, int maxMana, int deckCount, int handCount)
+        public void RefreshPlayerInfo(int hp, int maxHP, int mana, int maxMana, int deckCount, int handCount, int shield = 0)
         {
-            if (playerHPText)        playerHPText.text        = $"HP: {hp}/{maxHP}";
+            if (playerHPText)        playerHPText.text        = shield > 0 ? $"HP: {hp}/{maxHP}  \ud83d\udee1 {shield}" : $"HP: {hp}/{maxHP}";
             if (playerManaText)      playerManaText.text      = $"Mana: {mana}/{maxMana}";
             if (playerDeckCountText) playerDeckCountText.text = $"Deck: {deckCount}";
             if (playerHandCountText) playerHandCountText.text = $"Main: {handCount}";

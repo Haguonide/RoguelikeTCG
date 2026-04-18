@@ -49,9 +49,16 @@ namespace RoguelikeTCG.Combat
         [Tooltip("Pool de reliques proposées en récompense (Élite / Boss)")]
         public List<RelicData> relicRewardPool;
 
+        [Header("Bricolage (De Vinci only)")]
+        public CardData bricolageCardData;
+
         [Header("State")]
         public int playerHP;
         public int playerMaxHP;
+        public int playerShieldHP;
+        public int gearCount;
+        public int gearCumulatedATK;
+        public int gearCumulatedHP;
 
         private bool gameOver;
         private LaneSlotUI[] allLaneSlots;
@@ -82,6 +89,10 @@ namespace RoguelikeTCG.Combat
         {
             gameOver = false;
             _clearedBoards.Clear();
+            playerShieldHP   = 0;
+            gearCount        = 0;
+            gearCumulatedATK = 0;
+            gearCumulatedHP  = 0;
 
             // Personnage : RunPersistence en priorité sur le champ sérialisé en scène
             var persistence = RunPersistence.Instance;
@@ -224,7 +235,7 @@ namespace RoguelikeTCG.Combat
                     case EffectType.Damage:
                         if (isPlayer)
                         {
-                            playerHP = Mathf.Max(0, playerHP - effect.value);
+                            DamagePlayer(effect.value);
                             Log($"  → {effect.value} dégâts à votre héros (HP: {playerHP}/{playerMaxHP})");
                         }
                         else
@@ -251,6 +262,13 @@ namespace RoguelikeTCG.Combat
                     case EffectType.DrawCard:
                         playerDeck.DrawCards(effect.value);
                         Log($"  → Vous piochez {effect.value} carte(s)");
+                        break;
+                    case EffectType.Shield:
+                        if (isPlayer)
+                        {
+                            playerShieldHP += effect.value;
+                            Log($"  → Votre héros gagne {effect.value} de bouclier ({playerShieldHP} total)");
+                        }
                         break;
                 }
             }
@@ -281,8 +299,10 @@ namespace RoguelikeTCG.Combat
                         Log($"  → {effect.value} dégâts à {target.data.cardName} ({target.currentHP} HP restants)");
                         if (!target.IsAlive)
                         {
+                            var killedBySpell = target;
                             targetLane.ClearCard();
-                            Log($"  → {target.data.cardName} est détruit !");
+                            Log($"  → {killedBySpell.data.cardName} est détruit !");
+                            TriggerOnDeathPassives(killedBySpell, null, boardManager.ActiveBoard, true);
                         }
                         break;
                     case EffectType.Heal:
@@ -306,6 +326,10 @@ namespace RoguelikeTCG.Combat
                         if (targetRT != null)
                             RoguelikeTCG.UI.DamagePopup.ShowShield(targetRT, effect.value);
                         Log($"  → {target.data.cardName} gagne un bouclier de {effect.value} ({target.shieldHP} total)");
+                        break;
+                    case EffectType.ApplyPoison:
+                        target.poisonStacks += effect.value;
+                        Log($"  → {target.data.cardName} est empoisonné ({target.poisonStacks} charge{(target.poisonStacks > 1 ? "s" : "")})");
                         break;
                 }
             }
@@ -355,6 +379,7 @@ namespace RoguelikeTCG.Combat
                     {
                         lane.ClearCard();
                         Log($"  → {targetName} est détruit !");
+                        TriggerOnDeathPassives(target, null, activeBoard, true);
                     }
                 }
             }
@@ -478,9 +503,15 @@ namespace RoguelikeTCG.Combat
                 if (pLane == null || eLane == null) continue;
 
                 if (playerAttacks)
+                {
                     yield return StartCoroutine(AttackWithUnit(pLane, eLane, board, isPlayerAttacking: true));
+                    if (board.IsDefeated) yield break;
+                }
                 else
+                {
                     yield return StartCoroutine(AttackWithUnit(eLane, pLane, board, isPlayerAttacking: false));
+                    if (playerHP <= 0) yield break;
+                }
             }
         }
 
@@ -503,13 +534,10 @@ namespace RoguelikeTCG.Combat
                 // Damage calculation with passive reductions
                 int dmg = attacker.CurrentAttack;
 
-                // DmgReduction on the defender itself
+                // DmgReduction on the defender itself (individual passive, not shown on card)
                 foreach (var p in GetPassives(defender))
                     if (p.passiveType == UnitPassiveType.DmgReduction)
                         dmg = Mathf.Max(0, dmg - p.value);
-
-                // AuraAlliesReduceDmg from other allies on the defender's side
-                dmg = Mathf.Max(0, dmg - GetAuraDmgReduction(board, !isPlayerAttacking));
 
                 // Shield absorption
                 if (defender.shieldHP > 0)
@@ -538,7 +566,7 @@ namespace RoguelikeTCG.Combat
                         }
                         else
                         {
-                            playerHP = Mathf.Max(0, playerHP - p.value);
+                            DamagePlayer(p.value);
                             Log($"  → [{p.keyword}] +{p.value} dégâts directs à votre héros !");
                         }
                     }
@@ -561,7 +589,7 @@ namespace RoguelikeTCG.Combat
                             }
                             else
                             {
-                                playerHP = Mathf.Max(0, playerHP - excess);
+                                DamagePlayer(excess);
                                 Log($"  → [{p.keyword}] {excess} dégâts excédentaires à votre héros !");
                             }
                         }
@@ -585,6 +613,8 @@ namespace RoguelikeTCG.Combat
                         }
                     }
 
+                    RefreshAllUI();
+
                     if (combatAnimator != null && defenderSlot != null)
                         yield return StartCoroutine(combatAnimator.PlayDeathAnim(defenderSlot));
 
@@ -593,12 +623,25 @@ namespace RoguelikeTCG.Combat
                     Log($"> {deadUnit.data.cardName} est détruit !");
 
                     TriggerOnDeathPassives(deadUnit, attackerLane, board, isPlayerAttacking);
+                    RefreshAllUI();
                 }
                 else
                 {
                     // Track survival for end-of-round passives (player units only)
                     if (!isPlayerAttacking)
                         defender.survivedAttackThisTurn = true;
+                    else
+                    {
+                        // Apply poison on hit (player attacking, defender survived)
+                        foreach (var p in GetPassives(attacker))
+                        {
+                            if (p.passiveType == UnitPassiveType.ApplyPoisonOnHit)
+                            {
+                                defender.poisonStacks += p.value;
+                                Log($"  → [{p.keyword}] {defender.data.cardName} est empoisonné ({defender.poisonStacks}🧪)");
+                            }
+                        }
+                    }
 
                     if (combatAnimator != null && defenderSlot != null)
                         yield return StartCoroutine(combatAnimator.PlayHitFlash(defenderSlot));
@@ -622,14 +665,80 @@ namespace RoguelikeTCG.Combat
                 }
                 else
                 {
-                    playerHP = Mathf.Max(0, playerHP - directDmg);
+                    DamagePlayer(directDmg);
                     Log($"> {attacker.data.cardName} vous inflige {directDmg} dégâts ! " +
                         $"(HP: {playerHP}/{playerMaxHP})");
                 }
+
+                RefreshAllUI();
             }
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
+
+        public void DamagePlayer(int amount)
+        {
+            if (playerShieldHP > 0)
+            {
+                int absorbed = Mathf.Min(playerShieldHP, amount);
+                playerShieldHP -= absorbed;
+                amount -= absorbed;
+                if (absorbed > 0) Log($"  → Bouclier héros absorbe {absorbed} ({playerShieldHP} restant)");
+            }
+            playerHP = Mathf.Max(0, playerHP - amount);
+        }
+
+        public bool IsDeVinciRun() =>
+            playerCharacter?.characterName == "Léonard de Vinci";
+
+        private void AddGear(CardInstance dead)
+        {
+            if (!IsDeVinciRun() || gearCount >= 3) return;
+            gearCumulatedATK += dead.CurrentAttack;
+            gearCumulatedHP  += dead.data.maxHP;
+            gearCount++;
+            int cappedATK = Mathf.Min(gearCumulatedATK, 5);
+            int cappedHP  = Mathf.Min(gearCumulatedHP,  8);
+            Log($"  ⚙ Rouage [{gearCount}/3] — Automate prévu : {cappedATK}/{cappedHP}");
+            RefreshAllUI();
+        }
+
+        public void TryPlayBricolage(Lane lane)
+        {
+            if (gameOver) return;
+            if (CombatAnimator.Instance != null && CombatAnimator.Instance.IsAnimating) return;
+            if (!turnManager.IsPlayerTurn || !turnManager.CanPlayCard) return;
+            if (boardManager.ActiveBoard.IsDefeated) return;
+            if (lane == null || lane.IsOccupied || !lane.isPlayerLane) return;
+            if (gearCount < 3 || !IsDeVinciRun()) return;
+
+            var autoData         = ScriptableObject.CreateInstance<CardData>();
+            autoData.cardName    = "Automate Réparé";
+            autoData.cardType    = CardType.Unit;
+            autoData.attackPower = Mathf.Min(gearCumulatedATK, 5);
+            autoData.maxHP       = Mathf.Min(gearCumulatedHP,  8);
+            if (bricolageCardData?.artwork != null) autoData.artwork = bricolageCardData.artwork;
+
+            var autoInstance = new CardInstance(autoData, isPlayerCard: true);
+            lane.PlaceCard(autoInstance);
+            turnManager.RegisterCardPlayed();
+            Log($"> Bricolage ! Automate Réparé ({autoData.attackPower}/{autoData.maxHP}) invoqué !");
+            AudioManager.Instance.PlaySFX("sfx_card_place");
+
+            gearCount        = 0;
+            gearCumulatedATK = 0;
+            gearCumulatedHP  = 0;
+
+            Board targetBoard = null;
+            foreach (var board in boardManager.boards)
+            {
+                foreach (var pl in board.playerLanes)
+                    if (pl == lane) { targetBoard = board; break; }
+                if (targetBoard != null) break;
+            }
+            TriggerOnEntryPassives(autoInstance, lane, targetBoard ?? boardManager.ActiveBoard);
+            RefreshAllUI();
+        }
 
         private LaneSlotUI FindSlotForLane(Lane lane)
         {
@@ -1037,11 +1146,25 @@ namespace RoguelikeTCG.Combat
 
         private void TriggerOnEntryPassives(CardInstance unit, Lane placedLane, Board board)
         {
-            if (unit.data.unitPassives == null || unit.data.unitPassives.Count == 0) return;
+            bool isPlayer     = unit.isPlayerCard;
+            var  alliesLanes  = isPlayer ? board.playerLanes : board.enemyLanes;
+            var  enemiesLanes = isPlayer ? board.enemyLanes  : board.playerLanes;
 
-            bool isPlayer    = unit.isPlayerCard;
-            var  alliesLanes = isPlayer ? board.playerLanes : board.enemyLanes;
-            var  enemiesLanes = isPlayer ? board.enemyLanes : board.playerLanes;
+            // Apply existing opponent auras to this newly placed unit
+            foreach (var opLane in enemiesLanes)
+            {
+                if (opLane == null || !opLane.IsOccupied) continue;
+                foreach (var ap in GetPassives(opLane.Occupant))
+                {
+                    if (ap.passiveType == UnitPassiveType.AuraAlliesReduceDmg)
+                    {
+                        unit.bonusAttack -= ap.value;
+                        Log($"  → [{ap.keyword}] {unit.data.cardName} subit -{ap.value} ATK (aura de {opLane.Occupant.data.cardName})");
+                    }
+                }
+            }
+
+            if (unit.data.unitPassives == null || unit.data.unitPassives.Count == 0) return;
 
             foreach (var p in unit.data.unitPassives)
             {
@@ -1123,12 +1246,24 @@ namespace RoguelikeTCG.Combat
                         }
                         break;
                     }
+
+                    case UnitPassiveType.AuraAlliesReduceDmg:
+                        foreach (var lane in enemiesLanes)
+                        {
+                            if (lane == null || !lane.IsOccupied) continue;
+                            lane.Occupant.bonusAttack -= p.value;
+                            Log($"  → [{p.keyword}] {lane.Occupant.data.cardName} perd {p.value} ATK effectif");
+                        }
+                        break;
                 }
             }
         }
 
-        private void TriggerOnDeathPassives(CardInstance dead, Lane attackerLane, Board board, bool isPlayerAttacking)
+        public void TriggerOnDeathPassives(CardInstance dead, Lane attackerLane, Board board, bool isPlayerAttacking)
         {
+            if (dead.isPlayerCard)
+                AddGear(dead);
+
             if (dead.data.unitPassives == null || dead.data.unitPassives.Count == 0) return;
 
             foreach (var p in dead.data.unitPassives)
@@ -1136,7 +1271,7 @@ namespace RoguelikeTCG.Combat
                 switch (p.passiveType)
                 {
                     case UnitPassiveType.ThornsOnDeath:
-                        if (attackerLane.IsOccupied)
+                        if (attackerLane != null && attackerLane.IsOccupied)
                         {
                             var t = attackerLane.Occupant;
                             t.currentHP -= p.value;
@@ -1146,7 +1281,7 @@ namespace RoguelikeTCG.Combat
                         break;
 
                     case UnitPassiveType.ATKDebuffOnDeath:
-                        if (attackerLane.IsOccupied)
+                        if (attackerLane != null && attackerLane.IsOccupied)
                         {
                             attackerLane.Occupant.bonusAttack -= p.value;
                             Log($"  → [{p.keyword}] {dead.data.cardName} réduit l'ATK de {attackerLane.Occupant.data.cardName} de {p.value}");
@@ -1158,7 +1293,7 @@ namespace RoguelikeTCG.Combat
                         // isPlayerAttacking=false → player died → punish enemy hero
                         if (isPlayerAttacking)
                         {
-                            playerHP = Mathf.Max(0, playerHP - p.value);
+                            DamagePlayer(p.value);
                             Log($"  → [{p.keyword}] {dead.data.cardName} vous inflige {p.value} en mourant ! (HP: {playerHP}/{playerMaxHP})");
                         }
                         else
@@ -1183,6 +1318,21 @@ namespace RoguelikeTCG.Combat
                         Log($"  → [{p.keyword}] {dead.data.cardName} inflige {p.value} à toutes les unités adverses en mourant !" +
                             (aoeKills > 0 ? $" ({aoeKills} détruites)" : ""));
                         break;
+
+                    case UnitPassiveType.AuraAlliesReduceDmg:
+                    {
+                        // Aura-giver died → reverse the ATK penalty on opponents
+                        // enemy aura died (isPlayerAttacking=true) → player units get ATK back
+                        // player aura died (isPlayerAttacking=false) → enemy units get ATK back
+                        var affectedLanes = isPlayerAttacking ? board.playerLanes : board.enemyLanes;
+                        foreach (var lane in affectedLanes)
+                        {
+                            if (lane == null || !lane.IsOccupied) continue;
+                            lane.Occupant.bonusAttack += p.value;
+                        }
+                        Log($"  → [{p.keyword}] L'aura de {dead.data.cardName} disparaît (+{p.value} ATK aux unités adverses)");
+                        break;
+                    }
                 }
             }
         }
@@ -1251,6 +1401,30 @@ namespace RoguelikeTCG.Combat
                     unit.survivedAttackThisTurn = false;
                 }
             }
+
+            // Poison tick — tous les boards, toutes les unités ennemies
+            foreach (var board in boardManager.boards)
+            {
+                if (!board.isActive || board.IsDefeated) continue;
+                for (int li = 0; li < board.enemyLanes.Length; li++)
+                {
+                    var lane = board.enemyLanes[li];
+                    if (lane == null || !lane.IsOccupied) continue;
+                    var unit = lane.Occupant;
+                    if (unit.poisonStacks <= 0) continue;
+
+                    unit.currentHP -= unit.poisonStacks;
+                    Log($"  🧪 Poison : {unit.data.cardName} subit {unit.poisonStacks} dégât(s) ({unit.currentHP} HP restants)");
+
+                    if (!unit.IsAlive)
+                    {
+                        var dead = unit;
+                        lane.ClearCard();
+                        Log($"  → {dead.data.cardName} est détruit par le poison !");
+                        TriggerOnDeathPassives(dead, null, board, isPlayerAttacking: true);
+                    }
+                }
+            }
         }
 
         private void ResetSurvivedAttackFlags()
@@ -1268,7 +1442,7 @@ namespace RoguelikeTCG.Combat
             {
                 combatUI.RefreshPlayerInfo(playerHP, playerMaxHP,
                     manaManager.CurrentMana, manaManager.maxMana,
-                    playerDeck.DeckCount, playerDeck.Hand.Count);
+                    playerDeck.DeckCount, playerDeck.Hand.Count, playerShieldHP);
                 combatUI.RefreshGold(RunPersistence.Instance?.PlayerGold ?? 0);
 
                 for (int i = 0; i < boardManager.boards.Count; i++)
@@ -1280,7 +1454,10 @@ namespace RoguelikeTCG.Combat
             }
 
             if (handView != null)
-                handView.RefreshHand(playerDeck.Hand);
+                handView.RefreshHand(
+                    playerDeck.Hand,
+                    IsDeVinciRun() ? bricolageCardData : null,
+                    gearCount, gearCumulatedATK, gearCumulatedHP);
 
             if (allLaneSlots != null)
                 foreach (var slot in allLaneSlots) slot?.Refresh();
