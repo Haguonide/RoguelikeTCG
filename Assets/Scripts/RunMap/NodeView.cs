@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -78,8 +79,21 @@ namespace RoguelikeTCG.RunMap
         {
             if (Node.state != NodeState.Locked) return false;
             if (Node.parents.Count == 0) return false;
-            foreach (var parent in Node.parents)
-                if (parent.state == NodeState.Available) return false;
+
+            // BFS vers le haut : le nœud est accessible si AU MOINS UN ancêtre est Available.
+            // On s'arrête sur les nœuds Visited (chemin fermé) et on ne traverse pas à travers eux.
+            var seen  = new HashSet<RunNode>();
+            var queue = new Queue<RunNode>(Node.parents);
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                if (!seen.Add(current)) continue;
+                if (current.state == NodeState.Available) return false;
+                if (current.state == NodeState.Locked)
+                    foreach (var p in current.parents)
+                        queue.Enqueue(p);
+                // Visited = chemin choisi et fermé, on ne remonte pas plus loin
+            }
             return true;
         }
 

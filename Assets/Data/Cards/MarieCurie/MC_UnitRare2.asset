@@ -20,6 +20,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 1
   maxHP: 3
+  unitPassives:
+  - passiveType: 14
+    value: 1
+    keyword: "R\xE9sistance"
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: cda8ac6984c738343beb7dcb236266b2, type: 2}

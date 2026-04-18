@@ -20,6 +20,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 2
   maxHP: 2
+  unitPassives:
+  - passiveType: 6
+    value: 1
+    keyword: "\xC9pine"
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 2
   maxHP: 3
+  unitPassives:
+  - passiveType: 10
+    value: 0
+    keyword: Vigilance
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

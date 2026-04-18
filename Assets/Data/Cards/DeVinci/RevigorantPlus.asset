@@ -26,4 +26,7 @@ MonoBehaviour:
   - effectType: 1
     value: 8
     target: 0
+  - effectType: 4
+    value: 1
+    target: 0
   upgradedVersion: {fileID: 0}

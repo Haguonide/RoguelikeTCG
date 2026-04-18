@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 5
   maxHP: 3
+  unitPassives:
+  - passiveType: 1
+    value: 3
+    keyword: "Et tu Brute ?"
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: 0a4726edf00cec64ba697018bb346743, type: 2}

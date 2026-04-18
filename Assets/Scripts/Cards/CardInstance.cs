@@ -7,8 +7,9 @@ namespace RoguelikeTCG.Cards
         public CardData data;
         public int currentHP;
         public int shieldHP;
-        public int bonusAttack;   // accumulated ATK buffs — never touches the ScriptableObject
+        public int bonusAttack;           // accumulated ATK buffs — never touches the ScriptableObject
         public bool isPlayerCard;
+        public bool survivedAttackThisTurn; // reset each round, used by HealHeroIfAlive
 
         public CardInstance(CardData data, bool isPlayerCard)
         {

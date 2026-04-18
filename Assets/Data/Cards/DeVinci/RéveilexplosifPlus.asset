@@ -21,9 +21,9 @@ MonoBehaviour:
   manaCost: 2
   attackPower: 0
   maxHP: 0
-  spellTarget: 1
+  spellTarget: 4
   effects:
   - effectType: 0
-    value: 7
-    target: 1
+    value: 4
+    target: 4
   upgradedVersion: {fileID: 0}

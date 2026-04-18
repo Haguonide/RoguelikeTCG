@@ -260,6 +260,8 @@ namespace RoguelikeTCG.AI
                 enemyDeck.PlayCard(pu.unit);
                 AudioManager.Instance.PlaySFX("sfx_card_place");
                 Log($"> L'ennemi pose {pu.unit.data.cardName} ({pu.unit.CurrentAttack}/{pu.unit.currentHP})");
+                var board = boardManager.boards[pu.boardIdx];
+                CombatManager.Instance?.NotifyUnitPlaced(pu.unit, pu.lane, board);
             }
             else if (action is CastSpellAction cs)
             {

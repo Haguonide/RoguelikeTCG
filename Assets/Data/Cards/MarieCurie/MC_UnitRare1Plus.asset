@@ -20,6 +20,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 3
   maxHP: 2
+  unitPassives:
+  - passiveType: 12
+    value: 2
+    keyword: Exploiter
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

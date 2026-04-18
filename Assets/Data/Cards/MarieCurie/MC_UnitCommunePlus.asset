@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 2
   maxHP: 2
+  unitPassives:
+  - passiveType: 7
+    value: 1
+    keyword: Contagion
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

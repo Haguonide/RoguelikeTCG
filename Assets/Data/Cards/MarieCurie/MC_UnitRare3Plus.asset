@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 4
   maxHP: 2
+  unitPassives:
+  - passiveType: 3
+    value: 1
+    keyword: Contrebande
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

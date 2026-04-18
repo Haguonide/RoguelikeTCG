@@ -20,6 +20,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 3
   maxHP: 3
+  unitPassives:
+  - passiveType: 4
+    value: 1
+    keyword: Commandement
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: 10ad0d0428b3b4640bb01636c943b66a, type: 2}

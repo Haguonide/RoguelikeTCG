@@ -19,6 +19,7 @@ namespace RoguelikeTCG.Data
         [Header("Unit Stats (Unit only)")]
         public int attackPower;
         public int maxHP;
+        public List<UnitPassive> unitPassives;
 
         [Header("Spell Targeting & Effects (Spell only)")]
         public SpellTarget spellTarget;

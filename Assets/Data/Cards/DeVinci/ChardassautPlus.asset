@@ -20,6 +20,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 3
   maxHP: 5
+  unitPassives:
+  - passiveType: 14
+    value: 2
+    keyword: Blindage
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

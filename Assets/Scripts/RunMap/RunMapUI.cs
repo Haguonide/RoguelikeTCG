@@ -303,8 +303,20 @@ namespace RoguelikeTCG.RunMap
         {
             if (node.state != NodeState.Locked) return false;
             if (node.parents.Count == 0) return false;
-            foreach (var parent in node.parents)
-                if (parent.state == NodeState.Available) return false;
+
+            // BFS vers le haut : accessible si AU MOINS UN ancêtre est Available.
+            // On ne traverse pas à travers les nœuds Visited (chemin définitivement fermé).
+            var seen  = new HashSet<RunNode>();
+            var queue = new Queue<RunNode>(node.parents);
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                if (!seen.Add(current)) continue;
+                if (current.state == NodeState.Available) return false;
+                if (current.state == NodeState.Locked)
+                    foreach (var p in current.parents)
+                        queue.Enqueue(p);
+            }
             return true;
         }
 

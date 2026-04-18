@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 4
   maxHP: 1
+  unitPassives:
+  - passiveType: 11
+    value: 0
+    keyword: "Perc\xE9e"
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

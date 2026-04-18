@@ -163,8 +163,15 @@ namespace RoguelikeTCG.Combat
             playerDeck.PlayCard(card);
             turnManager.RegisterCardPlayed();
             Log($"> Vous posez {card.data.cardName} ({card.CurrentAttack}/{card.currentHP})");
+            TriggerOnEntryPassives(card, lane, boardManager.ActiveBoard);
             RefreshAllUI();
             return true;
+        }
+
+        public void NotifyUnitPlaced(CardInstance unit, Lane lane, Board board)
+        {
+            TriggerOnEntryPassives(unit, lane, board);
+            RefreshAllUI();
         }
 
         public bool TryPlaySpellOnHero(CardInstance card, bool isPlayerHero)
@@ -367,6 +374,10 @@ namespace RoguelikeTCG.Combat
 
         private IEnumerator ResolveAndEnemyTurn()
         {
+            ResetSurvivedAttackFlags();
+            TriggerStartOfTurnPassives();
+            RefreshAllUI();
+
             Log("[ Résolution des attaques joueur ]");
             for (int i = 0; i < boardManager.boards.Count; i++)
             {
@@ -414,6 +425,9 @@ namespace RoguelikeTCG.Combat
             }
 
             if (playerHP <= 0) { OnDefeat(); yield break; }
+
+            TriggerEndOfRoundPassives();
+            RefreshAllUI();
 
             Log("--- Votre tour ---");
             turnManager.StartPlayerTurn();
@@ -486,7 +500,18 @@ namespace RoguelikeTCG.Combat
                 var defender     = defenderLane.Occupant;
                 var defenderSlot = FindSlotForLane(defenderLane);
 
+                // Damage calculation with passive reductions
                 int dmg = attacker.CurrentAttack;
+
+                // DmgReduction on the defender itself
+                foreach (var p in GetPassives(defender))
+                    if (p.passiveType == UnitPassiveType.DmgReduction)
+                        dmg = Mathf.Max(0, dmg - p.value);
+
+                // AuraAlliesReduceDmg from other allies on the defender's side
+                dmg = Mathf.Max(0, dmg - GetAuraDmgReduction(board, !isPlayerAttacking));
+
+                // Shield absorption
                 if (defender.shieldHP > 0)
                 {
                     int absorbed = Mathf.Min(defender.shieldHP, dmg);
@@ -494,38 +519,111 @@ namespace RoguelikeTCG.Combat
                     dmg -= absorbed;
                     Log($"  → Le bouclier absorbe {absorbed} dégât(s) ({defender.shieldHP} restants)");
                 }
+
                 defender.currentHP -= dmg;
                 if (defenderSlot != null && dmg > 0)
                     RoguelikeTCG.UI.DamagePopup.ShowDamage((RectTransform)defenderSlot.transform, dmg);
                 Log($"> {attacker.data.cardName} attaque {defender.data.cardName} " +
                     $"({attacker.CurrentAttack} dmg → {defender.currentHP} HP restants)");
 
+                // BonusDmgIfEnemyWeakened: if the defender has ≤0 ATK, deal bonus direct dmg
+                foreach (var p in GetPassives(attacker))
+                {
+                    if (p.passiveType == UnitPassiveType.BonusDmgIfEnemyWeakened && defender.CurrentAttack <= 0)
+                    {
+                        if (isPlayerAttacking)
+                        {
+                            board.TakeDamage(p.value);
+                            Log($"  → [{p.keyword}] +{p.value} dégâts directs au héros ennemi !");
+                        }
+                        else
+                        {
+                            playerHP = Mathf.Max(0, playerHP - p.value);
+                            Log($"  → [{p.keyword}] +{p.value} dégâts directs à votre héros !");
+                        }
+                    }
+                }
+
                 RefreshAllUI();
 
                 if (!defender.IsAlive)
                 {
+                    // ExcessDamageBreakthrough: excess dmg bleeds through to hero
+                    int excess = -defender.currentHP;
+                    foreach (var p in GetPassives(attacker))
+                    {
+                        if (p.passiveType == UnitPassiveType.ExcessDamageBreakthrough && excess > 0)
+                        {
+                            if (isPlayerAttacking)
+                            {
+                                board.TakeDamage(excess);
+                                Log($"  → [{p.keyword}] {excess} dégâts excédentaires au héros ennemi !");
+                            }
+                            else
+                            {
+                                playerHP = Mathf.Max(0, playerHP - excess);
+                                Log($"  → [{p.keyword}] {excess} dégâts excédentaires à votre héros !");
+                            }
+                        }
+                    }
+
+                    // LifestealOnKill
+                    foreach (var p in GetPassives(attacker))
+                    {
+                        if (p.passiveType == UnitPassiveType.LifestealOnKill)
+                        {
+                            if (isPlayerAttacking)
+                            {
+                                playerHP = Mathf.Min(playerMaxHP, playerHP + p.value);
+                                Log($"  → [{p.keyword}] +{p.value} HP héros ({playerHP}/{playerMaxHP})");
+                            }
+                            else
+                            {
+                                board.enemyCurrentHP = Mathf.Min(board.enemyMaxHP, board.enemyCurrentHP + p.value);
+                                Log($"  → [{p.keyword}] héros ennemi récupère {p.value} HP");
+                            }
+                        }
+                    }
+
                     if (combatAnimator != null && defenderSlot != null)
                         yield return StartCoroutine(combatAnimator.PlayDeathAnim(defenderSlot));
+
+                    var deadUnit = defender;
                     defenderLane.ClearCard();
-                    Log($"> {defender.data.cardName} est détruit !");
+                    Log($"> {deadUnit.data.cardName} est détruit !");
+
+                    TriggerOnDeathPassives(deadUnit, attackerLane, board, isPlayerAttacking);
                 }
-                else if (combatAnimator != null && defenderSlot != null)
+                else
                 {
-                    yield return StartCoroutine(combatAnimator.PlayHitFlash(defenderSlot));
+                    // Track survival for end-of-round passives (player units only)
+                    if (!isPlayerAttacking)
+                        defender.survivedAttackThisTurn = true;
+
+                    if (combatAnimator != null && defenderSlot != null)
+                        yield return StartCoroutine(combatAnimator.PlayHitFlash(defenderSlot));
                 }
             }
             else
             {
+                // Empty lane: direct damage
+                int directDmg = attacker.CurrentAttack;
+
+                // DoubleATKIfLaneEmpty: attack power doubles when lane is uncontested
+                foreach (var p in GetPassives(attacker))
+                    if (p.passiveType == UnitPassiveType.DoubleATKIfLaneEmpty)
+                        directDmg *= 2;
+
                 if (isPlayerAttacking)
                 {
-                    board.TakeDamage(attacker.CurrentAttack);
-                    Log($"> {attacker.data.cardName} inflige {attacker.CurrentAttack} dégâts au board ennemi " +
+                    board.TakeDamage(directDmg);
+                    Log($"> {attacker.data.cardName} inflige {directDmg} dégâts au board ennemi " +
                         $"({board.enemyCurrentHP}/{board.enemyMaxHP} HP)");
                 }
                 else
                 {
-                    playerHP = Mathf.Max(0, playerHP - attacker.CurrentAttack);
-                    Log($"> {attacker.data.cardName} vous inflige {attacker.CurrentAttack} dégâts ! " +
+                    playerHP = Mathf.Max(0, playerHP - directDmg);
+                    Log($"> {attacker.data.cardName} vous inflige {directDmg} dégâts ! " +
                         $"(HP: {playerHP}/{playerMaxHP})");
                 }
             }
@@ -571,6 +669,16 @@ namespace RoguelikeTCG.Combat
             else
                 ShowRewardScreen();
         }
+
+        private static int GetSellPrice(CardRarity rarity) => rarity switch
+        {
+            CardRarity.Common    => 25,
+            CardRarity.Uncommon  => 37,
+            CardRarity.Rare      => 50,
+            CardRarity.Epic      => 75,
+            CardRarity.Legendary => 100,
+            _                    => 25,
+        };
 
         private int CalculateGoldReward()
         {
@@ -693,7 +801,16 @@ namespace RoguelikeTCG.Combat
             }
 
             // Tirer aléatoirement jusqu'à RewardCount cartes sans doublon
-            var pool = new List<CardData>(rewardCardPool);
+            // Exclure les cartes dont le joueur possède déjà ≥ 3 copies dans le deck
+            var deck = RunPersistence.Instance?.PlayerDeck;
+            var pool = rewardCardPool.FindAll(c =>
+            {
+                if (c == null) return false;
+                if (deck == null) return true;
+                int copies = 0;
+                foreach (var d in deck) if (d == c) copies++;
+                return copies < 3;
+            });
             for (int i = pool.Count - 1; i > 0; i--)
             {
                 int j = Random.Range(0, i + 1);
@@ -761,12 +878,38 @@ namespace RoguelikeTCG.Combat
                     Destroy(capturedOverlay);
                     ShowResultOverlay(won: true);
                 });
+
+                // Bouton "Vendre pour X or"
+                int sellPrice = GetSellPrice(card.rarity);
+                var sellGO = new GameObject($"SellBtn_{i}", typeof(RectTransform));
+                sellGO.transform.SetParent(overlayGO.transform, false);
+                SetOverlayAnchors(sellGO, xMin, 0.13f, xMax, 0.21f);
+                sellGO.AddComponent<Image>().color = new Color(0.28f, 0.18f, 0.10f);
+                var sellBtn = sellGO.AddComponent<Button>();
+                var sellLblGO = new GameObject("Label", typeof(RectTransform));
+                sellLblGO.transform.SetParent(sellGO.transform, false);
+                SetOverlayAnchors(sellLblGO, 0f, 0f, 1f, 1f);
+                var sellTMP = sellLblGO.AddComponent<TextMeshProUGUI>();
+                sellTMP.text          = $"Vendre : {sellPrice} or";
+                sellTMP.fontSize      = 14f;
+                sellTMP.fontStyle     = FontStyles.Bold;
+                sellTMP.alignment     = TextAlignmentOptions.Center;
+                sellTMP.color         = new Color(0.95f, 0.82f, 0.35f);
+                sellTMP.raycastTarget = false;
+                int capturedPrice = sellPrice;
+                sellBtn.onClick.AddListener(() =>
+                {
+                    RunPersistence.Instance?.AddGold(capturedPrice);
+                    Log($"✦ {capturedCard.cardName} vendue pour {capturedPrice} or.");
+                    Destroy(capturedOverlay);
+                    ShowResultOverlay(won: true);
+                });
             }
 
             // Bouton "Passer"
             var skipGO = new GameObject("SkipBtn", typeof(RectTransform));
             skipGO.transform.SetParent(overlayGO.transform, false);
-            SetOverlayAnchors(skipGO, 0.37f, 0.07f, 0.63f, 0.17f);
+            SetOverlayAnchors(skipGO, 0.37f, 0.03f, 0.63f, 0.11f);
             skipGO.AddComponent<Image>().color = new Color(0.22f, 0.22f, 0.26f);
             var skipBtn = skipGO.AddComponent<Button>();
             var skipLabelGO = new GameObject("Label", typeof(RectTransform));
@@ -870,6 +1013,251 @@ namespace RoguelikeTCG.Combat
             rt.anchorMin = new Vector2(xMin, yMin);
             rt.anchorMax = new Vector2(xMax, yMax);
             rt.offsetMin = rt.offsetMax = Vector2.zero;
+        }
+
+        // ── Unit Passives ─────────────────────────────────────────────────────
+
+        private static readonly List<UnitPassive> _emptyPassives = new List<UnitPassive>();
+        private static List<UnitPassive> GetPassives(CardInstance unit) =>
+            unit?.data?.unitPassives ?? _emptyPassives;
+
+        private int GetAuraDmgReduction(Board board, bool forPlayerSide)
+        {
+            int reduction = 0;
+            var lanes = forPlayerSide ? board.playerLanes : board.enemyLanes;
+            foreach (var lane in lanes)
+            {
+                if (lane == null || !lane.IsOccupied) continue;
+                foreach (var p in GetPassives(lane.Occupant))
+                    if (p.passiveType == UnitPassiveType.AuraAlliesReduceDmg)
+                        reduction = Mathf.Max(reduction, p.value);
+            }
+            return reduction;
+        }
+
+        private void TriggerOnEntryPassives(CardInstance unit, Lane placedLane, Board board)
+        {
+            if (unit.data.unitPassives == null || unit.data.unitPassives.Count == 0) return;
+
+            bool isPlayer    = unit.isPlayerCard;
+            var  alliesLanes = isPlayer ? board.playerLanes : board.enemyLanes;
+            var  enemiesLanes = isPlayer ? board.enemyLanes : board.playerLanes;
+
+            foreach (var p in unit.data.unitPassives)
+            {
+                switch (p.passiveType)
+                {
+                    case UnitPassiveType.DrawOnEntry:
+                        if (isPlayer)
+                        {
+                            playerDeck.DrawCards(p.value);
+                            Log($"  → [{p.keyword}] {unit.data.cardName} : vous piochez {p.value} carte(s)");
+                        }
+                        break;
+
+                    case UnitPassiveType.AoEOnEntry:
+                        foreach (var lane in enemiesLanes)
+                        {
+                            if (lane == null || !lane.IsOccupied) continue;
+                            string eName = lane.Occupant.data.cardName;
+                            lane.Occupant.currentHP -= p.value;
+                            if (!lane.Occupant.IsAlive) lane.ClearCard();
+                        }
+                        Log($"  → [{p.keyword}] {unit.data.cardName} inflige {p.value} à toutes les unités adverses !");
+                        break;
+
+                    case UnitPassiveType.DamageOnEntry:
+                    {
+                        int idx = placedLane.laneIndex;
+                        if (idx < enemiesLanes.Length && enemiesLanes[idx] != null)
+                        {
+                            var opp = enemiesLanes[idx];
+                            if (opp.IsOccupied)
+                            {
+                                string tName = opp.Occupant.data.cardName;
+                                opp.Occupant.currentHP -= p.value;
+                                Log($"  → [{p.keyword}] {unit.data.cardName} inflige {p.value} à {tName}");
+                                if (!opp.Occupant.IsAlive) { opp.ClearCard(); Log($"  → {tName} est détruit !"); }
+                            }
+                            else
+                            {
+                                if (isPlayer) { board.TakeDamage(p.value); Log($"  → [{p.keyword}] {unit.data.cardName} inflige {p.value} au héros ennemi !"); }
+                                else { playerHP = Mathf.Max(0, playerHP - p.value); Log($"  → [{p.keyword}] {unit.data.cardName} inflige {p.value} à votre héros !"); }
+                            }
+                        }
+                        break;
+                    }
+
+                    case UnitPassiveType.ATKDebuffRandomOnEntry:
+                    {
+                        var alive = new List<CardInstance>();
+                        foreach (var lane in enemiesLanes)
+                            if (lane != null && lane.IsOccupied) alive.Add(lane.Occupant);
+                        if (alive.Count > 0)
+                        {
+                            var t = alive[Random.Range(0, alive.Count)];
+                            t.bonusAttack -= p.value;
+                            Log($"  → [{p.keyword}] {unit.data.cardName} réduit l'ATK de {t.data.cardName} de {p.value} ({t.CurrentAttack} ATK)");
+                        }
+                        break;
+                    }
+
+                    case UnitPassiveType.BuffAlliesOnEntry:
+                        foreach (var lane in alliesLanes)
+                        {
+                            if (lane == null || !lane.IsOccupied || lane.Occupant == unit) continue;
+                            lane.Occupant.bonusAttack += p.value;
+                            Log($"  → [{p.keyword}] {lane.Occupant.data.cardName} gagne +{p.value} ATK");
+                        }
+                        break;
+
+                    case UnitPassiveType.LegionBonusATK:
+                    {
+                        bool hasAlly = false;
+                        foreach (var lane in alliesLanes)
+                            if (lane != null && lane.IsOccupied && lane.Occupant != unit) { hasAlly = true; break; }
+                        if (hasAlly)
+                        {
+                            unit.bonusAttack += p.value;
+                            Log($"  → [{p.keyword}] {unit.data.cardName} gagne +{p.value} ATK ({unit.CurrentAttack} ATK)");
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void TriggerOnDeathPassives(CardInstance dead, Lane attackerLane, Board board, bool isPlayerAttacking)
+        {
+            if (dead.data.unitPassives == null || dead.data.unitPassives.Count == 0) return;
+
+            foreach (var p in dead.data.unitPassives)
+            {
+                switch (p.passiveType)
+                {
+                    case UnitPassiveType.ThornsOnDeath:
+                        if (attackerLane.IsOccupied)
+                        {
+                            var t = attackerLane.Occupant;
+                            t.currentHP -= p.value;
+                            Log($"  → [{p.keyword}] {dead.data.cardName} inflige {p.value} à {t.data.cardName} en mourant !");
+                            if (!t.IsAlive) attackerLane.ClearCard();
+                        }
+                        break;
+
+                    case UnitPassiveType.ATKDebuffOnDeath:
+                        if (attackerLane.IsOccupied)
+                        {
+                            attackerLane.Occupant.bonusAttack -= p.value;
+                            Log($"  → [{p.keyword}] {dead.data.cardName} réduit l'ATK de {attackerLane.Occupant.data.cardName} de {p.value}");
+                        }
+                        break;
+
+                    case UnitPassiveType.DamageHeroOnDeath:
+                        // isPlayerAttacking=true → enemy died → punish player hero
+                        // isPlayerAttacking=false → player died → punish enemy hero
+                        if (isPlayerAttacking)
+                        {
+                            playerHP = Mathf.Max(0, playerHP - p.value);
+                            Log($"  → [{p.keyword}] {dead.data.cardName} vous inflige {p.value} en mourant ! (HP: {playerHP}/{playerMaxHP})");
+                        }
+                        else
+                        {
+                            board.TakeDamage(p.value);
+                            Log($"  → [{p.keyword}] {dead.data.cardName} inflige {p.value} au héros ennemi en mourant !");
+                        }
+                        break;
+
+                    case UnitPassiveType.AoEOnDeath:
+                        // Target the side opposite to the dead unit
+                        // enemy died (isPlayerAttacking=true) → revenge on player lanes
+                        // player died (isPlayerAttacking=false) → nuke enemy lanes
+                        var targetLanes = isPlayerAttacking ? board.playerLanes : board.enemyLanes;
+                        int aoeKills = 0;
+                        foreach (var lane in targetLanes)
+                        {
+                            if (lane == null || !lane.IsOccupied) continue;
+                            lane.Occupant.currentHP -= p.value;
+                            if (!lane.Occupant.IsAlive) { lane.ClearCard(); aoeKills++; }
+                        }
+                        Log($"  → [{p.keyword}] {dead.data.cardName} inflige {p.value} à toutes les unités adverses en mourant !" +
+                            (aoeKills > 0 ? $" ({aoeKills} détruites)" : ""));
+                        break;
+                }
+            }
+        }
+
+        private void TriggerStartOfTurnPassives()
+        {
+            foreach (var board in boardManager.boards)
+            {
+                if (!board.isActive || board.IsDefeated) continue;
+                foreach (var lane in board.playerLanes)
+                {
+                    if (lane == null || !lane.IsOccupied) continue;
+                    foreach (var p in GetPassives(lane.Occupant))
+                    {
+                        if (p.passiveType != UnitPassiveType.AoEStartOfTurn) continue;
+                        int hits = 0;
+                        foreach (var eLane in board.enemyLanes)
+                        {
+                            if (eLane == null || !eLane.IsOccupied) continue;
+                            eLane.Occupant.currentHP -= p.value;
+                            hits++;
+                            if (!eLane.Occupant.IsAlive) eLane.ClearCard();
+                        }
+                        if (hits > 0)
+                            Log($"  → [{p.keyword}] {lane.Occupant.data.cardName} inflige {p.value} à {hits} unité(s) ennemie(s)");
+                    }
+                }
+            }
+        }
+
+        private void TriggerEndOfRoundPassives()
+        {
+            foreach (var board in boardManager.boards)
+            {
+                if (!board.isActive || board.IsDefeated) continue;
+                foreach (var lane in board.playerLanes)
+                {
+                    if (lane == null || !lane.IsOccupied) continue;
+                    var unit = lane.Occupant;
+                    foreach (var p in GetPassives(unit))
+                    {
+                        switch (p.passiveType)
+                        {
+                            case UnitPassiveType.HealHeroIfAlive:
+                                if (unit.survivedAttackThisTurn)
+                                {
+                                    playerHP = Mathf.Min(playerMaxHP, playerHP + p.value);
+                                    Log($"  → [{p.keyword}] {unit.data.cardName} : +{p.value} HP héros ({playerHP}/{playerMaxHP})");
+                                }
+                                break;
+
+                            case UnitPassiveType.HealHeroIfEnemyWeak:
+                            {
+                                bool hasWeak = false;
+                                foreach (var eLane in board.enemyLanes)
+                                    if (eLane != null && eLane.IsOccupied && eLane.Occupant.CurrentAttack <= 0) { hasWeak = true; break; }
+                                if (hasWeak)
+                                {
+                                    playerHP = Mathf.Min(playerMaxHP, playerHP + p.value);
+                                    Log($"  → [{p.keyword}] {unit.data.cardName} : +{p.value} HP héros ({playerHP}/{playerMaxHP})");
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    unit.survivedAttackThisTurn = false;
+                }
+            }
+        }
+
+        private void ResetSurvivedAttackFlags()
+        {
+            foreach (var board in boardManager.boards)
+                foreach (var lane in board.playerLanes)
+                    if (lane != null && lane.IsOccupied) lane.Occupant.survivedAttackThisTurn = false;
         }
 
         // ── UI Refresh ────────────────────────────────────────────────────────

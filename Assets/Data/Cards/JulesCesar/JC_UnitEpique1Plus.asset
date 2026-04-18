@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 5
   maxHP: 4
+  unitPassives:
+  - passiveType: 13
+    value: 2
+    keyword: "Conqu\xEAte"
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

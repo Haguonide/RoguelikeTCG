@@ -20,6 +20,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 3
   maxHP: 2
+  unitPassives:
+  - passiveType: 2
+    value: 3
+    keyword: Charge
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: b84d059e8d1a10b4890af5b989e17dd9, type: 2}

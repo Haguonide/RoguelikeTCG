@@ -23,7 +23,7 @@ MonoBehaviour:
   maxHP: 0
   spellTarget: 0
   effects:
-  - effectType: 1
-    value: 4
+  - effectType: 5
+    value: 5
     target: 0
   upgradedVersion: {fileID: 11400000, guid: fa41870aee2033b4aac7ec370b7b8060, type: 2}

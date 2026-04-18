@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 2
   maxHP: 2
+  unitPassives:
+  - passiveType: 5
+    value: 1
+    keyword: "L\xE9gion"
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: 195fdc105281d6648862a8fc1a33e7cd, type: 2}

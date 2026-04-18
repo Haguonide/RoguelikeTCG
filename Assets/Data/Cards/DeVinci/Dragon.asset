@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 3
   maxHP: 3
+  unitPassives:
+  - passiveType: 1
+    value: 2
+    keyword: Souffle
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: 68819b9449dafed4c843bf58c59306ef, type: 2}

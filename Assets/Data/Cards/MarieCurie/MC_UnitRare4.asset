@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 2
   maxHP: 3
+  unitPassives:
+  - passiveType: 17
+    value: 2
+    keyword: "Synth\xE8se"
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: 11ddd398741057642b4a5e20ff213a77, type: 2}

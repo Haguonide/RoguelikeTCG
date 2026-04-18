@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 1
   maxHP: 5
+  unitPassives:
+  - passiveType: 16
+    value: 1
+    keyword: "R\xE9silience"
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

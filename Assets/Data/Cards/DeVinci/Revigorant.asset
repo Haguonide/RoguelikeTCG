@@ -24,6 +24,9 @@ MonoBehaviour:
   spellTarget: 0
   effects:
   - effectType: 1
-    value: 8
+    value: 6
+    target: 0
+  - effectType: 4
+    value: 1
     target: 0
   upgradedVersion: {fileID: 11400000, guid: 4510b1dcca4cb524d9a41c90764cec2a, type: 2}

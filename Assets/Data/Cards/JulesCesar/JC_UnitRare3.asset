@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 2
   maxHP: 4
+  unitPassives:
+  - passiveType: 15
+    value: 1
+    keyword: Escorte
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: 9d06954aedadded439849044b8f13c03, type: 2}

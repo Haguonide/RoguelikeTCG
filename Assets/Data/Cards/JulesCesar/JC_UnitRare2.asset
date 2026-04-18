@@ -20,6 +20,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 4
   maxHP: 1
+  unitPassives:
+  - passiveType: 8
+    value: 3
+    keyword: Sacrifice offensif
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: 653dd9fe18a68d5449abee54aa1bf0a3, type: 2}

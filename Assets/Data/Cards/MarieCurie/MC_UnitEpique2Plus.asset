@@ -21,6 +21,10 @@ MonoBehaviour:
   manaCost: 0
   attackPower: 5
   maxHP: 3
+  unitPassives:
+  - passiveType: 9
+    value: 2
+    keyword: Explosion radioactive
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}
