@@ -16,7 +16,7 @@ namespace RoguelikeTCG.Combat
 
         private void Awake()
         {
-            enemyCurrentHP = enemyMaxHP;
+            enemyCurrentHP = enemyMaxHP; // valeur par défaut — sera écrasée par CombatManager.ConfigureBoardCount
         }
 
         public void TakeDamage(int amount)

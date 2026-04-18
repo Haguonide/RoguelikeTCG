@@ -69,7 +69,6 @@ namespace RoguelikeTCG.Combat
         {
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
-            ConfigureBoardCount();
         }
 
         private void ConfigureBoardCount()
@@ -77,11 +76,24 @@ namespace RoguelikeTCG.Combat
             var nodeType = RunPersistence.Instance?.CurrentNode?.type;
             int count = (nodeType == NodeType.Combat) ? Random.Range(1, 3) : 3;
             boardManager?.SetActiveBoardCount(count);
+
+            int hpPerBoard = nodeType switch
+            {
+                NodeType.Elite => 35,
+                NodeType.Boss  => 55,
+                _              => 25,
+            };
+            foreach (var board in boardManager.boards)
+            {
+                board.enemyMaxHP     = hpPerBoard;
+                board.enemyCurrentHP = hpPerBoard;
+            }
         }
 
         private void Start()
         {
             allLaneSlots = FindObjectsOfType<LaneSlotUI>(true);
+            ConfigureBoardCount();
             InitializeCombat();
         }
 
@@ -170,12 +182,15 @@ namespace RoguelikeTCG.Combat
             if (boardManager.ActiveBoard.IsDefeated) return false;
             if (!card.IsUnit || lane.IsOccupied || !lane.isPlayerLane) return false;
 
+            card.placedThisTurn = true;
             lane.PlaceCard(card);
             playerDeck.PlayCard(card);
             turnManager.RegisterCardPlayed();
             Log($"> Vous posez {card.data.cardName} ({card.CurrentAttack}/{card.currentHP})");
             TriggerOnEntryPassives(card, lane, boardManager.ActiveBoard);
             RefreshAllUI();
+            if (HasDamageOnEntry(card))
+                StartCoroutine(PlayChargeEntryAnim(card, lane, boardManager.ActiveBoard));
             return true;
         }
 
@@ -183,6 +198,8 @@ namespace RoguelikeTCG.Combat
         {
             TriggerOnEntryPassives(unit, lane, board);
             RefreshAllUI();
+            if (HasDamageOnEntry(unit))
+                StartCoroutine(PlayChargeEntryAnim(unit, lane, board));
         }
 
         public bool TryPlaySpellOnHero(CardInstance card, bool isPlayerHero)
@@ -428,12 +445,14 @@ namespace RoguelikeTCG.Combat
             if (boardManager.AllBoardsDefeated()) { OnVictory(); yield break; }
             if (playerHP <= 0)                    { OnDefeat();  yield break; }
 
+            // L'IA pose ses cartes maintenant — elles ont placedThisTurn=true
+            // et ne peuvent donc pas attaquer ce tour (summoning sickness symétrique)
             Log("--- Tour ennemi ---");
             turnManager.StartEnemyTurn();
             manaManager.RegenTurn();
             enemyAI.PlayTurn();
             RefreshAllUI();
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.3f);
 
             Log("[ Résolution des attaques ennemies ]");
             for (int i = 0; i < boardManager.boards.Count; i++)
@@ -454,6 +473,7 @@ namespace RoguelikeTCG.Combat
             TriggerEndOfRoundPassives();
             RefreshAllUI();
 
+            ResetPlacedThisTurnFlags();
             Log("--- Votre tour ---");
             turnManager.StartPlayerTurn();
             manaManager.RegenTurn();
@@ -504,11 +524,15 @@ namespace RoguelikeTCG.Combat
 
                 if (playerAttacks)
                 {
+                    // Skip units placed this turn (summoning sickness)
+                    if (pLane.IsOccupied && pLane.Occupant.placedThisTurn) continue;
                     yield return StartCoroutine(AttackWithUnit(pLane, eLane, board, isPlayerAttacking: true));
                     if (board.IsDefeated) yield break;
                 }
                 else
                 {
+                    // Skip units placed this turn (summoning sickness)
+                    if (eLane.IsOccupied && eLane.Occupant.placedThisTurn) continue;
                     yield return StartCoroutine(AttackWithUnit(eLane, pLane, board, isPlayerAttacking: false));
                     if (playerHP <= 0) yield break;
                 }
@@ -534,6 +558,10 @@ namespace RoguelikeTCG.Combat
                 // Damage calculation with passive reductions
                 int dmg = attacker.CurrentAttack;
 
+                // Positional bonuses: centre attaquant +1 ATK, défenseur sur flanc -1 dmg
+                dmg += LaneAttackBonus(attackerLane);
+                dmg  = Mathf.Max(0, dmg - LaneDefenseReduction(defenderLane));
+
                 // DmgReduction on the defender itself (individual passive, not shown on card)
                 foreach (var p in GetPassives(defender))
                     if (p.passiveType == UnitPassiveType.DmgReduction)
@@ -551,8 +579,9 @@ namespace RoguelikeTCG.Combat
                 defender.currentHP -= dmg;
                 if (defenderSlot != null && dmg > 0)
                     RoguelikeTCG.UI.DamagePopup.ShowDamage((RectTransform)defenderSlot.transform, dmg);
+                string posLog = BuildPositionalLog(attackerLane, defenderLane);
                 Log($"> {attacker.data.cardName} attaque {defender.data.cardName} " +
-                    $"({attacker.CurrentAttack} dmg → {defender.currentHP} HP restants)");
+                    $"({attacker.CurrentAttack}{posLog} dmg → {defender.currentHP} HP restants)");
 
                 // BonusDmgIfEnemyWeakened: if the defender has ≤0 ATK, deal bonus direct dmg
                 foreach (var p in GetPassives(attacker))
@@ -650,7 +679,7 @@ namespace RoguelikeTCG.Combat
             else
             {
                 // Empty lane: direct damage
-                int directDmg = attacker.CurrentAttack;
+                int directDmg = attacker.CurrentAttack + LaneAttackBonus(attackerLane);
 
                 // DoubleATKIfLaneEmpty: attack power doubles when lane is uncontested
                 foreach (var p in GetPassives(attacker))
@@ -712,17 +741,16 @@ namespace RoguelikeTCG.Combat
             if (lane == null || lane.IsOccupied || !lane.isPlayerLane) return;
             if (gearCount < 3 || !IsDeVinciRun()) return;
 
-            var autoData         = ScriptableObject.CreateInstance<CardData>();
-            autoData.cardName    = "Automate Réparé";
-            autoData.cardType    = CardType.Unit;
-            autoData.attackPower = Mathf.Min(gearCumulatedATK, 5);
-            autoData.maxHP       = Mathf.Min(gearCumulatedHP,  8);
-            if (bricolageCardData?.artwork != null) autoData.artwork = bricolageCardData.artwork;
+            int cappedATK = Mathf.Min(gearCumulatedATK, 5);
+            int cappedHP  = Mathf.Min(gearCumulatedHP,  8);
 
-            var autoInstance = new CardInstance(autoData, isPlayerCard: true);
+            var autoInstance = new CardInstance(bricolageCardData, isPlayerCard: true);
+            autoInstance.bonusAttack   = cappedATK - bricolageCardData.attackPower;
+            autoInstance.currentHP     = cappedHP;
+            autoInstance.placedThisTurn = true;
             lane.PlaceCard(autoInstance);
             turnManager.RegisterCardPlayed();
-            Log($"> Bricolage ! Automate Réparé ({autoData.attackPower}/{autoData.maxHP}) invoqué !");
+            Log($"> Bricolage ! Automate Réparé ({cappedATK}/{cappedHP}) invoqué !");
             AudioManager.Instance.PlaySFX("sfx_card_place");
 
             gearCount        = 0;
@@ -1190,26 +1218,8 @@ namespace RoguelikeTCG.Combat
                         break;
 
                     case UnitPassiveType.DamageOnEntry:
-                    {
-                        int idx = placedLane.laneIndex;
-                        if (idx < enemiesLanes.Length && enemiesLanes[idx] != null)
-                        {
-                            var opp = enemiesLanes[idx];
-                            if (opp.IsOccupied)
-                            {
-                                string tName = opp.Occupant.data.cardName;
-                                opp.Occupant.currentHP -= p.value;
-                                Log($"  → [{p.keyword}] {unit.data.cardName} inflige {p.value} à {tName}");
-                                if (!opp.Occupant.IsAlive) { opp.ClearCard(); Log($"  → {tName} est détruit !"); }
-                            }
-                            else
-                            {
-                                if (isPlayer) { board.TakeDamage(p.value); Log($"  → [{p.keyword}] {unit.data.cardName} inflige {p.value} au héros ennemi !"); }
-                                else { playerHP = Mathf.Max(0, playerHP - p.value); Log($"  → [{p.keyword}] {unit.data.cardName} inflige {p.value} à votre héros !"); }
-                            }
-                        }
+                        // Handled by PlayChargeEntryAnim coroutine (animation + damage sequenced)
                         break;
-                    }
 
                     case UnitPassiveType.ATKDebuffRandomOnEntry:
                     {
@@ -1432,6 +1442,97 @@ namespace RoguelikeTCG.Combat
             foreach (var board in boardManager.boards)
                 foreach (var lane in board.playerLanes)
                     if (lane != null && lane.IsOccupied) lane.Occupant.survivedAttackThisTurn = false;
+        }
+
+        private static int LaneAttackBonus(Lane lane)     => lane?.laneIndex == 1 ? 1 : 0;
+        private static int LaneDefenseReduction(Lane lane) => (lane != null && lane.laneIndex != 1) ? 1 : 0;
+
+        private static string BuildPositionalLog(Lane atk, Lane def)
+        {
+            int bonus = LaneAttackBonus(atk) - LaneDefenseReduction(def);
+            return bonus > 0 ? $"+{bonus}(pos)" : bonus < 0 ? $"{bonus}(pos)" : "";
+        }
+
+        private static bool HasDamageOnEntry(CardInstance unit)
+        {
+            if (unit.data.unitPassives == null) return false;
+            foreach (var p in unit.data.unitPassives)
+                if (p.passiveType == UnitPassiveType.DamageOnEntry) return true;
+            return false;
+        }
+
+        private IEnumerator PlayChargeEntryAnim(CardInstance unit, Lane placedLane, Board board)
+        {
+            yield return null; // attendre que RefreshAllUI ait créé le PlayedCardUI
+
+            var slot = FindSlotForLane(placedLane);
+            if (combatAnimator != null && slot != null)
+                yield return StartCoroutine(combatAnimator.PlayAttackAnim(slot, unit.isPlayerCard));
+
+            bool isPlayer     = unit.isPlayerCard;
+            var  enemiesLanes = isPlayer ? board.enemyLanes : board.playerLanes;
+
+            foreach (var p in GetPassives(unit))
+            {
+                if (p.passiveType != UnitPassiveType.DamageOnEntry) continue;
+
+                int idx = placedLane.laneIndex;
+                if (idx >= enemiesLanes.Length || enemiesLanes[idx] == null) continue;
+
+                var oppLane = enemiesLanes[idx];
+                if (oppLane.IsOccupied)
+                {
+                    var    target  = oppLane.Occupant;
+                    string tName   = target.data.cardName;
+                    var    defSlot = FindSlotForLane(oppLane);
+
+                    int chargeDmg = Mathf.Max(0, p.value + LaneAttackBonus(placedLane) - LaneDefenseReduction(oppLane));
+                    target.currentHP -= chargeDmg;
+                    if (defSlot != null && chargeDmg > 0)
+                        RoguelikeTCG.UI.DamagePopup.ShowDamage((RectTransform)defSlot.transform, chargeDmg);
+                    Log($"  → [{p.keyword}] {unit.data.cardName} inflige {chargeDmg} à {tName} ({target.currentHP} HP restants)");
+                    RefreshAllUI();
+
+                    if (!target.IsAlive)
+                    {
+                        if (combatAnimator != null && defSlot != null)
+                            yield return StartCoroutine(combatAnimator.PlayDeathAnim(defSlot));
+                        oppLane.ClearCard();
+                        Log($"  → {tName} est détruit !");
+                        TriggerOnDeathPassives(target, placedLane, board, isPlayer);
+                    }
+                    else
+                    {
+                        if (combatAnimator != null && defSlot != null)
+                            yield return StartCoroutine(combatAnimator.PlayHitFlash(defSlot));
+                    }
+                }
+                else
+                {
+                    if (isPlayer)
+                    {
+                        board.TakeDamage(p.value);
+                        Log($"  → [{p.keyword}] {unit.data.cardName} inflige {p.value} au héros ennemi !");
+                    }
+                    else
+                    {
+                        DamagePlayer(p.value);
+                        Log($"  → [{p.keyword}] {unit.data.cardName} inflige {p.value} à votre héros !");
+                    }
+                }
+                RefreshAllUI();
+            }
+        }
+
+        private void ResetPlacedThisTurnFlags()
+        {
+            foreach (var board in boardManager.boards)
+            {
+                foreach (var lane in board.playerLanes)
+                    if (lane != null && lane.IsOccupied) lane.Occupant.placedThisTurn = false;
+                foreach (var lane in board.enemyLanes)
+                    if (lane != null && lane.IsOccupied) lane.Occupant.placedThisTurn = false;
+            }
         }
 
         // ── UI Refresh ────────────────────────────────────────────────────────

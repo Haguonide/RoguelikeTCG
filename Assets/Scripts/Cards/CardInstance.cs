@@ -10,6 +10,7 @@ namespace RoguelikeTCG.Cards
         public int bonusAttack;           // accumulated ATK buffs — never touches the ScriptableObject
         public bool isPlayerCard;
         public bool survivedAttackThisTurn; // reset each round, used by HealHeroIfAlive
+        public bool placedThisTurn;         // true when placed this turn — unit cannot attack until next turn
         public int poisonStacks;            // accumulated poison charges — dealt as damage at end of round
 
         public CardInstance(CardData data, bool isPlayerCard)

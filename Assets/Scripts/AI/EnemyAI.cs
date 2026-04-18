@@ -256,6 +256,7 @@ namespace RoguelikeTCG.AI
         {
             if (action is PlaceUnitAction pu)
             {
+                pu.unit.placedThisTurn = true;
                 pu.lane.PlaceCard(pu.unit);
                 enemyDeck.PlayCard(pu.unit);
                 AudioManager.Instance.PlaySFX("sfx_card_place");

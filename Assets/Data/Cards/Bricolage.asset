@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Bricolage
   description: "Invoque l'Automate R\xE9par\xE9 avec les ATK/HP cumul\xE9s de vos
     alli\xE9s tomb\xE9s (max 5 ATK / 8 HP)."
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 2
   manaCost: 0
