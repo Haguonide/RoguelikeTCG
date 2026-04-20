@@ -2,39 +2,42 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
+using RoguelikeTCG.Cards;
 
 namespace RoguelikeTCG.Combat
 {
     /// <summary>
-    /// Represents a single lane slot on the board.
-    /// The slot is ONLY a position anchor with a neutral empty-state visual.
-    /// When a unit is placed, a PlayedCardUI is spawned as an independent child;
-    /// all card visuals (colour, name, stats, animations) live there.
+    /// Represents ONE cell (out of 6) in a CombatLane.
+    /// cellIndex 0-2 = player deployment zone (left side).
+    /// cellIndex 3-5 = enemy deployment zone (right side).
     /// </summary>
     public class LaneSlotUI : MonoBehaviour, IPointerClickHandler
     {
         [Header("Logic")]
-        public Lane lane;
-        public bool isPlayerLane = true;
+        public CombatLane lane;
+        public int        cellIndex;
 
-        [Header("Slot Visual (empty state)")]
-        public Image  background;   // always shows the slot sprite at neutral tint
-        public Sprite slotSprite;
-        public TextMeshProUGUI emptyHintText;
+        [Header("Slot Visual")]
+        public Image            background;
+        public Sprite           slotSprite;
+        public TextMeshProUGUI  emptyHintText;
 
-        // ── Played card ───────────────────────────────────────────────────────
+        // ── Derived state ─────────────────────────────────────────────────────
 
-        /// <summary>The card currently displayed on this slot, or null if empty.</summary>
+        public bool         IsPlayerDeployZone => cellIndex <= CombatLane.PLAYER_MAX_CELL;
+        public bool         IsOccupied         => lane != null && lane.IsOccupied(cellIndex);
+        public CardInstance Occupant           => lane?.GetUnit(cellIndex);
+        public bool         HasPlayerUnit      => Occupant?.isPlayerCard == true;
+        public bool         HasEnemyUnit       => Occupant != null && !Occupant.isPlayerCard;
+
+        // ── Children ──────────────────────────────────────────────────────────
+
         public PlayedCardUI PlayedCard => _playedCard;
         private PlayedCardUI _playedCard;
 
-        // ── Highlight overlay ─────────────────────────────────────────────────
-
         private Image _highlightOverlay;
 
-        private static readonly Color TintEmpty = new Color(1f, 1f, 1f, 0.55f);
-
-        public Lane Lane => lane;
+        private static readonly Color TintEmpty = new Color(1f, 1f, 1f, 0.45f);
 
         // ── Lifecycle ─────────────────────────────────────────────────────────
 
@@ -43,8 +46,7 @@ namespace RoguelikeTCG.Combat
             var go = new GameObject("HighlightOverlay", typeof(RectTransform));
             go.transform.SetParent(transform, false);
             var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
             rt.offsetMin = rt.offsetMax = Vector2.zero;
             _highlightOverlay = go.AddComponent<Image>();
             _highlightOverlay.color = Color.clear;
@@ -59,10 +61,10 @@ namespace RoguelikeTCG.Combat
         public void OnPointerClick(PointerEventData eventData)
         {
             if (eventData.button == PointerEventData.InputButton.Left)
-                CardSelector.Instance?.OnLaneClicked(this);
+                CardSelector.Instance?.OnCellClicked(this);
             else if (eventData.button == PointerEventData.InputButton.Right)
-                if (lane != null && lane.IsOccupied)
-                    RoguelikeTCG.UI.CardZoomPanel.Instance?.Show(lane.Occupant);
+                if (IsOccupied)
+                    RoguelikeTCG.UI.CardZoomPanel.Instance?.Show(Occupant);
         }
 
         // ── Highlight ─────────────────────────────────────────────────────────
@@ -79,37 +81,28 @@ namespace RoguelikeTCG.Combat
         {
             if (lane == null) return;
 
-            // Slot background — always neutral (position marker only)
             if (background != null)
             {
-                if (slotSprite != null && background.sprite == null)
-                    background.sprite = slotSprite;
+                if (slotSprite != null && background.sprite == null) background.sprite = slotSprite;
                 background.color = TintEmpty;
             }
 
-            if (lane.IsOccupied)
+            if (IsOccupied)
             {
-                // Spawn the card if not yet created
                 if (_playedCard == null)
-                    _playedCard = PlayedCardUI.CreateProgrammatic(transform, lane.Occupant, isPlayerLane);
+                    _playedCard = PlayedCardUI.CreateProgrammatic(transform, Occupant, HasPlayerUnit);
                 else
-                    _playedCard.Refresh(lane.Occupant);
+                    _playedCard.Refresh(Occupant);
 
                 if (emptyHintText) emptyHintText.gameObject.SetActive(false);
             }
             else
             {
-                // Destroy the card object if the lane was just cleared
-                if (_playedCard != null)
-                {
-                    Destroy(_playedCard.gameObject);
-                    _playedCard = null;
-                }
-
+                if (_playedCard != null) { Destroy(_playedCard.gameObject); _playedCard = null; }
                 if (emptyHintText)
                 {
-                    emptyHintText.text = isPlayerLane ? "Poser\nune unité" : "";
-                    emptyHintText.gameObject.SetActive(isPlayerLane);
+                    emptyHintText.text = IsPlayerDeployZone ? "Poser\nune unité" : "";
+                    emptyHintText.gameObject.SetActive(IsPlayerDeployZone);
                 }
             }
         }

@@ -1,41 +1,19 @@
+// Legacy stub — multi-board management removed; use CombatManager.lanes directly.
 using System.Collections.Generic;
-using System;
-using UnityEngine;
 
 namespace RoguelikeTCG.Combat
 {
-    public class BoardManager : MonoBehaviour
+    [System.Obsolete("Multi-board system removed — use CombatLane + CombatManager directly")]
+    public class BoardManager : UnityEngine.MonoBehaviour
     {
         public List<Board> boards = new();
+        public Board ActiveBoard      => boards.Count > 0 ? boards[0] : null;
+        public int   ActiveBoardIndex => 0;
 
-        private int activeBoardIndex = 0;
+        public void SetActiveBoard(int index) { }
+        public void SetActiveBoardCount(int count) { }
+        public bool AllBoardsDefeated() => false;
 
-        public Board ActiveBoard => boards[activeBoardIndex];
-        public int ActiveBoardIndex => activeBoardIndex;
-
-        public event Action<int> OnActiveBoardChanged;
-
-        public void SetActiveBoard(int index)
-        {
-            if (index >= 0 && index < boards.Count)
-            {
-                activeBoardIndex = index;
-                OnActiveBoardChanged?.Invoke(activeBoardIndex);
-            }
-        }
-
-        public void SetActiveBoardCount(int count)
-        {
-            for (int i = 0; i < boards.Count; i++)
-                boards[i].isActive = i < count;
-            activeBoardIndex = 0;
-        }
-
-        public bool AllBoardsDefeated()
-        {
-            foreach (var board in boards)
-                if (board.isActive && !board.IsDefeated) return false;
-            return true;
-        }
+        public event System.Action<int> OnActiveBoardChanged;
     }
 }

@@ -1,26 +1,17 @@
-using UnityEngine;
+// Legacy stub — the active lane system is CombatLane.cs
 using RoguelikeTCG.Cards;
 
 namespace RoguelikeTCG.Combat
 {
-    public class Lane : MonoBehaviour
+    [System.Obsolete("Use CombatLane instead")]
+    public class Lane : UnityEngine.MonoBehaviour
     {
         public bool isPlayerLane;
-        public int laneIndex;
+        public int  laneIndex;
 
-        private CardInstance occupant;
-
-        public bool IsOccupied => occupant != null;
-        public CardInstance Occupant => occupant;
-
-        public void PlaceCard(CardInstance card)
-        {
-            occupant = card;
-        }
-
-        public void ClearCard()
-        {
-            occupant = null;
-        }
+        public bool         IsOccupied => false;
+        public CardInstance Occupant   => null;
+        public void PlaceCard(CardInstance c) { }
+        public void ClearCard()               { }
     }
 }

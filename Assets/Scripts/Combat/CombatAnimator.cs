@@ -10,13 +10,13 @@ using RoguelikeTCG.UI;
 namespace RoguelikeTCG.Combat
 {
     /// <summary>
-    /// Handles all in-combat animations: attack charge, unit death, board slide.
+    /// Handles all in-combat animations: attack, death, advance, clash.
     /// </summary>
     public class CombatAnimator : MonoBehaviour
     {
         public static CombatAnimator Instance { get; private set; }
 
-        [Header("Board Slide")]
+        [Header("Board Slide (legacy — no longer used)")]
         public BoardNavigator boardNavigator;
 
         private static readonly Color ColAtk = new Color(1.00f, 0.82f, 0.22f);
@@ -269,6 +269,75 @@ namespace RoguelikeTCG.Combat
                 yield return null;
             }
             placed.animatedRoot.localScale = Vector3.one;
+            _animCount--;
+        }
+
+        // ── Advance (slide one cell) ──────────────────────────────────────────
+
+        /// <summary>Slides a unit's visual from one cell slot to the next.</summary>
+        public IEnumerator PlayAdvanceAnim(LaneSlotUI fromSlot, LaneSlotUI toSlot, bool isPlayer)
+        {
+            // For MVP: just play a quick scale pulse on the unit to signal movement
+            if (fromSlot?.PlayedCard == null) yield break;
+            var rt = fromSlot.PlayedCard.animatedRoot;
+            if (rt == null) yield break;
+
+            _animCount++;
+            // Small pulse indicating movement
+            float t = 0f;
+            while (t < 1f)
+            {
+                t = Mathf.Min(1f, t + Time.deltaTime / 0.12f);
+                float e     = Mathf.Sin(t * Mathf.PI);
+                float scale = 1f + e * 0.08f;
+                rt.localScale = new Vector3(scale, scale, 1f);
+                yield return null;
+            }
+            rt.localScale = Vector3.one;
+            _animCount--;
+        }
+
+        // ── Clash ─────────────────────────────────────────────────────────────
+
+        /// <summary>Both units lunge toward each other simultaneously.</summary>
+        public IEnumerator PlayClashAnim(LaneSlotUI playerSlot, LaneSlotUI enemySlot)
+        {
+            _animCount++;
+            AudioManager.Instance.PlaySFX("sfx_attack");
+
+            var pRT = playerSlot?.PlayedCard?.animatedRoot;
+            var eRT = enemySlot?.PlayedCard?.animatedRoot;
+
+            Vector2 pOrigin = pRT != null ? pRT.anchoredPosition : Vector2.zero;
+            Vector2 eOrigin = eRT != null ? eRT.anchoredPosition : Vector2.zero;
+
+            // Lunge: player lunges right (+X), enemy lunges left (-X)
+            const float lungeX = 16f;
+            const float dur    = 0.18f;
+
+            float t = 0f;
+            while (t < 1f)
+            {
+                t = Mathf.Min(1f, t + Time.deltaTime / dur);
+                float e = EaseInOut(t);
+                if (pRT != null) pRT.anchoredPosition = Vector2.LerpUnclamped(pOrigin, pOrigin + new Vector2( lungeX, 0f), e);
+                if (eRT != null) eRT.anchoredPosition = Vector2.LerpUnclamped(eOrigin, eOrigin + new Vector2(-lungeX, 0f), e);
+                yield return null;
+            }
+
+            // Snap back
+            t = 0f;
+            while (t < 1f)
+            {
+                t = Mathf.Min(1f, t + Time.deltaTime / (dur * 1.4f));
+                float e = EaseInOut(t);
+                if (pRT != null) pRT.anchoredPosition = Vector2.LerpUnclamped(pOrigin + new Vector2( lungeX, 0f), pOrigin, e);
+                if (eRT != null) eRT.anchoredPosition = Vector2.LerpUnclamped(eOrigin + new Vector2(-lungeX, 0f), eOrigin, e);
+                yield return null;
+            }
+
+            if (pRT != null) pRT.anchoredPosition = pOrigin;
+            if (eRT != null) eRT.anchoredPosition = eOrigin;
             _animCount--;
         }
 

@@ -25,7 +25,7 @@ namespace RoguelikeTCG.UI
 
             if (_bricolageGO != null) { Destroy(_bricolageGO); _bricolageGO = null; }
 
-            bool hasBricolage  = bricolageCardData != null;
+            bool hasBricolage  = bricolageCardData != null && CombatManager.Instance?.IsDeVinciRun() == true;
             int  regularCount  = hand?.Count ?? 0;
             int  totalCount    = regularCount + (hasBricolage ? 1 : 0);
             if (totalCount == 0) return;
@@ -130,7 +130,7 @@ namespace RoguelikeTCG.UI
 
         private GameObject BuildBricolageCard(CardData data, int gearCount, int gearATK, int gearHP)
         {
-            bool active = gearCount >= 3;
+            bool active = gearCount >= 2;  // Bricolage: ≥2 unités mortes au cimetière
             var  cfg    = Resources.Load<CardTemplateConfig>("CardTemplateConfig");
             var  tint   = active ? Color.white : new Color(0.55f, 0.55f, 0.55f, 0.75f);
 
@@ -169,7 +169,7 @@ namespace RoguelikeTCG.UI
 
             var gearTMP = MakeTMP("Gears", textsGO,
                 0.03f, 0.60f, 0.97f, 0.82f, 11f, FontStyles.Bold, TextAlignmentOptions.Center);
-            gearTMP.text  = active ? "⚙ PRÊT !" : $"⚙ {gearCount}/3";
+            gearTMP.text  = active ? "⚙ PRÊT !" : $"⚙ {gearCount}/2";
             gearTMP.color = active ? new Color(1f, 0.85f, 0.1f) : new Color(0.65f, 0.65f, 0.65f);
             gearTMP.raycastTarget = false;
 

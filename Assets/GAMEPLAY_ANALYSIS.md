@@ -395,3 +395,32 @@ Ce qui sépare Balatro (93/100) de jeux mécaniquement équivalents à 70/100. 4
 | Interactions secrètes entre cartes | Faible | +2-3 pts |
 
 Avec tout ça : **90-95/100** — un jeu dont les joueurs parlent.
+
+---
+
+## Brief illustrateur — Menu Principal (2026-04-19)
+
+### Composition générale
+
+- **Titre** : haut de l'écran, centré
+- **Boutons** : à gauche, zone épurée
+- **Silhouette du Dieu** : à droite, grand format
+- **Background** : derrière tous les éléments
+
+### Background — La salle du tournoi
+
+Amphithéâtre antique/salle de réunion absurde fusionnés. Colonnes de marbre côtoient des bureaux en bois verni et des spots de scène. Lumière chaude et dramatique venant de derrière/au-dessus, concentrée côté droit (derrière la silhouette). Côté gauche intentionnellement plus sombre pour préserver la lisibilité des boutons. Quelques figures historiques floues en arrière-plan (statues, silhouettes dans les gradins).
+
+Style : **Wildfrost** — flat cel shading, bold outlines, couleurs vives légèrement désaturées.
+
+### Silhouette du Dieu (droite)
+
+- **Format** : silhouette noire totale, environ 2/3 de la hauteur de l'écran, centrée sur le tiers droit
+- **Posture** : debout, bras croisés — hautain et fatigué
+- **Tenue** : longue toge avec capuche (capuche maintient le mystère même si la silhouette est levée plus tard)
+- **Contour** : léger rim light doré sur les bords pour qu'il se détache du fond sans perdre son effet silhouette
+- **Taille** : imposante, clairement plus grande que ce qu'un humain normal occuperait à cet endroit
+
+### Intention visuelle
+
+Le joueur doit sentir qu'il est observé et jugé avant même d'appuyer sur "Jouer". La silhouette instaure le mystère du personnage — on ne le verra pleinement que plus tard dans le jeu.

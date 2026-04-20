@@ -7,23 +7,31 @@ namespace RoguelikeTCG.Cards
         public CardData data;
         public int currentHP;
         public int shieldHP;
-        public int bonusAttack;           // accumulated ATK buffs — never touches the ScriptableObject
+        public int bonusAttack;
         public bool isPlayerCard;
-        public bool survivedAttackThisTurn; // reset each round, used by HealHeroIfAlive
-        public bool placedThisTurn;         // true when placed this turn — unit cannot attack until next turn
-        public int poisonStacks;            // accumulated poison charges — dealt as damage at end of round
+
+        // Board position (-1 = not on board)
+        public int cellPosition = -1;
+        public int laneIndex    = -1;
+
+        // Per-turn flags
+        public bool placedThisTurn;          // summoning sickness — reset after player or enemy turn resolves
+        public bool survivedClashThisTurn;   // used by Résilience (HealHeroIfAlive)
+        public bool hadClashThisTurn;        // used by Vigilance (no traverse bonus if clashed)
+        public bool slowed;                  // can't advance next turn (from SlowUnit effect)
+
+        // Status effects
+        public int poisonStacks;
 
         public CardInstance(CardData data, bool isPlayerCard)
         {
-            this.data = data;
-            this.currentHP = data.maxHP;
+            this.data        = data;
+            this.currentHP   = data.maxHP;
             this.isPlayerCard = isPlayerCard;
         }
 
-        /// <summary>Base ATK from the card definition plus any in-combat buffs. Clamped to 0 (debuffs can't go negative).</summary>
-        public int CurrentAttack => System.Math.Max(0, data.attackPower + bonusAttack);
-
-        public bool IsUnit => data.cardType == CardType.Unit;
-        public bool IsAlive => currentHP > 0;
+        public int  CurrentAttack => System.Math.Max(0, data.attackPower + bonusAttack);
+        public bool IsUnit        => data.cardType == CardType.Unit;
+        public bool IsAlive       => currentHP > 0;
     }
 }

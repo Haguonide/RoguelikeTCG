@@ -15,7 +15,14 @@ namespace RoguelikeTCG.UI
         [Header("Enemy Info (top right) — one per board")]
         public TextMeshProUGUI[] enemyHPTexts;
 
-        [Header("In-board Enemy HP — label inside each BoardArea")]
+        [Header("Single Enemy HP (new lane system)")]
+        public TextMeshProUGUI enemySingleHPText;
+
+        [Header("Cemetery / Discard counts")]
+        public TextMeshProUGUI cemeteryCountText;
+        public TextMeshProUGUI discardCountText;
+
+        [Header("In-board Enemy HP — label inside each BoardArea (legacy)")]
         public TextMeshProUGUI[] boardAreaHPTexts;
 
         public void RefreshPlayerInfo(int hp, int maxHP, int mana, int maxMana, int deckCount, int handCount, int shield = 0)
@@ -29,6 +36,17 @@ namespace RoguelikeTCG.UI
         public void RefreshGold(int gold)
         {
             if (playerGoldText) playerGoldText.text = $"Or: {gold}";
+        }
+
+        public void RefreshEnemyHP(int current, int max)
+        {
+            if (enemySingleHPText) enemySingleHPText.text = $"Ennemi : {current}/{max} HP";
+        }
+
+        public void RefreshCemetery(int cemCount, int discardCount)
+        {
+            if (cemeteryCountText) cemeteryCountText.text = $"Cim: {cemCount}";
+            if (discardCountText)  discardCountText.text  = $"Def: {discardCount}";
         }
 
         public void ClearEnemyBoard(int boardIndex)

@@ -1,41 +1,23 @@
-using UnityEngine;
-
+// Legacy stub — boards no longer exist in the new lane-advancement system.
 namespace RoguelikeTCG.Combat
 {
-    public class Board : MonoBehaviour
+    [System.Obsolete("Multi-board system removed — use CombatLane + CombatManager directly")]
+    public class Board : UnityEngine.MonoBehaviour
     {
-        public int boardIndex;
-        public int enemyMaxHP = 60;
-        public int enemyCurrentHP;
+        public int  boardIndex;
+        public int  enemyMaxHP     = 30;
+        public int  enemyCurrentHP = 30;
+        public bool isActive       = true;
+        public bool IsDefeated     => enemyCurrentHP <= 0;
 
-        public Lane[] playerLanes = new Lane[3];
-        public Lane[] enemyLanes = new Lane[3];
-
-        public bool isActive    = true;
-        public bool IsDefeated => enemyCurrentHP <= 0;
-
-        private void Awake()
-        {
-            enemyCurrentHP = enemyMaxHP; // valeur par défaut — sera écrasée par CombatManager.ConfigureBoardCount
-        }
+        public Lane[] playerLanes = new Lane[0];
+        public Lane[] enemyLanes  = new Lane[0];
 
         public void TakeDamage(int amount)
         {
-            enemyCurrentHP = Mathf.Max(0, enemyCurrentHP - amount);
+            enemyCurrentHP = UnityEngine.Mathf.Max(0, enemyCurrentHP - amount);
         }
 
-        public bool HasDangerousEnemyUnit()
-        {
-            foreach (var lane in enemyLanes)
-            {
-                if (lane != null && lane.IsOccupied)
-                {
-                    int i = lane.laneIndex;
-                    if (i < playerLanes.Length && playerLanes[i] != null && !playerLanes[i].IsOccupied)
-                        return true;
-                }
-            }
-            return false;
-        }
+        public bool HasDangerousEnemyUnit() => false;
     }
 }

@@ -7,26 +7,25 @@ namespace RoguelikeTCG.Combat
 {
     public class DeckManager : MonoBehaviour
     {
-        public int maxHandSize = 8;
-        public int drawPerTurn = 2;
+        public int maxHandSize  = 10;
+        public int drawPerTurn  = 2;
+        public int initialDraw  = 5;
 
-        private List<CardInstance> deck = new();
-        private List<CardInstance> hand = new();
-        private List<CardInstance> discard = new();
+        private List<CardInstance> deck     = new();
+        private List<CardInstance> hand     = new();
+        private List<CardInstance> discard  = new();  // recyclable (traversed units + played spells)
+        private List<CardInstance> cemetery = new();  // permanent (killed in combat)
 
-        public List<CardInstance> Hand => hand;
-        public int DeckCount => deck.Count;
-        public int DiscardCount => discard.Count;
+        public List<CardInstance> Hand       => hand;
+        public int DeckCount                 => deck.Count;
+        public int DiscardCount              => discard.Count;
+        public int CemeteryCount             => cemetery.Count;
+        public List<CardInstance> Cemetery   => cemetery;
 
         public void InitializeDeck(List<CardData> cards, bool isPlayerDeck)
         {
-            deck.Clear();
-            hand.Clear();
-            discard.Clear();
-
-            foreach (var cardData in cards)
-                deck.Add(new CardInstance(cardData, isPlayerDeck));
-
+            deck.Clear(); hand.Clear(); discard.Clear(); cemetery.Clear();
+            foreach (var cd in cards) deck.Add(new CardInstance(cd, isPlayerDeck));
             Shuffle(deck);
         }
 
@@ -44,21 +43,29 @@ namespace RoguelikeTCG.Combat
             }
         }
 
+        /// Call when a SPELL is played — removes from hand, adds to discard.
         public void PlayCard(CardInstance card)
         {
             hand.Remove(card);
             discard.Add(card);
         }
 
-        /// <summary>Remet une carte directement en main (retour du terrain).
-        /// Si la main est pleine, va en défausse.</summary>
-        public void ReturnToHand(CardInstance card)
+        /// Call when a UNIT is placed on the board — only removes from hand.
+        /// The unit goes to Cemetery or Discard when it leaves the board.
+        public void RemoveFromHand(CardInstance card) => hand.Remove(card);
+
+        /// Unit traversed the lane — goes to DISCARD (recyclable).
+        public void AddToDiscard(CardInstance card)
         {
-            if (card == null) return;
-            if (hand.Count < maxHandSize)
-                hand.Add(card);
-            else
-                discard.Add(card);
+            discard.Add(card);
+        }
+
+        /// Unit killed in combat — goes to CEMETERY (never returns).
+        public void AddToCemetery(CardInstance card)
+        {
+            hand.Remove(card);
+            discard.Remove(card);
+            cemetery.Add(card);
         }
 
         public void DiscardHand()
@@ -72,10 +79,10 @@ namespace RoguelikeTCG.Combat
             deck.AddRange(discard);
             discard.Clear();
             Shuffle(deck);
-            Debug.Log("Deck recyclé depuis la défausse.");
+            Debug.Log("[DeckManager] Défausse mélangée dans le deck.");
         }
 
-        private void Shuffle(List<CardInstance> list)
+        private static void Shuffle(List<CardInstance> list)
         {
             for (int i = list.Count - 1; i > 0; i--)
             {

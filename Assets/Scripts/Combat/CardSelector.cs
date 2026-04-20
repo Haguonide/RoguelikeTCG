@@ -7,20 +7,18 @@ using RoguelikeTCG.UI;
 
 namespace RoguelikeTCG.Combat
 {
-    /// <summary>
-    /// Manages card selection in hand and spell targeting state machine.
-    /// </summary>
     public class CardSelector : MonoBehaviour
     {
         public static CardSelector Instance { get; private set; }
 
-        private enum TargetingMode { None, AwaitingLane, AwaitingHero, AwaitingAllyUnit, AwaitingEnemyUnit, AwaitingAoEConfirm, AwaitingBricolage }
+        private enum Mode { None, AwaitingCell, AwaitingHero, AwaitingAllyUnit, AwaitingEnemyUnit, AwaitingAoEConfirm, AwaitingAllAllyUnits, AwaitingBricolage }
 
-        private CardView     selectedView;
-        private TargetingMode mode = TargetingMode.None;
+        private CardView selectedView;
+        private Mode     mode = Mode.None;
 
-        private static readonly Color HighlightColor = new Color(1f, 0.85f, 0.1f, 1f);
+        private static readonly Color HighlightCard  = new Color(1f, 0.85f, 0.1f, 1f);
         private static readonly Color HighlightSlot  = new Color(0.15f, 1f, 0.3f, 0.45f);
+        private static readonly Color HighlightEnemy = new Color(1f, 0.35f, 0.1f, 0.45f);
 
         private void Awake()
         {
@@ -28,82 +26,73 @@ namespace RoguelikeTCG.Combat
             Instance = this;
         }
 
-        public bool HasSelection => selectedView != null || mode == TargetingMode.AwaitingBricolage;
+        public bool HasSelection => selectedView != null || mode == Mode.AwaitingBricolage;
 
-        // ── Select a card from hand ────────────────────────────────────────────
+        // ── Select from hand ──────────────────────────────────────────────────
 
         public void SelectCard(CardView view)
         {
-            // Toggle off same card
             if (selectedView == view) { Deselect(); return; }
             AudioManager.Instance.PlaySFX("sfx_card_select");
 
             Deselect();
             selectedView = view;
-            ApplyHighlight(true);
+            ApplyCardHighlight(true);
 
             var card = selectedView.CardInstance;
             if (card == null) { Deselect(); return; }
 
             if (card.IsUnit)
             {
-                mode = TargetingMode.AwaitingLane;
+                mode = Mode.AwaitingCell;
             }
             else
             {
-                // Route spell to correct targeting mode
-                switch (card.data.spellTarget)
+                mode = card.data.spellTarget switch
                 {
-                    case SpellTarget.PlayerHero:
-                    case SpellTarget.EnemyHero:
-                        mode = TargetingMode.AwaitingHero;
-                        break;
-                    case SpellTarget.AllyUnit:
-                        mode = TargetingMode.AwaitingAllyUnit;
-                        break;
-                    case SpellTarget.EnemyUnit:
-                        mode = TargetingMode.AwaitingEnemyUnit;
-                        break;
-                    case SpellTarget.AllEnemyUnits:
-                        mode = TargetingMode.AwaitingAoEConfirm;
-                        break;
-                }
+                    SpellTarget.PlayerHero    => Mode.AwaitingHero,
+                    SpellTarget.EnemyHero     => Mode.AwaitingHero,
+                    SpellTarget.AllyUnit      => Mode.AwaitingAllyUnit,
+                    SpellTarget.EnemyUnit     => Mode.AwaitingEnemyUnit,
+                    SpellTarget.AllEnemyUnits => Mode.AwaitingAoEConfirm,
+                    SpellTarget.AllAllyUnits  => Mode.AwaitingAllAllyUnits,
+                    _                         => Mode.None,
+                };
             }
+
             RefreshHighlights();
         }
 
         public void SelectBricolage()
         {
             var cm = CombatManager.Instance;
-            if (cm == null || cm.gearCount < 3 || !cm.IsDeVinciRun()) return;
+            if (cm == null || !cm.CanUseBricolage) return;
             Deselect();
-            mode = TargetingMode.AwaitingBricolage;
+            mode = Mode.AwaitingBricolage;
             RefreshHighlights();
             AudioManager.Instance.PlaySFX("sfx_card_select");
         }
 
         public void Deselect()
         {
-            if (selectedView == null) return;
-            ApplyHighlight(false);
+            ApplyCardHighlight(false);
             ClearHighlights();
             selectedView = null;
-            mode = TargetingMode.None;
+            mode = Mode.None;
         }
 
-        // ── Called by LaneSlotUI ───────────────────────────────────────────────
+        // ── Cell click (from LaneSlotUI) ──────────────────────────────────────
 
-        public void OnLaneClicked(LaneSlotUI slot)
+        public void OnCellClicked(LaneSlotUI slot)
         {
             if (slot == null) return;
 
-            if (mode == TargetingMode.AwaitingBricolage)
+            if (mode == Mode.AwaitingBricolage)
             {
-                if (!slot.isPlayerLane || slot.Lane == null || slot.Lane.IsOccupied) return;
-                if (IsOnDefeatedBoard(slot)) return;
-                CombatManager.Instance?.TryPlayBricolage(slot.Lane);
-                mode = TargetingMode.None;
+                if (!slot.IsPlayerDeployZone || slot.IsOccupied) return;
+                CombatManager.Instance?.TryPlayBricolage(slot.lane, slot.cellIndex);
                 ClearHighlights();
+                mode = Mode.None;
                 return;
             }
 
@@ -113,78 +102,66 @@ namespace RoguelikeTCG.Combat
 
             switch (mode)
             {
-                case TargetingMode.AwaitingLane:
-                    // Unit placement: must be player lane, empty
-                    if (!slot.isPlayerLane || slot.Lane == null) return;
+                case Mode.AwaitingCell:
+                    if (!slot.IsPlayerDeployZone || slot.IsOccupied) return;
                     {
-                        // Capture hand card position + size BEFORE TryPlayUnit destroys the hand
-                        Vector3 handWorldPos = selectedView.transform.position;
-                        Vector2 handCardSize = selectedView.GetComponent<RectTransform>().rect.size;
-                        var     cardInst     = card;
+                        Vector3 handPos   = selectedView.transform.position;
+                        Vector2 handSize  = selectedView.GetComponent<RectTransform>().rect.size;
+                        var     cardInst  = card;
 
-                        if (CombatManager.Instance.TryPlayUnit(card, slot.Lane))
+                        if (CombatManager.Instance.TryPlayUnit(card, slot.lane, slot.cellIndex))
                         {
                             Deselect();
                             slot.Refresh();
                             if (CombatAnimator.Instance != null)
                                 CombatAnimator.Instance.StartCoroutine(
-                                    CombatAnimator.Instance.PlayCardPlayAnim(
-                                        handWorldPos, handCardSize, slot, cardInst));
+                                    CombatAnimator.Instance.PlayCardPlayAnim(handPos, handSize, slot, cardInst));
                         }
                     }
                     break;
 
-                case TargetingMode.AwaitingAllyUnit:
-                    // Spell targeting ally unit: must be player lane, occupied
-                    if (!slot.isPlayerLane || slot.Lane == null || !slot.Lane.IsOccupied) return;
-                    if (CombatManager.Instance.TryPlaySpellOnUnit(card, slot.Lane))
-                    {
+                case Mode.AwaitingAllyUnit:
+                    if (!slot.HasPlayerUnit) return;
+                    if (CombatManager.Instance.TryPlaySpellOnUnit(card, slot.lane, slot.cellIndex))
                         Deselect();
-                        slot.Refresh();
-                    }
                     break;
 
-                case TargetingMode.AwaitingEnemyUnit:
-                    // Spell targeting enemy unit: must be enemy lane, occupied
-                    if (slot.isPlayerLane || slot.Lane == null || !slot.Lane.IsOccupied) return;
-                    if (CombatManager.Instance.TryPlaySpellOnUnit(card, slot.Lane))
-                    {
+                case Mode.AwaitingEnemyUnit:
+                    if (!slot.HasEnemyUnit) return;
+                    if (CombatManager.Instance.TryPlaySpellOnUnit(card, slot.lane, slot.cellIndex))
                         Deselect();
-                        slot.Refresh();
-                    }
                     break;
 
-                case TargetingMode.AwaitingAoEConfirm:
-                    // AoE spell: clicking any enemy slot confirms the cast
-                    if (slot.isPlayerLane) return;
+                case Mode.AwaitingAoEConfirm:
+                    if (!slot.HasEnemyUnit) return;   // must click any enemy slot to confirm
                     if (CombatManager.Instance.TryPlayAoESpell(card))
                         Deselect();
                     break;
 
+                case Mode.AwaitingAllAllyUnits:
+                    if (!slot.HasPlayerUnit) return;  // click any ally slot to confirm
+                    if (CombatManager.Instance.TryPlayAoESpell(card))  // AllAllyUnits spells routed via TryPlayAoESpell
+                        Deselect();
+                    break;
             }
         }
 
-        // ── Called by HeroPortraitUI ───────────────────────────────────────────
+        // ── Hero click (from HeroPortraitUI) ──────────────────────────────────
 
         public void OnHeroClicked(bool isPlayerPortrait)
         {
-            if (selectedView == null || mode != TargetingMode.AwaitingHero) return;
+            if (selectedView == null || mode != Mode.AwaitingHero) return;
             var card = selectedView.CardInstance;
             if (card == null) return;
 
-            // Validate portrait matches spell target
             bool wantsPlayer = card.data.spellTarget == SpellTarget.PlayerHero;
-            if (isPlayerPortrait != wantsPlayer)
-            {
-                Debug.Log($"[CardSelector] Ce sort cible {(wantsPlayer ? "le héros allié" : "le héros ennemi")}.");
-                return;
-            }
+            if (isPlayerPortrait != wantsPlayer) return;
 
             if (CombatManager.Instance.TryPlaySpellOnHero(card, isPlayerPortrait))
                 Deselect();
         }
 
-        // ── Target Highlights ─────────────────────────────────────────────────
+        // ── Highlights ────────────────────────────────────────────────────────
 
         private void RefreshHighlights()
         {
@@ -194,57 +171,49 @@ namespace RoguelikeTCG.Combat
 
             switch (mode)
             {
-                case TargetingMode.AwaitingLane:
+                case Mode.AwaitingCell:
                     foreach (var s in allSlots)
-                        if (s.isPlayerLane && s.Lane != null && !s.Lane.IsOccupied && !IsOnDefeatedBoard(s))
+                        if (s.IsPlayerDeployZone && !s.IsOccupied)
                             s.SetHighlight(true, HighlightSlot);
                     break;
 
-                case TargetingMode.AwaitingAllyUnit:
+                case Mode.AwaitingAllyUnit:
                     foreach (var s in allSlots)
-                        if (s.isPlayerLane && s.Lane != null && s.Lane.IsOccupied && !IsOnDefeatedBoard(s))
+                        if (s.HasPlayerUnit)
                             s.SetHighlight(true, HighlightSlot);
                     break;
 
-                case TargetingMode.AwaitingEnemyUnit:
+                case Mode.AwaitingEnemyUnit:
                     foreach (var s in allSlots)
-                        if (!s.isPlayerLane && s.Lane != null && s.Lane.IsOccupied && !IsOnDefeatedBoard(s))
-                            s.SetHighlight(true, HighlightSlot);
+                        if (s.HasEnemyUnit)
+                            s.SetHighlight(true, HighlightEnemy);
                     break;
 
-                case TargetingMode.AwaitingHero:
+                case Mode.AwaitingHero:
                     if (selectedView?.CardInstance == null) break;
                     bool wantsPlayer = selectedView.CardInstance.data.spellTarget == SpellTarget.PlayerHero;
                     foreach (var h in allHeroes)
-                        if (h.isPlayerPortrait == wantsPlayer)
-                            h.SetHighlight(true);
+                        if (h.isPlayerPortrait == wantsPlayer) h.SetHighlight(true);
                     break;
 
-                case TargetingMode.AwaitingAoEConfirm:
+                case Mode.AwaitingAoEConfirm:
                     foreach (var s in allSlots)
-                        if (!s.isPlayerLane && !IsOnDefeatedBoard(s))
-                            s.SetHighlight(true, new Color(1f, 0.35f, 0.1f, 0.45f));
+                        if (s.HasEnemyUnit)
+                            s.SetHighlight(true, HighlightEnemy);
                     break;
 
-                case TargetingMode.AwaitingBricolage:
+                case Mode.AwaitingAllAllyUnits:
                     foreach (var s in allSlots)
-                        if (s.isPlayerLane && s.Lane != null && !s.Lane.IsOccupied && !IsOnDefeatedBoard(s))
+                        if (s.HasPlayerUnit)
+                            s.SetHighlight(true, HighlightSlot);
+                    break;
+
+                case Mode.AwaitingBricolage:
+                    foreach (var s in allSlots)
+                        if (s.IsPlayerDeployZone && !s.IsOccupied)
                             s.SetHighlight(true, HighlightSlot);
                     break;
             }
-        }
-
-        private static bool IsOnDefeatedBoard(LaneSlotUI slot)
-        {
-            if (slot.Lane == null || CombatManager.Instance == null) return false;
-            foreach (var board in CombatManager.Instance.boardManager.boards)
-            {
-                foreach (var l in board.playerLanes)
-                    if (l == slot.Lane) return board.IsDefeated;
-                foreach (var l in board.enemyLanes)
-                    if (l == slot.Lane) return board.IsDefeated;
-            }
-            return false;
         }
 
         private void ClearHighlights()
@@ -255,17 +224,15 @@ namespace RoguelikeTCG.Combat
                 h.SetHighlight(false);
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────────
-
-        private void ApplyHighlight(bool on)
+        private void ApplyCardHighlight(bool on)
         {
             if (selectedView == null) return;
             var outline = selectedView.GetComponent<Outline>();
             if (outline == null && on) outline = selectedView.gameObject.AddComponent<Outline>();
             if (outline == null) return;
-            outline.effectColor   = HighlightColor;
+            outline.effectColor    = HighlightCard;
             outline.effectDistance = new Vector2(4, -4);
-            outline.enabled       = on;
+            outline.enabled        = on;
         }
     }
 }
