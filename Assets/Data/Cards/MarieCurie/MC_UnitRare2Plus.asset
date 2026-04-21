@@ -17,13 +17,13 @@ MonoBehaviour:
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
   rarity: 2
-  manaCost: 0
+  manaCost: 2
   attackPower: 1
   maxHP: 4
   unitPassives:
-  - passiveType: 14
+  - passiveType: 13
     value: 1
-    keyword: "R\xE9sistance"
+    keyword: Blindage
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

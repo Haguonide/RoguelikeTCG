@@ -12,18 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
   m_Name: JC_SortRare2Plus
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
-  cardName: Liquidation d'actifs +
-  description: "3 d\xE9g\xE2ts \xE0 toutes les unit\xE9s ennemies.\nLa restructuration
-    \xE9tait in\xE9vitable."
+  cardName: Formation de combat +
+  description: "+2 ATK et +2 HP \xE0 toutes les unit\xE9s alli\xE9es.\nMorale au plus haut.
+    Les primes ont \xE9t\xE9 vers\xE9es en nature."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 2
   attackPower: 0
   maxHP: 0
-  spellTarget: 4
+  spellTarget: 5
   effects:
-  - effectType: 0
-    value: 4
-    target: 4
+  - effectType: 2
+    value: 2
+    target: 5
+  - effectType: 3
+    value: 2
+    target: 5
   upgradedVersion: {fileID: 0}

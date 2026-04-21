@@ -12,15 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
   m_Name: MC_SortRare2
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
-  cardName: Antidote de poche
-  description: 'Restaure 4 HP.
-
-    Composition : inconnue. Effets secondaires :
-    probables.'
+  cardName: Antidote corrompu
+  description: "Soigne 4 HP. Pose 1 Poison sur une unit\xE9 ennemie.\nComposition
+    : inconnue. Effets secondaires : probables."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 1
   rarity: 2
-  manaCost: 1
+  manaCost: 2
   attackPower: 0
   maxHP: 0
   spellTarget: 0
@@ -28,4 +26,7 @@ MonoBehaviour:
   - effectType: 1
     value: 4
     target: 0
+  - effectType: 6
+    value: 1
+    target: 3
   upgradedVersion: {fileID: 11400000, guid: 01b70b093b77bb243854de9bbb92cf2e, type: 2}

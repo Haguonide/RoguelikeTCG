@@ -16,12 +16,12 @@ MonoBehaviour:
   description: Un chien-robot avec une oreille en moins. L'autre compense largement.
   artwork: {fileID: 21300000, guid: 24e8fefe208203a4e8ce24d278ae4be3, type: 3}
   cardType: 0
-  rarity: 2
-  manaCost: 0
+  rarity: 0
+  manaCost: 1
   attackPower: 1
   maxHP: 3
   unitPassives:
-  - passiveType: 10
+  - passiveType: 9
     value: 0
     keyword: Vigilance
   spellTarget: 0

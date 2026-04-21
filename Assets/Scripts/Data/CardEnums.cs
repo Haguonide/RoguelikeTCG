@@ -32,6 +32,9 @@ namespace RoguelikeTCG.Data
         // ── Movement modifiers ───────────────────────────────────────────────
         ChargeNoSickness,        // Charge : peut avancer le tour où posé (pas de summoning sickness)
         FastAdvance,             // Rapide : avance de 2 cases par tour au lieu de 1
+
+        // ── On-clash triggers ────────────────────────────────────────────────
+        VenomOnClash,            // Venin : applique X stacks de poison à l'unité ennemie lors d'un clash
     }
 
     public enum CardType  { Unit, Spell }

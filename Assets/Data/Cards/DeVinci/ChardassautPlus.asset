@@ -17,12 +17,12 @@ MonoBehaviour:
   artwork: {fileID: 21300000, guid: 146f19fc7794d354db4a4bc026638846, type: 3}
   cardType: 0
   rarity: 3
-  manaCost: 0
+  manaCost: 4
   attackPower: 3
-  maxHP: 5
+  maxHP: 7
   unitPassives:
-  - passiveType: 14
-    value: 2
+  - passiveType: 13
+    value: 1
     keyword: Blindage
   spellTarget: 0
   effects: []

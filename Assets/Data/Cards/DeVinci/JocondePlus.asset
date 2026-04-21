@@ -17,7 +17,7 @@ MonoBehaviour:
   artwork: {fileID: 21300000, guid: 20ee2bdee99e7a743a8c2a2b1e3dd3bc, type: 3}
   cardType: 0
   rarity: 2
-  manaCost: 0
+  manaCost: 2
   attackPower: 2
   maxHP: 3
   unitPassives:

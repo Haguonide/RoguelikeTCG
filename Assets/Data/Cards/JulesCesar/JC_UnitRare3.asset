@@ -17,14 +17,14 @@ MonoBehaviour:
     suppl\xE9mentaires : toutes."
   artwork: {fileID: 21300000, guid: 75ea0d27f4b9b3945989c212bbfe06b0, type: 3}
   cardType: 0
-  rarity: 2
-  manaCost: 0
+  rarity: 0
+  manaCost: 3
   attackPower: 2
   maxHP: 4
   unitPassives:
-  - passiveType: 15
+  - passiveType: 13
     value: 1
-    keyword: Escorte
+    keyword: Blindage
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: 9d06954aedadded439849044b8f13c03, type: 2}

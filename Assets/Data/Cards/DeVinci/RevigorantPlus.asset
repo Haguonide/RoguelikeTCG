@@ -18,13 +18,13 @@ MonoBehaviour:
   artwork: {fileID: 21300000, guid: cdcd957e5b2770d409bc9bf4b3c3093c, type: 3}
   cardType: 1
   rarity: 2
-  manaCost: 1
+  manaCost: 2
   attackPower: 0
   maxHP: 0
   spellTarget: 0
   effects:
   - effectType: 1
-    value: 8
+    value: 7
     target: 0
   - effectType: 4
     value: 1

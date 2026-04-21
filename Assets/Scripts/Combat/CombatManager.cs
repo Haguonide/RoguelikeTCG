@@ -118,6 +118,7 @@ namespace RoguelikeTCG.Combat
 
         private void InitializeCombat()
         {
+            SessionLogger.Instance?.StartSession();
             gameOver      = false;
             playerShieldHP = 0;
             bricolageQueue.Clear();
@@ -223,7 +224,7 @@ namespace RoguelikeTCG.Combat
         {
             if (!CanPlay()) return false;
             if (!card.IsUnit) return false;
-            if (lane == null || cellIndex < 0 || cellIndex > CombatLane.PLAYER_MAX_CELL) return false;
+            if (lane == null || cellIndex != CombatLane.PLAYER_DEPLOY_CELL) return false;
             if (lane.IsOccupied(cellIndex)) return false;
             if (!manaManager.CanAfford(card.data.manaCost)) return false;
 
@@ -290,7 +291,7 @@ namespace RoguelikeTCG.Combat
         {
             if (!CanPlay()) return;
             if (!CanUseBricolage) return;
-            if (lane == null || cellIndex < 0 || cellIndex > CombatLane.PLAYER_MAX_CELL) return;
+            if (lane == null || cellIndex != CombatLane.PLAYER_DEPLOY_CELL) return;
             if (lane.IsOccupied(cellIndex)) return;
 
             int totalATK = 0;
@@ -642,6 +643,22 @@ namespace RoguelikeTCG.Combat
                 TriggerOnDeathPassives(player, enemy, killerIsPlayer: false, lane: lane);
             }
 
+            // VenomOnClash — apply poison if the unit dealt damage and the target survived
+            if (!enemyDied && pDmg > 0)
+                foreach (var p in GetPassives(player))
+                    if (p.passiveType == UnitPassiveType.VenomOnClash && p.value > 0)
+                    {
+                        enemy.poisonStacks += p.value;
+                        Log($"  [{p.keyword}] {player.data.cardName} : +{p.value} poison sur {enemy.data.cardName} ({enemy.poisonStacks} 🧪)");
+                    }
+            if (!playerDied && eDmg > 0)
+                foreach (var p in GetPassives(enemy))
+                    if (p.passiveType == UnitPassiveType.VenomOnClash && p.value > 0)
+                    {
+                        player.poisonStacks += p.value;
+                        Log($"  [{p.keyword}] {enemy.data.cardName} : +{p.value} poison sur {player.data.cardName} ({player.poisonStacks} 🧪)");
+                    }
+
             // Mark survival for Résilience
             if (!playerDied) { player.survivedClashThisTurn = true; player.hadClashThisTurn = true; }
             if (!enemyDied)  { enemy.survivedClashThisTurn  = true; enemy.hadClashThisTurn  = true; }
@@ -757,10 +774,16 @@ namespace RoguelikeTCG.Combat
                 {
                     var enemies = isPlayerUnit ? GetAllEnemyUnits() : GetAllPlayerUnits();
                     int killed = 0;
-                    foreach (var e in enemies)
+                    foreach (var e in new List<CardInstance>(enemies))
                     {
                         e.currentHP -= p.value;
-                        if (!e.IsAlive) { ClearUnitFromLanes(e); killed++; }
+                        if (!e.IsAlive)
+                        {
+                            ClearUnitFromLanes(e);
+                            SendToCemetery(e, e.isPlayerCard);
+                            killed++;
+                            TriggerOnDeathPassives(e, unit, isPlayerUnit, null);
+                        }
                     }
                     Log($"  [{p.keyword}] {unit.data.cardName} inflige {p.value} à toutes les unités adverses ! ({killed} tuées)");
                     RefreshAllUI();
@@ -829,10 +852,16 @@ namespace RoguelikeTCG.Combat
                     {
                         var targets = dead.isPlayerCard ? GetAllEnemyUnits() : GetAllPlayerUnits();
                         int killed = 0;
-                        foreach (var t in targets)
+                        foreach (var t in new List<CardInstance>(targets))
                         {
                             t.currentHP -= p.value;
-                            if (!t.IsAlive) { ClearUnitFromLanes(t); killed++; }
+                            if (!t.IsAlive)
+                            {
+                                ClearUnitFromLanes(t);
+                                SendToCemetery(t, t.isPlayerCard);
+                                killed++;
+                                TriggerOnDeathPassives(t, dead, dead.isPlayerCard, lane);
+                            }
                         }
                         Log($"  [{p.keyword}] {dead.data.cardName} inflige {p.value} à toutes les unités adverses ({killed} tuées)");
                         break;
@@ -855,10 +884,16 @@ namespace RoguelikeTCG.Combat
                     if (p.passiveType != UnitPassiveType.AoEStartOfTurn) continue;
                     var targets = isPlayerPassives ? GetAllEnemyUnits() : GetAllPlayerUnits();
                     int killed = 0;
-                    foreach (var t in targets)
+                    foreach (var t in new List<CardInstance>(targets))
                     {
                         t.currentHP -= p.value;
-                        if (!t.IsAlive) { ClearUnitFromLanes(t); killed++; }
+                        if (!t.IsAlive)
+                        {
+                            ClearUnitFromLanes(t);
+                            SendToCemetery(t, t.isPlayerCard);
+                            killed++;
+                            TriggerOnDeathPassives(t, unit, isPlayerPassives, null);
+                        }
                     }
                     if (targets.Count > 0)
                         Log($"  [{p.keyword}] {unit.data.cardName} : {p.value} dmg AoE ({killed} tuées)");
@@ -1129,6 +1164,7 @@ namespace RoguelikeTCG.Combat
             AudioManager.Instance.StopMusic();
             AudioManager.Instance.PlaySFX("sfx_victory");
             Log("=== VICTOIRE ! ===");
+            SessionLogger.Instance?.EndSession("VICTOIRE");
 
             int heal = RelicManager.Instance?.GetHealAfterCombat() ?? 0;
             if (heal > 0) { playerHP = Mathf.Min(playerMaxHP, playerHP + heal); Log($"  Relique : +{heal} HP"); }
@@ -1153,6 +1189,7 @@ namespace RoguelikeTCG.Combat
             AudioManager.Instance.StopMusic();
             AudioManager.Instance.PlaySFX("sfx_defeat");
             Log("=== DÉFAITE ===");
+            SessionLogger.Instance?.EndSession("DÉFAITE");
             ShowResultOverlay(won: false);
         }
 
@@ -1328,9 +1365,12 @@ namespace RoguelikeTCG.Combat
                 foreach (var s in allSlots) s?.Refresh();
         }
 
+        public void SaveBugReport() => SessionLogger.Instance?.SaveAsBugReport();
+
         private void Log(string msg)
         {
             combatLog?.AddEntry(msg);
+            SessionLogger.Instance?.Write(msg);
             Debug.Log(msg);
         }
 
