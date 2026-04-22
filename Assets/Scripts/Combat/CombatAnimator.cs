@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
 using RoguelikeTCG.Cards;
 using RoguelikeTCG.Core;
 using RoguelikeTCG.Data;
@@ -31,73 +32,88 @@ namespace RoguelikeTCG.Combat
             Instance = this;
         }
 
-        // ── Attack (wind-up + charge) ─────────────────────────────────────────
+        // ── Attack / Traverse (lunge → impact → return) ──────────────────────
 
-        /// <param name="isPlayerAttacking">
-        /// True  → unit lunges upward   (player slots are below enemy slots).
-        /// False → unit lunges downward (enemy attacking player).
-        /// </param>
+        /// <summary>
+        /// Unit traverses all the way and strikes the enemy hero directly.
+        /// isPlayer=true  → lunge right (+X).
+        /// isPlayer=false → lunge left  (-X).
+        /// </summary>
         public IEnumerator PlayAttackAnim(LaneSlotUI slot, bool isPlayerAttacking)
         {
             if (slot?.PlayedCard == null) yield break;
-
             var rt = slot.PlayedCard.animatedRoot;
             if (rt == null) yield break;
 
             _animCount++;
             Vector2 origin = rt.anchoredPosition;
 
-            float windUpY = isPlayerAttacking ? -10f :  10f;
-            float lungeY  = isPlayerAttacking ?  22f : -22f;
+            // Direction: player attacks right, enemy attacks left
+            float pullX  = isPlayerAttacking ? -13f :  13f;
+            float lungeX = isPlayerAttacking ?  40f : -40f;
 
-            yield return LerpPos(rt, origin, origin + new Vector2(0f, windUpY), 0.18f);
+            // ── Phase 1 — Anticipation: pull back + squash (0.11s) ───────────
+            var anticipate = DOTween.Sequence();
+            anticipate.Append(rt.DOAnchorPos(origin + new Vector2(pullX, 0f), 0.11f)
+                                .SetEase(Ease.OutQuad));
+            anticipate.Join(rt.DOScale(new Vector3(0.82f, 1.16f, 1f), 0.11f)
+                              .SetEase(Ease.OutQuad));
+            yield return anticipate.WaitForCompletion();
+
+            // ── Phase 2 — Lunge: burst forward + horizontal stretch (0.09s) ──
             AudioManager.Instance.PlaySFX("sfx_attack");
-            yield return LerpPos(rt, origin + new Vector2(0f, windUpY),
-                                      origin + new Vector2(0f, lungeY), 0.16f, easeOut: true);
-            yield return LerpPos(rt, origin + new Vector2(0f, lungeY), origin, 0.28f);
+            var lunge = DOTween.Sequence();
+            lunge.Append(rt.DOAnchorPos(origin + new Vector2(lungeX, 0f), 0.09f)
+                           .SetEase(Ease.OutQuint));
+            lunge.Join(rt.DOScale(new Vector3(1.22f, 0.80f, 1f), 0.09f)
+                         .SetEase(Ease.OutQuint));
+            yield return lunge.WaitForCompletion();
+
+            // ── Phase 3 — Impact punch at peak ───────────────────────────────
+            yield return rt.DOPunchScale(new Vector3(0.28f, 0.28f, 0f), 0.16f, 5, 0.45f)
+                           .WaitForCompletion();
+
+            // ── Phase 4 — Return with slight overshoot (0.22s) ───────────────
+            var ret = DOTween.Sequence();
+            ret.Append(rt.DOAnchorPos(origin, 0.22f).SetEase(Ease.OutBack, 1.3f));
+            ret.Join(rt.DOScale(Vector3.one, 0.22f).SetEase(Ease.OutBack, 1.3f));
+            yield return ret.WaitForCompletion();
 
             rt.anchoredPosition = origin;
+            rt.localScale       = Vector3.one;
             _animCount--;
         }
 
-        // ── Death (shake → shrink) ────────────────────────────────────────────
+        // ── Death (flash → shatter → collapse) ───────────────────────────────
 
         public IEnumerator PlayDeathAnim(LaneSlotUI slot)
         {
             if (slot?.PlayedCard == null) yield break;
-
             var rt = slot.PlayedCard.animatedRoot;
             if (rt == null) yield break;
 
             _animCount++;
             AudioManager.Instance.PlaySFX("sfx_death");
 
-            // Phase 1 — Shake + scale-up (0.12s)
-            float elapsed = 0f;
-            while (elapsed < 0.12f)
-            {
-                elapsed += Time.deltaTime;
-                float p     = elapsed / 0.12f;
-                float shake = Mathf.Sin(p * Mathf.PI * 6f) * 5f * (1f - p);
-                float scale = 1f + Mathf.Sin(p * Mathf.PI) * 0.15f;
-                rt.localEulerAngles = new Vector3(0f, 0f, shake);
-                rt.localScale       = new Vector3(scale, scale, 1f);
-                yield return null;
-            }
+            // ── Phase 1 — Impact flash: hard punch (0.13s) ───────────────────
+            yield return rt.DOPunchScale(new Vector3(0.55f, 0.55f, 0f), 0.13f, 6, 0.4f)
+                           .WaitForCompletion();
 
-            // Phase 2 — Shrink + rotate (0.22s)
-            float t = 0f;
-            while (t < 1f)
-            {
-                t = Mathf.Min(1f, t + Time.deltaTime / 0.22f);
-                float ease  = t * t;
-                float scale = Mathf.Lerp(1f, 0f, ease);
-                rt.localScale       = new Vector3(scale, scale, 1f);
-                rt.localEulerAngles = new Vector3(0f, 0f, Mathf.Lerp(0f, 40f, t));
-                yield return null;
-            }
+            // ── Phase 2 — Shatter: bloat + tremble (0.14s) ───────────────────
+            var shatter = DOTween.Sequence();
+            shatter.Append(rt.DOScale(new Vector3(1.32f, 1.32f, 1f), 0.14f)
+                             .SetEase(Ease.OutQuad));
+            shatter.Join(rt.DOPunchPosition(new Vector3(9f, 7f, 0f), 0.14f, 12, 0.6f, false));
+            yield return shatter.WaitForCompletion();
 
-            // Pas de reset — le PlayedCard sera détruit par Refresh() juste après
+            // ── Phase 3 — Collapse: spin + shrink to nothing (0.26s) ─────────
+            var collapse = DOTween.Sequence();
+            collapse.Append(rt.DOScale(Vector3.zero, 0.26f).SetEase(Ease.InCubic));
+            collapse.Join(rt.DOLocalRotate(new Vector3(0f, 0f, -170f), 0.26f)
+                            .SetEase(Ease.InCubic));
+            yield return collapse.WaitForCompletion();
+
+            // No reset needed — PlayedCard is destroyed by Refresh() right after
             _animCount--;
         }
 
@@ -151,11 +167,9 @@ namespace RoguelikeTCG.Combat
             _animCount--;
         }
 
-        // ── Hit Shake (survives) ──────────────────────────────────────────────
+        // ── Hit Flash (survives damage) ───────────────────────────────────────
 
-        /// <summary>
-        /// Shake when a unit takes damage but survives.
-        /// </summary>
+        /// <summary>Quick punch + position recoil when a unit takes damage but survives.</summary>
         public IEnumerator PlayHitFlash(LaneSlotUI slot)
         {
             if (slot?.PlayedCard == null) yield break;
@@ -165,145 +179,156 @@ namespace RoguelikeTCG.Combat
             _animCount++;
             AudioManager.Instance.PlaySFX("sfx_hit");
 
-            float elapsed = 0f;
-            while (elapsed < 0.10f)
-            {
-                elapsed += Time.deltaTime;
-                float p     = elapsed / 0.10f;
-                float shake = Mathf.Sin(p * Mathf.PI * 6f) * 5f * (1f - p);
-                rt.localEulerAngles = new Vector3(0f, 0f, shake);
-                yield return null;
-            }
-            rt.localEulerAngles = Vector3.zero;
+            var seq = DOTween.Sequence();
+            seq.Append(rt.DOPunchScale(new Vector3(0.22f, 0.22f, 0f), 0.20f, 5, 0.5f));
+            seq.Join(rt.DOPunchPosition(new Vector3(6f, 3f, 0f), 0.20f, 8, 0.4f, false));
+            yield return seq.WaitForCompletion();
+
             _animCount--;
         }
 
-        // ── Card Play Anim (fly from hand + spin + top-down land) ────────────
+        // ── Card Play Anim (arc flight + Z-tilt + squash-stretch landing) ───
 
         /// <summary>
-        /// Flies a ghost card from the hand position to the slot with a full
-        /// 360° Y-spin, then lands with a top-down drop effect on the real card.
+        /// Ghost card flies on a Bezier arc from hand to slot (Z-rotation tilt,
+        /// scale swell), then the real card pops in with a 4-phase squash-stretch.
         /// </summary>
         public IEnumerator PlayCardPlayAnim(Vector3 fromWorldPos, Vector2 cardSize,
                                             LaneSlotUI targetSlot, CardInstance cardInst)
         {
-            // ─ 1. Build ghost card over canvas ───────────────────────────────
             var canvas = Object.FindObjectOfType<Canvas>();
             if (canvas == null) yield break;
 
             _animCount++;
-            var ghost = BuildGhostCard(canvas.transform, cardInst, cardSize);
-            ghost.transform.position = fromWorldPos;
 
-            // ─ 2. Hide the real placed card until ghost lands ─────────────────
+            // ─ 1. Ghost card ──────────────────────────────────────────────────
+            var ghost = BuildGhostCard(canvas.transform, cardInst, cardSize);
+            ghost.transform.position   = fromWorldPos;
+            ghost.transform.localScale = Vector3.one;
+
+            // ─ 2. Hide real placed card ───────────────────────────────────────
             var placed = targetSlot?.PlayedCard;
             if (placed?.animatedRoot != null)
                 placed.animatedRoot.localScale = Vector3.zero;
 
-            // ─ 3. Fly: arc + full Y-spin ──────────────────────────────────────
+            // ─ 3. Arc flight via quadratic Bezier — all tweens in one sequence ─
             Vector3 endPos    = targetSlot.transform.position;
-            float   arcHeight = Mathf.Max(90f, Vector3.Distance(fromWorldPos, endPos) * 0.35f);
-            Vector3 midPos    = Vector3.Lerp(fromWorldPos, endPos, 0.5f) + new Vector3(0f, arcHeight, 0f);
+            float   arcHeight = Mathf.Max(80f, Vector3.Distance(fromWorldPos, endPos) * 0.38f);
+            Vector3 midPos    = Vector3.Lerp(fromWorldPos, endPos, 0.5f)
+                                + new Vector3(0f, arcHeight, 0f);
 
-            const float flyDur    = 0.65f;
-            const float scaleMin  = 1.00f;
-            const float scaleHigh = 1.40f;
-            float t = 0f;
-            ghost.transform.localScale = new Vector3(scaleMin, scaleMin, 1f);
-            while (t < 1f)
+            const float flyDur = 0.42f;
+
+            // Z-tilt sub-sequence (leans forward then straightens — no OnComplete chain)
+            var rotSeq = DOTween.Sequence().SetTarget(ghost);
+            rotSeq.Append(ghost.transform.DORotate(new Vector3(0f, 0f, 14f), flyDur * 0.44f).SetEase(Ease.OutQuad));
+            rotSeq.Append(ghost.transform.DORotate(Vector3.zero, flyDur * 0.56f).SetEase(Ease.InOutSine));
+
+            // Scale sub-sequence (swell then tighten — no OnComplete chain)
+            var scaleSeq = DOTween.Sequence().SetTarget(ghost);
+            scaleSeq.Append(ghost.transform.DOScale(1.22f, flyDur * 0.50f).SetEase(Ease.OutQuad));
+            scaleSeq.Append(ghost.transform.DOScale(0.95f, flyDur * 0.50f).SetEase(Ease.InCubic));
+
+            // Main arc movement
+            float arcT = 0f;
+            var moveTween = DOTween.To(() => arcT, v =>
             {
-                t = Mathf.Min(1f, t + Time.deltaTime / flyDur);
-                float ease = EaseInOut(t);
-                float u    = 1f - ease;
-                Vector3 p  = u * u * fromWorldPos
-                           + 2f * u * ease * midPos
-                           + ease * ease * endPos;
-                ghost.transform.position   = p;
-                float s = Mathf.Lerp(scaleMin, scaleHigh, ease);
-                ghost.transform.localScale = new Vector3(s, s, 1f);
-                yield return null;
-            }
-            ghost.transform.position   = endPos;
-            ghost.transform.localScale = new Vector3(scaleHigh, scaleHigh, 1f);
+                arcT = v;
+                float u = 1f - arcT;
+                ghost.transform.position = u * u * fromWorldPos
+                                         + 2f * u * arcT * midPos
+                                         + arcT * arcT * endPos;
+            }, 1f, flyDur).SetEase(Ease.InOutSine).SetTarget(ghost);
 
-            // Phase B — spin 360° on Y axis (0.52s)
-            const float spinDur = 0.52f;
-            t = 0f;
-            while (t < 1f)
-            {
-                t = Mathf.Min(1f, t + Time.deltaTime / spinDur);
-                float ease = EaseInOut(t);
-                ghost.transform.localEulerAngles = new Vector3(0f, ease * 360f, 0f);
-                yield return null;
-            }
-            ghost.transform.localEulerAngles = Vector3.zero;
+            yield return moveTween.WaitForCompletion();
 
-            // ─ 4. Destroy ghost ───────────────────────────────────────────────
+            // ─ 4. Kill all ghost tweens, destroy ghost ────────────────────────
+            DOTween.Kill(ghost);
             Object.Destroy(ghost);
-
-            // ─ 5. Top-down landing: card falls onto the table (1.40x → 0.90x → 1.0x)
-            if (placed?.animatedRoot == null) { _animCount--; yield break; }
             AudioManager.Instance.PlaySFX("sfx_card_place");
 
-            placed.animatedRoot.localScale = new Vector3(scaleHigh, scaleHigh, 1f);
+            // ─ 5. Squash-stretch landing on real card ─────────────────────────
+            if (placed?.animatedRoot == null) { _animCount--; yield break; }
+            var rt = placed.animatedRoot;
+            // rt.localScale is already Vector3.zero — tween starts from there
 
-            t = 0f;
-            const float slamDur = 0.16f;
-            while (t < 1f)
-            {
-                t = Mathf.Min(1f, t + Time.deltaTime / slamDur);
-                float e = 1f - (1f - t) * (1f - t);
-                float s = Mathf.Lerp(scaleHigh, 0.90f, e);
-                placed.animatedRoot.localScale = new Vector3(s, s, 1f);
-                yield return null;
-            }
+            var landSeq = DOTween.Sequence();
+            // Pop in (scale up quickly past 1)
+            landSeq.Append(rt.DOScale(new Vector3(1.22f, 1.22f, 1f), 0.11f).SetEase(Ease.OutQuint));
+            // Squash wide (card hits the "table")
+            landSeq.Append(rt.DOScale(new Vector3(1.16f, 0.80f, 1f), 0.09f).SetEase(Ease.OutQuad));
+            // Rebound tall
+            landSeq.Append(rt.DOScale(new Vector3(0.92f, 1.12f, 1f), 0.08f).SetEase(Ease.OutSine));
+            // Settle to 1
+            landSeq.Append(rt.DOScale(Vector3.one, 0.09f).SetEase(Ease.InOutSine));
 
-            t = 0f;
-            const float reboundDur = 0.18f;
-            while (t < 1f)
-            {
-                t = Mathf.Min(1f, t + Time.deltaTime / reboundDur);
-                float e = 1f - (1f - t) * (1f - t);
-                float s = Mathf.Lerp(0.90f, 1f, e);
-                placed.animatedRoot.localScale = new Vector3(s, s, 1f);
-                yield return null;
-            }
-            placed.animatedRoot.localScale = Vector3.one;
+            yield return landSeq.WaitForCompletion();
             _animCount--;
         }
 
         // ── Advance (slide one cell) ──────────────────────────────────────────
 
-        /// <summary>Slides a unit's visual from one cell slot to the next.</summary>
+        /// <summary>
+        /// Slides a unit's visual from fromSlot to toSlot using DOTween.
+        /// The animatedRoot is reparented to the canvas for cross-slot movement,
+        /// then destroyed after the tween — RefreshAllUI will recreate it on toSlot.
+        /// </summary>
         public IEnumerator PlayAdvanceAnim(LaneSlotUI fromSlot, LaneSlotUI toSlot, bool isPlayer)
         {
-            // For MVP: just play a quick scale pulse on the unit to signal movement
             if (fromSlot?.PlayedCard == null) yield break;
-            var rt = fromSlot.PlayedCard.animatedRoot;
-            if (rt == null) yield break;
+            var animRoot = fromSlot.PlayedCard.animatedRoot;
+            if (animRoot == null) yield break;
 
             _animCount++;
-            // Small pulse indicating movement
-            float t = 0f;
-            while (t < 1f)
-            {
-                t = Mathf.Min(1f, t + Time.deltaTime / 0.12f);
-                float e     = Mathf.Sin(t * Mathf.PI);
-                float scale = 1f + e * 0.08f;
-                rt.localScale = new Vector3(scale, scale, 1f);
-                yield return null;
-            }
-            rt.localScale = Vector3.one;
+
+            var canvas = Object.FindObjectOfType<Canvas>();
+            if (canvas == null) { _animCount--; yield break; }
+
+            var animGO = animRoot.gameObject;
+
+            // ── Capture size & world position before reparenting ─────────────
+            var slotRt   = fromSlot.GetComponent<RectTransform>();
+            Vector2 size = slotRt.rect.size;
+            Vector3 from = animGO.transform.position;
+            Vector3 to   = toSlot.transform.position;
+
+            // ── Reparent to canvas so the card can cross slot boundaries ─────
+            animGO.transform.SetParent(canvas.transform, true);
+            animGO.transform.SetAsLastSibling();
+
+            // Convert from fill-parent anchors to fixed-size centered pivot
+            animRoot.anchorMin = new Vector2(0.5f, 0.5f);
+            animRoot.anchorMax = new Vector2(0.5f, 0.5f);
+            animRoot.pivot     = new Vector2(0.5f, 0.5f);
+            animRoot.sizeDelta = size;
+            animRoot.position  = from;  // re-anchor after pivot change
+
+            // ── DOTween sequence ──────────────────────────────────────────────
+            // Phase 1 — slide to target (travel squish: stretch X, compress Y)
+            // Phase 2 — landing squash (compress X, stretch Y)
+            // Phase 3 — bounce back to natural scale (OutBack)
+            var seq = DOTween.Sequence();
+            seq.Append(animRoot.DOMove(to, 0.20f).SetEase(Ease.OutCubic));
+            seq.Join(animRoot.DOScale(new Vector3(1.18f, 0.88f, 1f), 0.20f).SetEase(Ease.OutQuad));
+            seq.Append(animRoot.DOScale(new Vector3(0.88f, 1.14f, 1f), 0.07f).SetEase(Ease.OutQuad));
+            seq.Append(animRoot.DOScale(Vector3.one, 0.13f).SetEase(Ease.OutBack, 1.8f));
+
+            yield return seq.WaitForCompletion();
+
+            DOTween.Kill(animGO.transform);
+            Object.Destroy(animGO);
             _animCount--;
         }
 
-        // ── Clash ─────────────────────────────────────────────────────────────
+        // ── Clash (both units fight — 4-phase squash-stretch) ────────────────
 
-        /// <summary>Both units lunge toward each other simultaneously.</summary>
+        /// <summary>
+        /// Both units anticipate, lunge at each other simultaneously,
+        /// impact punch, then return with overshoot.
+        /// </summary>
         public IEnumerator PlayClashAnim(LaneSlotUI playerSlot, LaneSlotUI enemySlot)
         {
             _animCount++;
-            AudioManager.Instance.PlaySFX("sfx_attack");
 
             var pRT = playerSlot?.PlayedCard?.animatedRoot;
             var eRT = enemySlot?.PlayedCard?.animatedRoot;
@@ -311,33 +336,57 @@ namespace RoguelikeTCG.Combat
             Vector2 pOrigin = pRT != null ? pRT.anchoredPosition : Vector2.zero;
             Vector2 eOrigin = eRT != null ? eRT.anchoredPosition : Vector2.zero;
 
-            // Lunge: player lunges right (+X), enemy lunges left (-X)
-            const float lungeX = 16f;
-            const float dur    = 0.18f;
-
-            float t = 0f;
-            while (t < 1f)
+            // ── Phase 1 — Both pull back away from each other (squash) ────────
+            var anticipate = DOTween.Sequence();
+            if (pRT != null)
             {
-                t = Mathf.Min(1f, t + Time.deltaTime / dur);
-                float e = EaseInOut(t);
-                if (pRT != null) pRT.anchoredPosition = Vector2.LerpUnclamped(pOrigin, pOrigin + new Vector2( lungeX, 0f), e);
-                if (eRT != null) eRT.anchoredPosition = Vector2.LerpUnclamped(eOrigin, eOrigin + new Vector2(-lungeX, 0f), e);
-                yield return null;
+                anticipate.Append(pRT.DOAnchorPos(pOrigin + new Vector2(-13f, 0f), 0.12f).SetEase(Ease.OutQuad));
+                anticipate.Join(pRT.DOScale(new Vector3(0.82f, 1.16f, 1f), 0.12f).SetEase(Ease.OutQuad));
             }
-
-            // Snap back
-            t = 0f;
-            while (t < 1f)
+            if (eRT != null)
             {
-                t = Mathf.Min(1f, t + Time.deltaTime / (dur * 1.4f));
-                float e = EaseInOut(t);
-                if (pRT != null) pRT.anchoredPosition = Vector2.LerpUnclamped(pOrigin + new Vector2( lungeX, 0f), pOrigin, e);
-                if (eRT != null) eRT.anchoredPosition = Vector2.LerpUnclamped(eOrigin + new Vector2(-lungeX, 0f), eOrigin, e);
-                yield return null;
+                anticipate.Join(eRT.DOAnchorPos(eOrigin + new Vector2(13f, 0f), 0.12f).SetEase(Ease.OutQuad));
+                anticipate.Join(eRT.DOScale(new Vector3(0.82f, 1.16f, 1f), 0.12f).SetEase(Ease.OutQuad));
             }
+            yield return anticipate.WaitForCompletion();
 
-            if (pRT != null) pRT.anchoredPosition = pOrigin;
-            if (eRT != null) eRT.anchoredPosition = eOrigin;
+            // ── Phase 2 — Both lunge toward each other (horizontal stretch) ───
+            AudioManager.Instance.PlaySFX("sfx_attack");
+            var lunge = DOTween.Sequence();
+            if (pRT != null)
+            {
+                lunge.Append(pRT.DOAnchorPos(pOrigin + new Vector2(22f, 0f), 0.10f).SetEase(Ease.OutQuint));
+                lunge.Join(pRT.DOScale(new Vector3(1.22f, 0.80f, 1f), 0.10f).SetEase(Ease.OutQuint));
+            }
+            if (eRT != null)
+            {
+                lunge.Join(eRT.DOAnchorPos(eOrigin + new Vector2(-22f, 0f), 0.10f).SetEase(Ease.OutQuint));
+                lunge.Join(eRT.DOScale(new Vector3(1.22f, 0.80f, 1f), 0.10f).SetEase(Ease.OutQuint));
+            }
+            yield return lunge.WaitForCompletion();
+
+            // ── Phase 3 — Simultaneous impact punch ───────────────────────────
+            var impact = DOTween.Sequence();
+            if (pRT != null) impact.Append(pRT.DOPunchScale(new Vector3(0.26f, 0.26f, 0f), 0.16f, 5, 0.4f));
+            if (eRT != null) impact.Join(eRT.DOPunchScale(new Vector3(0.26f, 0.26f, 0f), 0.16f, 5, 0.4f));
+            yield return impact.WaitForCompletion();
+
+            // ── Phase 4 — Both return with slight overshoot ───────────────────
+            var ret = DOTween.Sequence();
+            if (pRT != null)
+            {
+                ret.Append(pRT.DOAnchorPos(pOrigin, 0.20f).SetEase(Ease.OutBack, 1.3f));
+                ret.Join(pRT.DOScale(Vector3.one, 0.20f).SetEase(Ease.OutBack, 1.3f));
+            }
+            if (eRT != null)
+            {
+                ret.Join(eRT.DOAnchorPos(eOrigin, 0.20f).SetEase(Ease.OutBack, 1.3f));
+                ret.Join(eRT.DOScale(Vector3.one, 0.20f).SetEase(Ease.OutBack, 1.3f));
+            }
+            yield return ret.WaitForCompletion();
+
+            if (pRT != null) { pRT.anchoredPosition = pOrigin; pRT.localScale = Vector3.one; }
+            if (eRT != null) { eRT.anchoredPosition = eOrigin; eRT.localScale = Vector3.one; }
             _animCount--;
         }
 
