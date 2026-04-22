@@ -41,25 +41,28 @@ namespace RoguelikeTCG.Combat
 
             // ── Couche 1 : fond ───────────────────────────────────────────────
             var bgImage = animGO.AddComponent<Image>();
-            bgImage.sprite        = cfg != null ? (isUnit ? cfg.unitBackground : cfg.spellBackground) : null;
-            bgImage.color         = Color.white;
-            bgImage.raycastTarget = false;
+            bgImage.sprite          = cfg != null ? (isUnit ? cfg.unitBackground : cfg.spellBackground) : null;
+            bgImage.color           = Color.white;
+            bgImage.preserveAspect  = true;
+            bgImage.raycastTarget   = false;
 
             // ── Couche 2 : illustration ───────────────────────────────────────
             var illuGO  = MakeChild("Illustration", animGO);
             SetAnchors(illuGO, 0f, 0f, 1f, 1f);
             var illuImg = illuGO.GetComponent<Image>();
-            illuImg.sprite        = card.data.artwork;
-            illuImg.color         = Color.white;
-            illuImg.raycastTarget = false;
+            illuImg.sprite          = card.data.artwork;
+            illuImg.color           = Color.white;
+            illuImg.preserveAspect  = true;
+            illuImg.raycastTarget   = false;
 
             // ── Couche 3 : devant ─────────────────────────────────────────────
             var frontGO  = MakeChild("Front", animGO);
             FillParent(frontGO.GetComponent<RectTransform>());
             var frontImg = frontGO.GetComponent<Image>();
-            frontImg.sprite        = cfg != null ? (isUnit ? cfg.unitFront : cfg.spellFront) : null;
-            frontImg.color         = Color.white;
-            frontImg.raycastTarget = false;
+            frontImg.sprite         = cfg != null ? (isUnit ? cfg.unitFront : cfg.spellFront) : null;
+            frontImg.color          = Color.white;
+            frontImg.preserveAspect = true;
+            frontImg.raycastTarget  = false;
 
             // ── Couche 4 : textes ─────────────────────────────────────────────
             var textsGO = new GameObject("Texts", typeof(RectTransform));

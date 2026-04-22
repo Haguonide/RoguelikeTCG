@@ -11,7 +11,6 @@ namespace RoguelikeTCG.AI
         private DeckManager  enemyDeck;
         private CombatLane[] lanes;
         private ManaManager  manaManager;
-        private const int    MaxCardsPerTurn = 3;
 
         public void Initialize(DeckManager deck, CombatLane[] combatLanes, ManaManager mana)
         {
@@ -26,7 +25,9 @@ namespace RoguelikeTCG.AI
         {
             enemyDeck.DrawCards(enemyDeck.drawPerTurn);
 
-            for (int i = 0; i < MaxCardsPerTurn; i++)
+            // Play until no affordable action remains (mana is the only limiter)
+            const int safetyLimit = 20;
+            for (int i = 0; i < safetyLimit; i++)
             {
                 var action = FindBestAction();
                 if (action == null) break;
@@ -60,9 +61,9 @@ namespace RoguelikeTCG.AI
 
             foreach (var lane in lanes)
             {
-                // Try to place at the rightmost available enemy cell (3..5)
-                int cell = lane.FindLastEmpty(CombatLane.ENEMY_MIN_CELL, CombatLane.LANE_LENGTH - 1);
-                if (cell < 0) continue;
+                // Only deploy on the backmost enemy cell
+                int cell = CombatLane.ENEMY_DEPLOY_CELL;
+                if (lane.IsOccupied(cell)) continue;
 
                 float score = ScorePlacement(unit, lane, cell);
                 if (best == null || score > best.Score)

@@ -173,7 +173,7 @@ namespace RoguelikeTCG.Combat
             {
                 case Mode.AwaitingCell:
                     foreach (var s in allSlots)
-                        if (s.IsPlayerDeployZone && !s.IsOccupied)
+                        if (s.gameObject.activeInHierarchy && s.IsPlayerDeployZone && !s.IsOccupied)
                             s.SetHighlight(true, HighlightSlot);
                     break;
 

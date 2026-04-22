@@ -7,16 +7,12 @@ namespace RoguelikeTCG.Combat
 
     public class TurnManager : MonoBehaviour
     {
-        public int maxCardsPerTurn = 3;
-
         private TurnPhase currentPhase;
-        private int cardsPlayedThisTurn;
 
-        public TurnPhase CurrentPhase   => currentPhase;
-        public bool IsPlayerTurn        => currentPhase == TurnPhase.PlayerTurn;
-        public bool CanPlayCard         => cardsPlayedThisTurn < maxCardsPerTurn;
-        public int  CardsRemaining      => maxCardsPerTurn - cardsPlayedThisTurn;
-        public int  TurnNumber          { get; private set; }
+        public TurnPhase CurrentPhase => currentPhase;
+        public bool IsPlayerTurn      => currentPhase == TurnPhase.PlayerTurn;
+        public bool CanPlayCard       => true; // only mana limits plays
+        public int  TurnNumber        { get; private set; }
 
         public event Action OnPlayerTurnStart;
         public event Action OnEnemyTurnStart;
@@ -24,19 +20,17 @@ namespace RoguelikeTCG.Combat
         public void StartPlayerTurn()
         {
             TurnNumber++;
-            currentPhase        = TurnPhase.PlayerTurn;
-            cardsPlayedThisTurn = 0;
+            currentPhase = TurnPhase.PlayerTurn;
             OnPlayerTurnStart?.Invoke();
         }
 
-        public void RegisterCardPlayed() => cardsPlayedThisTurn++;
+        public void RegisterCardPlayed() { } // kept for call-site compatibility
 
         public void EndPlayerTurn() => currentPhase = TurnPhase.Resolving;
 
         public void StartEnemyTurn()
         {
-            currentPhase        = TurnPhase.EnemyTurn;
-            cardsPlayedThisTurn = 0;
+            currentPhase = TurnPhase.EnemyTurn;
             OnEnemyTurnStart?.Invoke();
         }
     }

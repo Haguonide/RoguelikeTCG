@@ -24,7 +24,7 @@ namespace RoguelikeTCG.Combat
 
         // ── Derived state ─────────────────────────────────────────────────────
 
-        public bool         IsPlayerDeployZone => cellIndex <= CombatLane.PLAYER_MAX_CELL;
+        public bool         IsPlayerDeployZone => cellIndex == CombatLane.PLAYER_DEPLOY_CELL;
         public bool         IsOccupied         => lane != null && lane.IsOccupied(cellIndex);
         public CardInstance Occupant           => lane?.GetUnit(cellIndex);
         public bool         HasPlayerUnit      => Occupant?.isPlayerCard == true;
@@ -89,6 +89,8 @@ namespace RoguelikeTCG.Combat
 
             if (IsOccupied)
             {
+                SetHighlight(false, Color.clear);
+
                 if (_playedCard == null)
                     _playedCard = PlayedCardUI.CreateProgrammatic(transform, Occupant, HasPlayerUnit);
                 else

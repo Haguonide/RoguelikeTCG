@@ -13,8 +13,10 @@ namespace RoguelikeTCG.Combat
     public class CombatLane : MonoBehaviour
     {
         public const int LANE_LENGTH = 6;
-        public const int PLAYER_MAX_CELL = 2;   // rightmost cell a player unit starts in
-        public const int ENEMY_MIN_CELL  = 3;   // leftmost cell an enemy unit starts in
+        public const int PLAYER_MAX_CELL   = 2;  // rightmost cell a player unit starts in (advance boundary)
+        public const int ENEMY_MIN_CELL    = 3;  // leftmost cell an enemy unit starts in (advance boundary)
+        public const int PLAYER_DEPLOY_CELL = 0; // only cell where player may place a unit
+        public const int ENEMY_DEPLOY_CELL  = 5; // only cell where enemy may place a unit
 
         public int laneIndex;
 
