@@ -1,6 +1,6 @@
-using System.Collections;
 using UnityEngine;
 using TMPro;
+using DG.Tweening;
 
 namespace RoguelikeTCG.UI
 {
@@ -21,7 +21,7 @@ namespace RoguelikeTCG.UI
             => Spawn(anchor, $"+{amount}", ColHeal, 22f);
 
         public static void ShowShield(RectTransform anchor, int amount)
-            => Spawn(anchor, $"\ud83d\udee1 +{amount}", ColShield, 20f);
+            => Spawn(anchor, $"🛡 +{amount}", ColShield, 20f);
 
         // ──────────────────────────────────────────────────────────────────────
 
@@ -36,18 +36,17 @@ namespace RoguelikeTCG.UI
             go.transform.SetParent(canvas.transform, false);
             go.transform.SetAsLastSibling();
 
-            var rt = go.GetComponent<RectTransform>();
+            var rt       = go.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(120f, 50f);
             rt.pivot     = new Vector2(0.5f, 0.5f);
             rt.anchorMin = rt.anchorMax = new Vector2(0f, 0f);
 
-            // Convert anchor world position to canvas local position
             Vector2 screenPt = RectTransformUtility.WorldToScreenPoint(null, anchor.position);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 canvas.GetComponent<RectTransform>(), screenPt, null, out Vector2 localPt);
             rt.anchoredPosition = localPt + new Vector2(0f, anchor.rect.height * 0.5f);
 
-            var tmp = go.AddComponent<TextMeshProUGUI>();
+            var tmp           = go.AddComponent<TextMeshProUGUI>();
             tmp.text          = text;
             tmp.color         = color;
             tmp.fontSize      = fontSize;
@@ -55,41 +54,15 @@ namespace RoguelikeTCG.UI
             tmp.alignment     = TextAlignmentOptions.Center;
             tmp.raycastTarget = false;
 
-            var popup = go.AddComponent<DamagePopup>();
-            popup.StartCoroutine(popup.Animate(rt, tmp));
-        }
-
-        private IEnumerator Animate(RectTransform rt, TextMeshProUGUI tmp)
-        {
-            const float duration   = 0.85f;
-            const float risePixels = 60f;
             Vector2 startPos   = rt.anchoredPosition;
-            Color   startColor = tmp.color;
+            const float dur    = 0.85f;
+            const float rise   = 60f;
 
-            float t = 0f;
-            while (t < 1f)
-            {
-                t = Mathf.Min(1f, t + Time.deltaTime / duration);
-
-                // Rise with ease-out
-                float rise = risePixels * (1f - (1f - t) * (1f - t));
-                rt.anchoredPosition = startPos + new Vector2(0f, rise);
-
-                // Scale: pop in 0→1.2 (first 15%), settle 1.2→1 (next 10%), hold
-                float scale = t < 0.15f ? Mathf.Lerp(0f,   1.2f, t / 0.15f)
-                            : t < 0.25f ? Mathf.Lerp(1.2f, 1.0f, (t - 0.15f) / 0.10f)
-                            : 1f;
-                rt.localScale = new Vector3(scale, scale, 1f);
-
-                // Fade out in last 40%
-                float alpha = t < 0.60f ? 1f
-                            : Mathf.Lerp(1f, 0f, (t - 0.60f) / 0.40f);
-                tmp.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
-
-                yield return null;
-            }
-
-            Destroy(gameObject);
+            var seq = DOTween.Sequence().SetTarget(go);
+            seq.Join(rt.DOAnchorPos(startPos + new Vector2(0f, rise), dur).SetEase(Ease.OutQuad));
+            seq.Join(rt.DOPunchScale(new Vector3(0.50f, 0.50f, 0f), 0.20f, 5, 0.3f));
+            seq.Insert(dur * 0.55f, tmp.DOFade(0f, dur * 0.45f).SetEase(Ease.InQuad));
+            seq.OnComplete(() => Object.Destroy(go));
         }
     }
 }

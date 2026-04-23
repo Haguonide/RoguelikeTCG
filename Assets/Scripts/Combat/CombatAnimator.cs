@@ -10,15 +10,17 @@ using RoguelikeTCG.UI;
 
 namespace RoguelikeTCG.Combat
 {
-    /// <summary>
-    /// Handles all in-combat animations: attack, death, advance, clash.
-    /// </summary>
     public class CombatAnimator : MonoBehaviour
     {
         public static CombatAnimator Instance { get; private set; }
 
         [Header("Board Slide (legacy — no longer used)")]
         public BoardNavigator boardNavigator;
+
+        [Header("Screen Shake")]
+        public RectTransform shakeTarget;
+
+        private Canvas _canvas;
 
         private static readonly Color ColAtk = new Color(1.00f, 0.82f, 0.22f);
         private static readonly Color ColHP  = new Color(1.00f, 0.40f, 0.40f);
@@ -30,15 +32,13 @@ namespace RoguelikeTCG.Combat
         {
             if (Instance != null) { Destroy(gameObject); return; }
             Instance = this;
+#pragma warning disable CS0618
+            _canvas = Object.FindObjectOfType<Canvas>();
+#pragma warning restore CS0618
         }
 
         // ── Attack / Traverse (lunge → impact → return) ──────────────────────
 
-        /// <summary>
-        /// Unit traverses all the way and strikes the enemy hero directly.
-        /// isPlayer=true  → lunge right (+X).
-        /// isPlayer=false → lunge left  (-X).
-        /// </summary>
         public IEnumerator PlayAttackAnim(LaneSlotUI slot, bool isPlayerAttacking)
         {
             if (slot?.PlayedCard == null) yield break;
@@ -48,28 +48,24 @@ namespace RoguelikeTCG.Combat
             _animCount++;
             Vector2 origin = rt.anchoredPosition;
 
-            // Direction: player attacks right, enemy attacks left
             float pullX  = isPlayerAttacking ? -13f :  13f;
             float lungeX = isPlayerAttacking ?  40f : -40f;
 
             // ── Phase 1 — Anticipation: pull back + squash (0.11s) ───────────
             var anticipate = DOTween.Sequence();
-            anticipate.Append(rt.DOAnchorPos(origin + new Vector2(pullX, 0f), 0.11f)
-                                .SetEase(Ease.OutQuad));
-            anticipate.Join(rt.DOScale(new Vector3(0.82f, 1.16f, 1f), 0.11f)
-                              .SetEase(Ease.OutQuad));
+            anticipate.Append(rt.DOAnchorPos(origin + new Vector2(pullX, 0f), 0.11f).SetEase(Ease.OutQuad));
+            anticipate.Join(rt.DOScale(new Vector3(0.82f, 1.16f, 1f), 0.11f).SetEase(Ease.OutQuad));
             yield return anticipate.WaitForCompletion();
 
             // ── Phase 2 — Lunge: burst forward + horizontal stretch (0.09s) ──
             AudioManager.Instance.PlaySFX("sfx_attack");
             var lunge = DOTween.Sequence();
-            lunge.Append(rt.DOAnchorPos(origin + new Vector2(lungeX, 0f), 0.09f)
-                           .SetEase(Ease.OutQuint));
-            lunge.Join(rt.DOScale(new Vector3(1.22f, 0.80f, 1f), 0.09f)
-                         .SetEase(Ease.OutQuint));
+            lunge.Append(rt.DOAnchorPos(origin + new Vector2(lungeX, 0f), 0.09f).SetEase(Ease.OutQuint));
+            lunge.Join(rt.DOScale(new Vector3(1.22f, 0.80f, 1f), 0.09f).SetEase(Ease.OutQuint));
             yield return lunge.WaitForCompletion();
 
-            // ── Phase 3 — Impact punch at peak ───────────────────────────────
+            // ── Phase 3 — Impact punch + screen shake ────────────────────────
+            shakeTarget?.DOShakeAnchorPos(0.16f, 8f, 14, 55f, false, true);
             yield return rt.DOPunchScale(new Vector3(0.28f, 0.28f, 0f), 0.16f, 5, 0.45f)
                            .WaitForCompletion();
 
@@ -99,34 +95,27 @@ namespace RoguelikeTCG.Combat
             yield return rt.DOPunchScale(new Vector3(0.55f, 0.55f, 0f), 0.13f, 6, 0.4f)
                            .WaitForCompletion();
 
-            // ── Phase 2 — Shatter: bloat + tremble (0.14s) ───────────────────
+            // ── Phase 2 — Shatter: bloat + tremble + screen shake (0.14s) ────
+            shakeTarget?.DOShakeAnchorPos(0.18f, 9f, 16, 55f, false, true);
             var shatter = DOTween.Sequence();
-            shatter.Append(rt.DOScale(new Vector3(1.32f, 1.32f, 1f), 0.14f)
-                             .SetEase(Ease.OutQuad));
+            shatter.Append(rt.DOScale(new Vector3(1.32f, 1.32f, 1f), 0.14f).SetEase(Ease.OutQuad));
             shatter.Join(rt.DOPunchPosition(new Vector3(9f, 7f, 0f), 0.14f, 12, 0.6f, false));
             yield return shatter.WaitForCompletion();
 
             // ── Phase 3 — Collapse: spin + shrink to nothing (0.26s) ─────────
             var collapse = DOTween.Sequence();
             collapse.Append(rt.DOScale(Vector3.zero, 0.26f).SetEase(Ease.InCubic));
-            collapse.Join(rt.DOLocalRotate(new Vector3(0f, 0f, -170f), 0.26f)
-                            .SetEase(Ease.InCubic));
+            collapse.Join(rt.DOLocalRotate(new Vector3(0f, 0f, -170f), 0.26f).SetEase(Ease.InCubic));
             yield return collapse.WaitForCompletion();
 
-            // No reset needed — PlayedCard is destroyed by Refresh() right after
             _animCount--;
         }
 
         // ── Board slide transition ────────────────────────────────────────────
 
-        /// <summary>
-        /// Fait glisser le board <paramref name="fromIndex"/> hors de l'écran
-        /// pendant que le board <paramref name="toIndex"/> entre depuis le côté opposé.
-        /// Appeler SetActiveBoard() APRÈS cette coroutine.
-        /// </summary>
         public IEnumerator PlayBoardSlide(int fromIndex, int toIndex)
         {
-            if (boardNavigator == null) yield break;
+            if (boardNavigator == null || _canvas == null) yield break;
             var views = boardNavigator.boardViews;
             if (views == null || fromIndex == toIndex) yield break;
             if (fromIndex < 0 || fromIndex >= views.Length) yield break;
@@ -140,8 +129,8 @@ namespace RoguelikeTCG.Combat
             var fromRT = fromView.GetComponent<RectTransform>();
             var toRT   = toView.GetComponent<RectTransform>();
 
-            float slideW = GetCanvasWidth();
-            float dir = toIndex > fromIndex ? 1f : -1f;
+            float slideW = _canvas.GetComponent<RectTransform>().rect.width;
+            float dir    = toIndex > fromIndex ? 1f : -1f;
 
             Vector2 fromOrigin = fromRT.anchoredPosition;
             Vector2 toOrigin   = toRT.anchoredPosition;
@@ -149,18 +138,12 @@ namespace RoguelikeTCG.Combat
             toRT.anchoredPosition = new Vector2(dir * slideW, toOrigin.y);
             toView.SetActive(true);
 
-            const float duration = 0.60f;
-            float t = 0f;
-            while (t < 1f)
-            {
-                t = Mathf.Min(1f, t + Time.deltaTime / duration);
-                float ease = EaseInOut(t);
-                fromRT.anchoredPosition = new Vector2(
-                    Mathf.Lerp(fromOrigin.x, -dir * slideW, ease), fromOrigin.y);
-                toRT.anchoredPosition = new Vector2(
-                    Mathf.Lerp(dir * slideW, toOrigin.x, ease), toOrigin.y);
-                yield return null;
-            }
+            const float duration = 0.45f;
+            var seq = DOTween.Sequence();
+            seq.Append(fromRT.DOAnchorPos(new Vector2(-dir * slideW, fromOrigin.y), duration)
+                             .SetEase(Ease.InOutCubic));
+            seq.Join(toRT.DOAnchorPos(toOrigin, duration).SetEase(Ease.InOutCubic));
+            yield return seq.WaitForCompletion();
 
             fromRT.anchoredPosition = fromOrigin;
             toRT.anchoredPosition   = toOrigin;
@@ -169,7 +152,6 @@ namespace RoguelikeTCG.Combat
 
         // ── Hit Flash (survives damage) ───────────────────────────────────────
 
-        /// <summary>Quick punch + position recoil when a unit takes damage but survives.</summary>
         public IEnumerator PlayHitFlash(LaneSlotUI slot)
         {
             if (slot?.PlayedCard == null) yield break;
@@ -187,22 +169,17 @@ namespace RoguelikeTCG.Combat
             _animCount--;
         }
 
-        // ── Card Play Anim (arc flight + Z-tilt + squash-stretch landing) ───
+        // ── Card Play Anim (arc flight + Z-tilt + squash-stretch landing) ────
 
-        /// <summary>
-        /// Ghost card flies on a Bezier arc from hand to slot (Z-rotation tilt,
-        /// scale swell), then the real card pops in with a 4-phase squash-stretch.
-        /// </summary>
         public IEnumerator PlayCardPlayAnim(Vector3 fromWorldPos, Vector2 cardSize,
                                             LaneSlotUI targetSlot, CardInstance cardInst)
         {
-            var canvas = Object.FindObjectOfType<Canvas>();
-            if (canvas == null) yield break;
+            if (_canvas == null) yield break;
 
             _animCount++;
 
             // ─ 1. Ghost card ──────────────────────────────────────────────────
-            var ghost = BuildGhostCard(canvas.transform, cardInst, cardSize);
+            var ghost = BuildGhostCard(_canvas.transform, cardInst, cardSize);
             ghost.transform.position   = fromWorldPos;
             ghost.transform.localScale = Vector3.one;
 
@@ -211,7 +188,7 @@ namespace RoguelikeTCG.Combat
             if (placed?.animatedRoot != null)
                 placed.animatedRoot.localScale = Vector3.zero;
 
-            // ─ 3. Arc flight via quadratic Bezier — all tweens in one sequence ─
+            // ─ 3. Arc flight via quadratic Bezier ────────────────────────────
             Vector3 endPos    = targetSlot.transform.position;
             float   arcHeight = Mathf.Max(80f, Vector3.Distance(fromWorldPos, endPos) * 0.38f);
             Vector3 midPos    = Vector3.Lerp(fromWorldPos, endPos, 0.5f)
@@ -219,17 +196,14 @@ namespace RoguelikeTCG.Combat
 
             const float flyDur = 0.42f;
 
-            // Z-tilt sub-sequence (leans forward then straightens — no OnComplete chain)
             var rotSeq = DOTween.Sequence().SetTarget(ghost);
             rotSeq.Append(ghost.transform.DORotate(new Vector3(0f, 0f, 14f), flyDur * 0.44f).SetEase(Ease.OutQuad));
             rotSeq.Append(ghost.transform.DORotate(Vector3.zero, flyDur * 0.56f).SetEase(Ease.InOutSine));
 
-            // Scale sub-sequence (swell then tighten — no OnComplete chain)
             var scaleSeq = DOTween.Sequence().SetTarget(ghost);
             scaleSeq.Append(ghost.transform.DOScale(1.22f, flyDur * 0.50f).SetEase(Ease.OutQuad));
             scaleSeq.Append(ghost.transform.DOScale(0.95f, flyDur * 0.50f).SetEase(Ease.InCubic));
 
-            // Main arc movement
             float arcT = 0f;
             var moveTween = DOTween.To(() => arcT, v =>
             {
@@ -250,16 +224,11 @@ namespace RoguelikeTCG.Combat
             // ─ 5. Squash-stretch landing on real card ─────────────────────────
             if (placed?.animatedRoot == null) { _animCount--; yield break; }
             var rt = placed.animatedRoot;
-            // rt.localScale is already Vector3.zero — tween starts from there
 
             var landSeq = DOTween.Sequence();
-            // Pop in (scale up quickly past 1)
             landSeq.Append(rt.DOScale(new Vector3(1.22f, 1.22f, 1f), 0.11f).SetEase(Ease.OutQuint));
-            // Squash wide (card hits the "table")
             landSeq.Append(rt.DOScale(new Vector3(1.16f, 0.80f, 1f), 0.09f).SetEase(Ease.OutQuad));
-            // Rebound tall
             landSeq.Append(rt.DOScale(new Vector3(0.92f, 1.12f, 1f), 0.08f).SetEase(Ease.OutSine));
-            // Settle to 1
             landSeq.Append(rt.DOScale(Vector3.one, 0.09f).SetEase(Ease.InOutSine));
 
             yield return landSeq.WaitForCompletion();
@@ -268,45 +237,31 @@ namespace RoguelikeTCG.Combat
 
         // ── Advance (slide one cell) ──────────────────────────────────────────
 
-        /// <summary>
-        /// Slides a unit's visual from fromSlot to toSlot using DOTween.
-        /// The animatedRoot is reparented to the canvas for cross-slot movement,
-        /// then destroyed after the tween — RefreshAllUI will recreate it on toSlot.
-        /// </summary>
         public IEnumerator PlayAdvanceAnim(LaneSlotUI fromSlot, LaneSlotUI toSlot, bool isPlayer)
         {
             if (fromSlot?.PlayedCard == null) yield break;
             var animRoot = fromSlot.PlayedCard.animatedRoot;
             if (animRoot == null) yield break;
+            if (_canvas == null) { yield break; }
 
             _animCount++;
 
-            var canvas = Object.FindObjectOfType<Canvas>();
-            if (canvas == null) { _animCount--; yield break; }
-
             var animGO = animRoot.gameObject;
 
-            // ── Capture size & world position before reparenting ─────────────
             var slotRt   = fromSlot.GetComponent<RectTransform>();
             Vector2 size = slotRt.rect.size;
             Vector3 from = animGO.transform.position;
             Vector3 to   = toSlot.transform.position;
 
-            // ── Reparent to canvas so the card can cross slot boundaries ─────
-            animGO.transform.SetParent(canvas.transform, true);
+            animGO.transform.SetParent(_canvas.transform, true);
             animGO.transform.SetAsLastSibling();
 
-            // Convert from fill-parent anchors to fixed-size centered pivot
             animRoot.anchorMin = new Vector2(0.5f, 0.5f);
             animRoot.anchorMax = new Vector2(0.5f, 0.5f);
             animRoot.pivot     = new Vector2(0.5f, 0.5f);
             animRoot.sizeDelta = size;
-            animRoot.position  = from;  // re-anchor after pivot change
+            animRoot.position  = from;
 
-            // ── DOTween sequence ──────────────────────────────────────────────
-            // Phase 1 — slide to target (travel squish: stretch X, compress Y)
-            // Phase 2 — landing squash (compress X, stretch Y)
-            // Phase 3 — bounce back to natural scale (OutBack)
             var seq = DOTween.Sequence();
             seq.Append(animRoot.DOMove(to, 0.20f).SetEase(Ease.OutCubic));
             seq.Join(animRoot.DOScale(new Vector3(1.18f, 0.88f, 1f), 0.20f).SetEase(Ease.OutQuad));
@@ -322,10 +277,6 @@ namespace RoguelikeTCG.Combat
 
         // ── Clash (both units fight — 4-phase squash-stretch) ────────────────
 
-        /// <summary>
-        /// Both units anticipate, lunge at each other simultaneously,
-        /// impact punch, then return with overshoot.
-        /// </summary>
         public IEnumerator PlayClashAnim(LaneSlotUI playerSlot, LaneSlotUI enemySlot)
         {
             _animCount++;
@@ -365,7 +316,8 @@ namespace RoguelikeTCG.Combat
             }
             yield return lunge.WaitForCompletion();
 
-            // ── Phase 3 — Simultaneous impact punch ───────────────────────────
+            // ── Phase 3 — Simultaneous impact punch + screen shake ────────────
+            shakeTarget?.DOShakeAnchorPos(0.20f, 12f, 18, 60f, false, true);
             var impact = DOTween.Sequence();
             if (pRT != null) impact.Append(pRT.DOPunchScale(new Vector3(0.26f, 0.26f, 0f), 0.16f, 5, 0.4f));
             if (eRT != null) impact.Join(eRT.DOPunchScale(new Vector3(0.26f, 0.26f, 0f), 0.16f, 5, 0.4f));
@@ -390,7 +342,7 @@ namespace RoguelikeTCG.Combat
             _animCount--;
         }
 
-        // ── Place Anim (bounce) — enemy card placement ───────────────────────
+        // ── Place Anim (enemy card placement — squash-stretch drop-in) ───────
 
         public IEnumerator PlayPlaceAnim(LaneSlotUI slot)
         {
@@ -399,24 +351,20 @@ namespace RoguelikeTCG.Combat
             if (rt == null) yield break;
 
             _animCount++;
-            float t = 0f;
-            while (t < 1f)
-            {
-                t = Mathf.Min(1f, t + Time.deltaTime / 0.12f);
-                float e     = 1f - (1f - t) * (1f - t);
-                float scale = Mathf.Lerp(0f, 1.15f, e);
-                rt.localScale = new Vector3(scale, scale, 1f);
-                yield return null;
-            }
-            t = 0f;
-            while (t < 1f)
-            {
-                t = Mathf.Min(1f, t + Time.deltaTime / 0.09f);
-                float e     = 1f - (1f - t) * (1f - t);
-                float scale = Mathf.Lerp(1.15f, 1f, e);
-                rt.localScale = new Vector3(scale, scale, 1f);
-                yield return null;
-            }
+            rt.localScale = Vector3.zero;
+
+            // Phase 1 — pop in with tall stretch: card "drops" from above (0.09s)
+            // Phase 2 — squash on landing: wide and flat (0.08s)
+            // Phase 3 — rebound tall: elastic bounce (0.07s)
+            // Phase 4 — settle to rest (0.09s)
+            var seq = DOTween.Sequence();
+            seq.Append(rt.DOScale(new Vector3(0.86f, 1.24f, 1f), 0.09f).SetEase(Ease.OutQuint));
+            seq.AppendCallback(() => AudioManager.Instance.PlaySFX("sfx_card_place"));
+            seq.Append(rt.DOScale(new Vector3(1.20f, 0.78f, 1f), 0.08f).SetEase(Ease.OutQuad));
+            seq.Append(rt.DOScale(new Vector3(0.92f, 1.10f, 1f), 0.07f).SetEase(Ease.OutSine));
+            seq.Append(rt.DOScale(Vector3.one,                   0.09f).SetEase(Ease.InOutSine));
+            yield return seq.WaitForCompletion();
+
             rt.localScale = Vector3.one;
             _animCount--;
         }
@@ -435,13 +383,11 @@ namespace RoguelikeTCG.Combat
             rt.sizeDelta = size;
             rt.pivot     = new Vector2(0.5f, 0.5f);
 
-            // Couche 1 : fond
             var bgImg = go.AddComponent<Image>();
             bgImg.sprite        = cfg != null ? (isUnit ? cfg.unitBackground : cfg.spellBackground) : null;
             bgImg.color         = Color.white;
             bgImg.raycastTarget = false;
 
-            // Couche 2 : illustration
             var illuGO  = GhostMakeChild("Illustration", go);
             GhostSetAnchors(illuGO, 0f, 0f, 1f, 1f);
             var illuImg = illuGO.GetComponent<Image>();
@@ -449,7 +395,6 @@ namespace RoguelikeTCG.Combat
             illuImg.color         = Color.white;
             illuImg.raycastTarget = false;
 
-            // Couche 3 : devant
             var frontGO  = GhostMakeChild("Front", go);
             GhostSetAnchors(frontGO, 0f, 0f, 1f, 1f);
             var frontImg = frontGO.GetComponent<Image>();
@@ -457,7 +402,6 @@ namespace RoguelikeTCG.Combat
             frontImg.color         = Color.white;
             frontImg.raycastTarget = false;
 
-            // Couche 4 : textes
             var textsGO = new GameObject("Texts", typeof(RectTransform));
             textsGO.transform.SetParent(go.transform, false);
             GhostSetAnchors(textsGO, 0f, 0f, 1f, 1f);
@@ -525,36 +469,6 @@ namespace RoguelikeTCG.Combat
             tmp.color         = Color.white;
             tmp.raycastTarget = false;
             return tmp;
-        }
-
-        // ── Helpers ──────────────────────────────────────────────────────────
-
-        private float GetCanvasWidth()
-        {
-            var canvas = Object.FindObjectOfType<Canvas>();
-            if (canvas != null)
-            {
-                float w = canvas.GetComponent<RectTransform>().rect.width;
-                if (w > 100f) return w;
-            }
-            return 1200f;
-        }
-
-        private static float EaseInOut(float t)
-            => t < 0.5f ? 2f * t * t : 1f - Mathf.Pow(-2f * t + 2f, 2f) / 2f;
-
-        private IEnumerator LerpPos(RectTransform rt, Vector2 from, Vector2 to,
-                                    float duration, bool easeOut = false)
-        {
-            float t = 0f;
-            while (t < 1f)
-            {
-                t = Mathf.Min(1f, t + Time.deltaTime / duration);
-                float e = easeOut ? 1f - (1f - t) * (1f - t) : t;
-                rt.anchoredPosition = Vector2.LerpUnclamped(from, to, e);
-                yield return null;
-            }
-            rt.anchoredPosition = to;
         }
     }
 }
