@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
 using RoguelikeTCG.Cards;
 using RoguelikeTCG.Data;
 using RoguelikeTCG.Combat;
@@ -14,6 +15,53 @@ namespace RoguelikeTCG.UI
         private GameObject _bricolageGO;
 
         // ── API publique ──────────────────────────────────────────────────────
+
+        public IReadOnlyList<CardView> CardViews => cardViews;
+
+        // Slide existing cards to their new positions to make room for incoming cards.
+        // Call BEFORE InsertCardsInvisible. totalFinalCount includes Bricolage slot if present.
+        public void SlideExistingCards(int totalFinalCount)
+        {
+            if (cardViews.Count == 0) return;
+            float cardW = 160f, spacing = 10f;
+            float totalW = totalFinalCount * cardW + (totalFinalCount - 1) * spacing;
+            float startX = -totalW / 2f + cardW / 2f;
+
+            for (int i = 0; i < cardViews.Count; i++)
+            {
+                if (cardViews[i] == null) continue;
+                cardViews[i].GetComponent<RectTransform>()
+                    .DOAnchorPos(new Vector2(startX + i * (cardW + spacing), 0f), 0.18f)
+                    .SetEase(Ease.OutCubic);
+            }
+        }
+
+        // Build new card GOs at scale=0 at their final hand positions and append them to cardViews.
+        // Call AFTER SlideExistingCards. existingCount = cardViews.Count before this call.
+        public RectTransform[] InsertCardsInvisible(
+            List<CardInstance> newCards, int existingCount, int totalFinalCount)
+        {
+            float cardW = 160f, cardH = 240f, spacing = 10f;
+            float totalW = totalFinalCount * cardW + (totalFinalCount - 1) * spacing;
+            float startX = -totalW / 2f + cardW / 2f;
+
+            var rts = new RectTransform[newCards.Count];
+            for (int i = 0; i < newCards.Count; i++)
+            {
+                int globalIdx = existingCount + i;
+                var go = BuildCard(newCards[i], globalIdx);
+                go.transform.SetParent(transform, false);
+                var rt             = go.GetComponent<RectTransform>();
+                rt.sizeDelta       = new Vector2(cardW, cardH);
+                rt.anchorMin       = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot           = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = new Vector2(startX + globalIdx * (cardW + spacing), 0f);
+                rt.localScale      = Vector3.zero;
+                cardViews.Add(go.GetComponent<CardView>());
+                rts[i] = rt;
+            }
+            return rts;
+        }
 
         public void RefreshHand(List<CardInstance> hand,
             CardData bricolageCardData = null,

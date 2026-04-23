@@ -37,6 +37,7 @@ namespace RoguelikeTCG.Combat
 
         [Header("Animations")]
         public CombatAnimator combatAnimator;
+        public RectTransform  endTurnButtonRT;
 
         [Header("Characters")]
         public CharacterData playerCharacter;
@@ -185,16 +186,18 @@ namespace RoguelikeTCG.Combat
                 turnManager.StartPlayerTurn();
                 manaManager.PlayerTurnRegen();
                 if (bonusMana > 0) manaManager.AddBonus(bonusMana);
+                int prevCount = playerDeck.Hand.Count;
                 playerDeck.DrawCards(playerDeck.initialDraw + (RelicManager.Instance?.GetExtraDrawPerTurn() ?? 0));
+                int drawn = playerDeck.Hand.Count - prevCount;
                 AudioManager.Instance.PlaySFX("sfx_card_draw");
+                StartCoroutine(DrawAndRefresh(playerDeck.Hand, drawn));
             }
             else
             {
                 // Enemy goes first: draw and play, then hand off to player
                 StartCoroutine(EnemyFirstTurn(bonusMana));
+                RefreshAllUI();
             }
-
-            RefreshAllUI();
         }
 
         private IEnumerator EnemyFirstTurn(int bonusMana)
@@ -211,9 +214,11 @@ namespace RoguelikeTCG.Combat
             turnManager.StartPlayerTurn();
             manaManager.PlayerTurnRegen();
             if (bonusMana > 0) manaManager.AddBonus(bonusMana);
+            int prevCountEFT = playerDeck.Hand.Count;
             playerDeck.DrawCards(playerDeck.initialDraw + (RelicManager.Instance?.GetExtraDrawPerTurn() ?? 0));
+            int drawnEFT = playerDeck.Hand.Count - prevCountEFT;
             AudioManager.Instance.PlaySFX("sfx_card_draw");
-            RefreshAllUI();
+            yield return StartCoroutine(DrawAndRefresh(playerDeck.Hand, drawnEFT));
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -403,10 +408,12 @@ namespace RoguelikeTCG.Combat
             Log("--- Votre tour ---");
             turnManager.StartPlayerTurn();
             manaManager.PlayerTurnRegen();
-            int extraDraw = RelicManager.Instance?.GetExtraDrawPerTurn() ?? 0;
+            int extraDraw  = RelicManager.Instance?.GetExtraDrawPerTurn() ?? 0;
+            int prevCountRT = playerDeck.Hand.Count;
             playerDeck.DrawCards(playerDeck.drawPerTurn + extraDraw);
+            int drawnRT = playerDeck.Hand.Count - prevCountRT;
             AudioManager.Instance.PlaySFX("sfx_card_draw");
-            RefreshAllUI();
+            yield return StartCoroutine(DrawAndRefresh(playerDeck.Hand, drawnRT));
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -1339,6 +1346,25 @@ namespace RoguelikeTCG.Combat
                 if (capWon && !capBoss) SceneManager.LoadScene("RunMap");
                 else { RunPersistence.Instance?.AwardRunXPAndReset(); SceneManager.LoadScene("MainMenu"); }
             });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // DRAW + REFRESH
+        // ─────────────────────────────────────────────────────────────────────
+
+        private IEnumerator DrawAndRefresh(List<CardInstance> hand, int drawnCount)
+        {
+            bool hasBricolage = IsDeVinciRun() && bricolageCardData != null;
+            int  totalLayout  = hand.Count + (hasBricolage ? 1 : 0);
+
+            if (drawnCount > 0 && combatAnimator != null
+                && endTurnButtonRT != null && handView != null)
+            {
+                yield return StartCoroutine(combatAnimator.PlayDrawCardsAnim(
+                    hand, drawnCount, totalLayout, endTurnButtonRT, handView));
+            }
+
+            RefreshAllUI();
         }
 
         // ─────────────────────────────────────────────────────────────────────

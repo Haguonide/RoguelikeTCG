@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -367,6 +368,87 @@ namespace RoguelikeTCG.Combat
 
             rt.localScale = Vector3.one;
             _animCount--;
+        }
+
+        // ── Draw Cards (ghost flies from deck → hand slot, existing cards slide) ──
+
+        public IEnumerator PlayDrawCardsAnim(
+            List<CardInstance> fullHand, int drawnCount, int totalLayoutCount,
+            RectTransform deckRT, HandView handView)
+        {
+            if (drawnCount <= 0 || handView == null || deckRT == null || _canvas == null)
+                yield break;
+
+            _animCount++;
+
+            int existingCount = fullHand.Count - drawnCount;
+            var newCards      = fullHand.GetRange(existingCount, drawnCount);
+
+            // Slide existing hand cards sideways to make room (fire-and-forget)
+            handView.SlideExistingCards(totalLayoutCount);
+
+            // Create real card GOs at their final positions, invisible (scale=0)
+            var targetRTs = handView.InsertCardsInvisible(newCards, existingCount, totalLayoutCount);
+
+            // Fly each card from deck, staggered
+            const float stagger = 0.07f;
+            Vector3 deckPos = deckRT.position;
+            for (int n = 0; n < drawnCount; n++)
+                StartCoroutine(FlyCardIn(newCards[n], deckPos, targetRTs[n], n * stagger));
+
+            yield return new WaitForSeconds((drawnCount - 1) * stagger + 0.38f + 0.27f);
+            _animCount--;
+        }
+
+        private IEnumerator FlyCardIn(CardInstance card, Vector3 fromPos,
+            RectTransform targetRT, float delay)
+        {
+            if (delay > 0f) yield return new WaitForSeconds(delay);
+            if (_canvas == null) yield break;
+
+            // Ghost spawned at deck position, slightly smaller than final card
+            var ghost = BuildGhostCard(_canvas.transform, card, new Vector2(160f, 240f));
+            ghost.transform.position   = fromPos;
+            ghost.transform.localScale = Vector3.one * 0.72f;
+
+            Vector3 endPos = targetRT.position;
+            float   dist   = Vector3.Distance(fromPos, endPos);
+            float   arc    = Mathf.Max(55f, dist * 0.30f);
+            Vector3 midPos = Vector3.Lerp(fromPos, endPos, 0.5f) + new Vector3(0f, arc, 0f);
+
+            const float flyDur = 0.38f;
+
+            // Slight Z-tilt during flight
+            DOTween.Sequence().SetTarget(ghost)
+                .Append(ghost.transform.DORotate(new Vector3(0f, 0f, -9f), flyDur * 0.45f)
+                    .SetEase(Ease.OutQuad))
+                .Append(ghost.transform.DORotate(Vector3.zero, flyDur * 0.55f)
+                    .SetEase(Ease.InSine));
+
+            // Scale: launch small → grow → compress on impact
+            DOTween.Sequence().SetTarget(ghost)
+                .Append(ghost.transform.DOScale(1.08f, flyDur * 0.40f).SetEase(Ease.OutCubic))
+                .Append(ghost.transform.DOScale(0.88f, flyDur * 0.60f).SetEase(Ease.InCubic));
+
+            // Quadratic Bezier arc
+            float t = 0f;
+            yield return DOTween.To(() => t, v => {
+                t = v;
+                float u = 1f - t;
+                ghost.transform.position = u * u * fromPos + 2f * u * t * midPos + t * t * endPos;
+            }, 1f, flyDur).SetEase(Ease.InOutSine).WaitForCompletion();
+
+            DOTween.Kill(ghost);
+            Object.Destroy(ghost);
+            AudioManager.Instance.PlaySFX("sfx_card_place");
+
+            // Squash-stretch landing on the real card
+            var land = DOTween.Sequence();
+            land.Append(targetRT.DOScale(new Vector3(1.14f, 0.80f, 1f), 0.07f).SetEase(Ease.OutQuint));
+            land.Append(targetRT.DOScale(new Vector3(0.88f, 1.18f, 1f), 0.07f).SetEase(Ease.OutSine));
+            land.Append(targetRT.DOScale(new Vector3(1.05f, 0.95f, 1f), 0.05f).SetEase(Ease.OutSine));
+            land.Append(targetRT.DOScale(Vector3.one,                   0.08f).SetEase(Ease.OutBack, 1.4f));
+            yield return land.WaitForCompletion();
         }
 
         // ── Ghost Card ────────────────────────────────────────────────────────
