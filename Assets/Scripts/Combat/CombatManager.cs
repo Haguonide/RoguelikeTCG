@@ -533,10 +533,7 @@ namespace RoguelikeTCG.Combat
             var pSlot = FindSlot(lane, playerCell);
             var eSlot = FindSlot(lane, enemyCell);
 
-            if (combatAnimator != null && pSlot != null && eSlot != null)
-                yield return StartCoroutine(combatAnimator.PlayClashAnim(pSlot, eSlot));
-
-            // Calculate mutual damage
+            // ── Calculate mutual damage BEFORE the animation so we can show it ─
             int pDmg = player.CurrentAttack;
             int eDmg = enemy.CurrentAttack;
 
@@ -548,7 +545,23 @@ namespace RoguelikeTCG.Combat
                 if (p.passiveType == UnitPassiveType.DmgReduction)
                     eDmg = Mathf.Max(0, eDmg - p.value);
 
-            // Shield absorption
+            // Shield absorption (preview — shields are consumed after anim)
+            int pDmgPreview = pDmg;
+            int eDmgPreview = eDmg;
+            if (enemy.shieldHP  > 0) pDmgPreview = Mathf.Max(0, pDmg - enemy.shieldHP);
+            if (player.shieldHP > 0) eDmgPreview = Mathf.Max(0, eDmg - player.shieldHP);
+
+            bool playerWillDie = player.currentHP - eDmgPreview <= 0;
+            bool enemyWillDie  = enemy.currentHP  - pDmgPreview <= 0;
+
+            // Clash animation — passes damage values so popups appear at impact
+            if (combatAnimator != null && pSlot != null && eSlot != null)
+                yield return StartCoroutine(combatAnimator.PlayClashAnim(
+                    pSlot, eSlot,
+                    dmgToPlayer: eDmgPreview, dmgToEnemy: pDmgPreview,
+                    playerDies: playerWillDie, enemyDies: enemyWillDie));
+
+            // ── Apply shields (actual consumption post-anim) ───────────────────
             if (enemy.shieldHP > 0)
             {
                 int abs = Mathf.Min(enemy.shieldHP, pDmg);
@@ -583,9 +596,8 @@ namespace RoguelikeTCG.Combat
             Log($"> Clash : {player.data.cardName} ({player.CurrentAttack} ATK) vs {enemy.data.cardName} ({enemy.CurrentAttack} ATK)");
             Log($"  {enemy.data.cardName} prend {pDmg} dmg → {enemy.currentHP} HP | {player.data.cardName} prend {eDmg} dmg → {player.currentHP} HP");
 
-            // Damage popups
-            if (eSlot != null && pDmg > 0) DamagePopup.ShowDamage((RectTransform)eSlot.transform, pDmg);
-            if (pSlot != null && eDmg > 0) DamagePopup.ShowDamage((RectTransform)pSlot.transform, eDmg);
+            // Damage popups are now shown inside PlayClashAnim at the impact frame
+            // (no duplicate ShowDamage calls here)
 
             RefreshAllUI();
 

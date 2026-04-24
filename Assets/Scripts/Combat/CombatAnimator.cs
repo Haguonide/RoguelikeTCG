@@ -38,6 +38,13 @@ namespace RoguelikeTCG.Combat
 #pragma warning restore CS0618
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
+            if (shakeTarget != null) DOTween.Kill(shakeTarget);
+            DOTween.KillAll();
+        }
+
         // ── Attack / Traverse (lunge → impact → return) ──────────────────────
 
         public IEnumerator PlayAttackAnim(LaneSlotUI slot, bool isPlayerAttacking)
@@ -49,31 +56,32 @@ namespace RoguelikeTCG.Combat
             _animCount++;
             Vector2 origin = rt.anchoredPosition;
 
-            float pullX  = isPlayerAttacking ? -13f :  13f;
-            float lungeX = isPlayerAttacking ?  40f : -40f;
+            float pullX  = isPlayerAttacking ? -18f :  18f;
+            float lungeX = isPlayerAttacking ?  52f : -52f;
 
-            // ── Phase 1 — Anticipation: pull back + squash (0.11s) ───────────
-            var anticipate = DOTween.Sequence();
-            anticipate.Append(rt.DOAnchorPos(origin + new Vector2(pullX, 0f), 0.11f).SetEase(Ease.OutQuad));
-            anticipate.Join(rt.DOScale(new Vector3(0.82f, 1.16f, 1f), 0.11f).SetEase(Ease.OutQuad));
+            // ── Phase 1 — Anticipation: pull back + squash (0.10s) ───────────
+            var anticipate = DOTween.Sequence().SetTarget(rt);
+            anticipate.Append(rt.DOAnchorPos(origin + new Vector2(pullX, -4f), 0.10f).SetEase(Ease.OutCubic));
+            anticipate.Join(rt.DOScale(new Vector3(0.78f, 1.20f, 1f), 0.10f).SetEase(Ease.OutCubic));
             yield return anticipate.WaitForCompletion();
 
-            // ── Phase 2 — Lunge: burst forward + horizontal stretch (0.09s) ──
+            // ── Phase 2 — Lunge: burst forward + horizontal stretch (0.08s) ──
             AudioManager.Instance.PlaySFX("sfx_attack");
-            var lunge = DOTween.Sequence();
-            lunge.Append(rt.DOAnchorPos(origin + new Vector2(lungeX, 0f), 0.09f).SetEase(Ease.OutQuint));
-            lunge.Join(rt.DOScale(new Vector3(1.22f, 0.80f, 1f), 0.09f).SetEase(Ease.OutQuint));
+            var lunge = DOTween.Sequence().SetTarget(rt);
+            lunge.Append(rt.DOAnchorPos(origin + new Vector2(lungeX, 0f), 0.08f).SetEase(Ease.OutExpo));
+            lunge.Join(rt.DOScale(new Vector3(1.30f, 0.74f, 1f), 0.08f).SetEase(Ease.OutExpo));
             yield return lunge.WaitForCompletion();
 
-            // ── Phase 3 — Impact punch + screen shake ────────────────────────
-            shakeTarget?.DOShakeAnchorPos(0.16f, 8f, 14, 55f, false, true);
-            yield return rt.DOPunchScale(new Vector3(0.28f, 0.28f, 0f), 0.16f, 5, 0.45f)
+            // ── Phase 3 — Impact: hard punch + screen shake (0.14s) ──────────
+            if (shakeTarget != null)
+                shakeTarget.DOShakeAnchorPos(0.18f, 10f, 16, 60f, false, true).SetTarget(shakeTarget);
+            yield return rt.DOPunchScale(new Vector3(0.32f, 0.32f, 0f), 0.14f, 6, 0.40f).SetTarget(rt)
                            .WaitForCompletion();
 
-            // ── Phase 4 — Return with slight overshoot (0.22s) ───────────────
-            var ret = DOTween.Sequence();
-            ret.Append(rt.DOAnchorPos(origin, 0.22f).SetEase(Ease.OutBack, 1.3f));
-            ret.Join(rt.DOScale(Vector3.one, 0.22f).SetEase(Ease.OutBack, 1.3f));
+            // ── Phase 4 — Return: snap back with elastic overshoot (0.20s) ───
+            var ret = DOTween.Sequence().SetTarget(rt);
+            ret.Append(rt.DOAnchorPos(origin, 0.20f).SetEase(Ease.OutBack, 1.8f));
+            ret.Join(rt.DOScale(Vector3.one, 0.20f).SetEase(Ease.OutBack, 1.8f));
             yield return ret.WaitForCompletion();
 
             rt.anchoredPosition = origin;
@@ -81,7 +89,7 @@ namespace RoguelikeTCG.Combat
             _animCount--;
         }
 
-        // ── Death (flash → shatter → collapse) ───────────────────────────────
+        // ── Death (stagger → shatter → violent collapse) ─────────────────────
 
         public IEnumerator PlayDeathAnim(LaneSlotUI slot)
         {
@@ -92,21 +100,29 @@ namespace RoguelikeTCG.Combat
             _animCount++;
             AudioManager.Instance.PlaySFX("sfx_death");
 
-            // ── Phase 1 — Impact flash: hard punch (0.13s) ───────────────────
-            yield return rt.DOPunchScale(new Vector3(0.55f, 0.55f, 0f), 0.13f, 6, 0.4f)
-                           .WaitForCompletion();
+            // ── Phase 1 — Stagger: sharp recoil backward + vertical squash (0.09s)
+            bool isPlayer = slot.HasPlayerUnit;
+            float recoilX = isPlayer ? -20f : 20f;
+            var stagger = DOTween.Sequence().SetTarget(rt);
+            stagger.Append(rt.DOAnchorPos(rt.anchoredPosition + new Vector2(recoilX, -8f), 0.09f)
+                             .SetEase(Ease.OutExpo));
+            stagger.Join(rt.DOScale(new Vector3(1.10f, 0.80f, 1f), 0.09f).SetEase(Ease.OutExpo));
+            yield return stagger.WaitForCompletion();
 
-            // ── Phase 2 — Shatter: bloat + tremble + screen shake (0.14s) ────
-            shakeTarget?.DOShakeAnchorPos(0.18f, 9f, 16, 55f, false, true);
-            var shatter = DOTween.Sequence();
-            shatter.Append(rt.DOScale(new Vector3(1.32f, 1.32f, 1f), 0.14f).SetEase(Ease.OutQuad));
-            shatter.Join(rt.DOPunchPosition(new Vector3(9f, 7f, 0f), 0.14f, 12, 0.6f, false));
+            // ── Phase 2 — Shatter: bloat + violent tremble + heavy shake (0.16s)
+            if (shakeTarget != null)
+                shakeTarget.DOShakeAnchorPos(0.22f, 12f, 20, 65f, false, true).SetTarget(shakeTarget);
+            var shatter = DOTween.Sequence().SetTarget(rt);
+            shatter.Append(rt.DOScale(new Vector3(1.40f, 1.40f, 1f), 0.10f).SetEase(Ease.OutQuad).SetTarget(rt));
+            shatter.Join(rt.DOPunchPosition(new Vector3(12f, 9f, 0f), 0.16f, 16, 0.7f, false).SetTarget(rt));
+            shatter.Join(rt.DOLocalRotate(new Vector3(0f, 0f, 15f), 0.10f).SetEase(Ease.OutQuad).SetTarget(rt));
             yield return shatter.WaitForCompletion();
 
-            // ── Phase 3 — Collapse: spin + shrink to nothing (0.26s) ─────────
-            var collapse = DOTween.Sequence();
-            collapse.Append(rt.DOScale(Vector3.zero, 0.26f).SetEase(Ease.InCubic));
-            collapse.Join(rt.DOLocalRotate(new Vector3(0f, 0f, -170f), 0.26f).SetEase(Ease.InCubic));
+            // ── Phase 3 — Collapse: wild spin-out + shrink (0.24s) ────────────
+            float spinDir = isPlayer ? -1f : 1f;
+            var collapse = DOTween.Sequence().SetTarget(rt);
+            collapse.Append(rt.DOScale(Vector3.zero, 0.24f).SetEase(Ease.InBack, 2.5f));
+            collapse.Join(rt.DOLocalRotate(new Vector3(0f, 0f, spinDir * 250f), 0.24f).SetEase(Ease.InCubic));
             yield return collapse.WaitForCompletion();
 
             _animCount--;
@@ -151,7 +167,7 @@ namespace RoguelikeTCG.Combat
             _animCount--;
         }
 
-        // ── Hit Flash (survives damage) ───────────────────────────────────────
+        // ── Hit Flash (survives damage — short recoil only) ──────────────────
 
         public IEnumerator PlayHitFlash(LaneSlotUI slot)
         {
@@ -162,9 +178,12 @@ namespace RoguelikeTCG.Combat
             _animCount++;
             AudioManager.Instance.PlaySFX("sfx_hit");
 
-            var seq = DOTween.Sequence();
-            seq.Append(rt.DOPunchScale(new Vector3(0.22f, 0.22f, 0f), 0.20f, 5, 0.5f));
-            seq.Join(rt.DOPunchPosition(new Vector3(6f, 3f, 0f), 0.20f, 8, 0.4f, false));
+            // Intentionally short and snappy — distinct from clash impact
+            bool isPlayer = slot.HasPlayerUnit;
+            float nudgeX  = isPlayer ? -8f : 8f;
+            var seq = DOTween.Sequence().SetTarget(rt);
+            seq.Append(rt.DOPunchScale(new Vector3(0.16f, 0.16f, 0f), 0.15f, 4, 0.5f).SetTarget(rt));
+            seq.Join(rt.DOPunchPosition(new Vector3(nudgeX, 2f, 0f), 0.15f, 6, 0.35f, false).SetTarget(rt));
             yield return seq.WaitForCompletion();
 
             _animCount--;
@@ -226,7 +245,7 @@ namespace RoguelikeTCG.Combat
             if (placed?.animatedRoot == null) { _animCount--; yield break; }
             var rt = placed.animatedRoot;
 
-            var landSeq = DOTween.Sequence();
+            var landSeq = DOTween.Sequence().SetTarget(rt);
             landSeq.Append(rt.DOScale(new Vector3(1.22f, 1.22f, 1f), 0.11f).SetEase(Ease.OutQuint));
             landSeq.Append(rt.DOScale(new Vector3(1.16f, 0.80f, 1f), 0.09f).SetEase(Ease.OutQuad));
             landSeq.Append(rt.DOScale(new Vector3(0.92f, 1.12f, 1f), 0.08f).SetEase(Ease.OutSine));
@@ -263,7 +282,7 @@ namespace RoguelikeTCG.Combat
             animRoot.sizeDelta = size;
             animRoot.position  = from;
 
-            var seq = DOTween.Sequence();
+            var seq = DOTween.Sequence().SetTarget(animRoot);
             seq.Append(animRoot.DOMove(to, 0.20f).SetEase(Ease.OutCubic));
             seq.Join(animRoot.DOScale(new Vector3(1.18f, 0.88f, 1f), 0.20f).SetEase(Ease.OutQuad));
             seq.Append(animRoot.DOScale(new Vector3(0.88f, 1.14f, 1f), 0.07f).SetEase(Ease.OutQuad));
@@ -271,14 +290,20 @@ namespace RoguelikeTCG.Combat
 
             yield return seq.WaitForCompletion();
 
-            DOTween.Kill(animGO.transform);
-            Object.Destroy(animGO);
+            DOTween.Kill(animRoot);
+            if (animGO != null) Object.Destroy(animGO);
             _animCount--;
         }
 
-        // ── Clash (both units fight — 4-phase squash-stretch) ────────────────
+        // ── Clash (both units fight — 4-phase squash-stretch + damage popups) ─
+        // dmgToPlayer  : damage the player unit receives (shown above playerSlot)
+        // dmgToEnemy   : damage the enemy unit receives (shown above enemySlot)
+        // playerDies / enemyDies : popup gets "fatal" color if unit will die
 
-        public IEnumerator PlayClashAnim(LaneSlotUI playerSlot, LaneSlotUI enemySlot)
+        public IEnumerator PlayClashAnim(
+            LaneSlotUI playerSlot, LaneSlotUI enemySlot,
+            int dmgToPlayer = 0, int dmgToEnemy = 0,
+            bool playerDies = false, bool enemyDies = false)
         {
             _animCount++;
 
@@ -288,53 +313,62 @@ namespace RoguelikeTCG.Combat
             Vector2 pOrigin = pRT != null ? pRT.anchoredPosition : Vector2.zero;
             Vector2 eOrigin = eRT != null ? eRT.anchoredPosition : Vector2.zero;
 
-            // ── Phase 1 — Both pull back away from each other (squash) ────────
-            var anticipate = DOTween.Sequence();
+            // ── Phase 1 — Both pull back away from each other (0.11s) ─────────
+            var anticipate = DOTween.Sequence().SetAutoKill(true);
             if (pRT != null)
             {
-                anticipate.Append(pRT.DOAnchorPos(pOrigin + new Vector2(-13f, 0f), 0.12f).SetEase(Ease.OutQuad));
-                anticipate.Join(pRT.DOScale(new Vector3(0.82f, 1.16f, 1f), 0.12f).SetEase(Ease.OutQuad));
+                anticipate.Append(pRT.DOAnchorPos(pOrigin + new Vector2(-18f, -3f), 0.11f).SetEase(Ease.OutCubic).SetTarget(pRT));
+                anticipate.Join(pRT.DOScale(new Vector3(0.78f, 1.22f, 1f), 0.11f).SetEase(Ease.OutCubic).SetTarget(pRT));
             }
             if (eRT != null)
             {
-                anticipate.Join(eRT.DOAnchorPos(eOrigin + new Vector2(13f, 0f), 0.12f).SetEase(Ease.OutQuad));
-                anticipate.Join(eRT.DOScale(new Vector3(0.82f, 1.16f, 1f), 0.12f).SetEase(Ease.OutQuad));
+                anticipate.Join(eRT.DOAnchorPos(eOrigin + new Vector2(15f, -3f), 0.11f).SetEase(Ease.OutCubic).SetTarget(eRT));
+                anticipate.Join(eRT.DOScale(new Vector3(0.80f, 1.18f, 1f), 0.11f).SetEase(Ease.OutCubic).SetTarget(eRT));
             }
             yield return anticipate.WaitForCompletion();
 
-            // ── Phase 2 — Both lunge toward each other (horizontal stretch) ───
+            // ── Phase 2 — Both lunge toward each other (0.09s) ───────────────
             AudioManager.Instance.PlaySFX("sfx_attack");
-            var lunge = DOTween.Sequence();
+            var lunge = DOTween.Sequence().SetAutoKill(true);
             if (pRT != null)
             {
-                lunge.Append(pRT.DOAnchorPos(pOrigin + new Vector2(22f, 0f), 0.10f).SetEase(Ease.OutQuint));
-                lunge.Join(pRT.DOScale(new Vector3(1.22f, 0.80f, 1f), 0.10f).SetEase(Ease.OutQuint));
+                lunge.Append(pRT.DOAnchorPos(pOrigin + new Vector2(30f, 0f), 0.09f).SetEase(Ease.OutExpo).SetTarget(pRT));
+                lunge.Join(pRT.DOScale(new Vector3(1.28f, 0.76f, 1f), 0.09f).SetEase(Ease.OutExpo).SetTarget(pRT));
             }
             if (eRT != null)
             {
-                lunge.Join(eRT.DOAnchorPos(eOrigin + new Vector2(-22f, 0f), 0.10f).SetEase(Ease.OutQuint));
-                lunge.Join(eRT.DOScale(new Vector3(1.22f, 0.80f, 1f), 0.10f).SetEase(Ease.OutQuint));
+                lunge.Join(eRT.DOAnchorPos(eOrigin + new Vector2(-26f, 0f), 0.09f).SetEase(Ease.OutExpo).SetTarget(eRT));
+                lunge.Join(eRT.DOScale(new Vector3(1.24f, 0.78f, 1f), 0.09f).SetEase(Ease.OutExpo).SetTarget(eRT));
             }
             yield return lunge.WaitForCompletion();
 
-            // ── Phase 3 — Simultaneous impact punch + screen shake ────────────
-            shakeTarget?.DOShakeAnchorPos(0.20f, 12f, 18, 60f, false, true);
-            var impact = DOTween.Sequence();
-            if (pRT != null) impact.Append(pRT.DOPunchScale(new Vector3(0.26f, 0.26f, 0f), 0.16f, 5, 0.4f));
-            if (eRT != null) impact.Join(eRT.DOPunchScale(new Vector3(0.26f, 0.26f, 0f), 0.16f, 5, 0.4f));
+            // ── Phase 3 — Simultaneous impact + screen shake + damage popups ──
+            if (shakeTarget != null)
+                shakeTarget.DOShakeAnchorPos(0.22f, 14f, 20, 65f, false, true).SetTarget(shakeTarget);
+
+            if (dmgToEnemy > 0 && enemySlot != null)
+                RoguelikeTCG.UI.DamagePopup.ShowClashDamage(
+                    (RectTransform)enemySlot.transform, dmgToEnemy, enemyDies);
+            if (dmgToPlayer > 0 && playerSlot != null)
+                RoguelikeTCG.UI.DamagePopup.ShowClashDamage(
+                    (RectTransform)playerSlot.transform, dmgToPlayer, playerDies);
+
+            var impact = DOTween.Sequence().SetAutoKill(true);
+            if (pRT != null) impact.Append(pRT.DOPunchScale(new Vector3(0.30f, 0.30f, 0f), 0.18f, 6, 0.38f).SetTarget(pRT));
+            if (eRT != null) impact.Join(eRT.DOPunchScale(new Vector3(0.30f, 0.30f, 0f), 0.18f, 6, 0.38f).SetTarget(eRT));
             yield return impact.WaitForCompletion();
 
-            // ── Phase 4 — Both return with slight overshoot ───────────────────
-            var ret = DOTween.Sequence();
+            // ── Phase 4 — Both return — player snaps back harder (OutBack) ────
+            var ret = DOTween.Sequence().SetAutoKill(true);
             if (pRT != null)
             {
-                ret.Append(pRT.DOAnchorPos(pOrigin, 0.20f).SetEase(Ease.OutBack, 1.3f));
-                ret.Join(pRT.DOScale(Vector3.one, 0.20f).SetEase(Ease.OutBack, 1.3f));
+                ret.Append(pRT.DOAnchorPos(pOrigin, 0.22f).SetEase(Ease.OutBack, 1.6f).SetTarget(pRT));
+                ret.Join(pRT.DOScale(Vector3.one, 0.22f).SetEase(Ease.OutBack, 1.6f).SetTarget(pRT));
             }
             if (eRT != null)
             {
-                ret.Join(eRT.DOAnchorPos(eOrigin, 0.20f).SetEase(Ease.OutBack, 1.3f));
-                ret.Join(eRT.DOScale(Vector3.one, 0.20f).SetEase(Ease.OutBack, 1.3f));
+                ret.Join(eRT.DOAnchorPos(eOrigin, 0.22f).SetEase(Ease.OutBack, 1.2f).SetTarget(eRT));
+                ret.Join(eRT.DOScale(Vector3.one, 0.22f).SetEase(Ease.OutBack, 1.2f).SetTarget(eRT));
             }
             yield return ret.WaitForCompletion();
 
@@ -343,7 +377,7 @@ namespace RoguelikeTCG.Combat
             _animCount--;
         }
 
-        // ── Place Anim (enemy card placement — squash-stretch drop-in) ───────
+        // ── Place Anim (enemy card placement — drop from top + squash landing) ─
 
         public IEnumerator PlayPlaceAnim(LaneSlotUI slot)
         {
@@ -352,21 +386,25 @@ namespace RoguelikeTCG.Combat
             if (rt == null) yield break;
 
             _animCount++;
-            rt.localScale = Vector3.zero;
+            rt.localScale    = new Vector3(0.70f, 0.70f, 1f);
+            Vector2 origin   = rt.anchoredPosition;
+            rt.anchoredPosition = origin + new Vector2(0f, 40f);   // starts above slot
 
-            // Phase 1 — pop in with tall stretch: card "drops" from above (0.09s)
-            // Phase 2 — squash on landing: wide and flat (0.08s)
-            // Phase 3 — rebound tall: elastic bounce (0.07s)
-            // Phase 4 — settle to rest (0.09s)
-            var seq = DOTween.Sequence();
-            seq.Append(rt.DOScale(new Vector3(0.86f, 1.24f, 1f), 0.09f).SetEase(Ease.OutQuint));
+            // Phase 1 — fall down: tall stretch as it drops (0.11s)
+            // Phase 2 — squash on landing: wide and flat (0.09s)
+            // Phase 3 — rebound: tall snap-back (0.07s)
+            // Phase 4 — settle (0.10s)
+            var seq = DOTween.Sequence().SetTarget(rt);
+            seq.Append(rt.DOAnchorPos(origin, 0.11f).SetEase(Ease.InCubic));
+            seq.Join(rt.DOScale(new Vector3(0.82f, 1.26f, 1f), 0.11f).SetEase(Ease.InCubic));
             seq.AppendCallback(() => AudioManager.Instance.PlaySFX("sfx_card_place"));
-            seq.Append(rt.DOScale(new Vector3(1.20f, 0.78f, 1f), 0.08f).SetEase(Ease.OutQuad));
-            seq.Append(rt.DOScale(new Vector3(0.92f, 1.10f, 1f), 0.07f).SetEase(Ease.OutSine));
-            seq.Append(rt.DOScale(Vector3.one,                   0.09f).SetEase(Ease.InOutSine));
+            seq.Append(rt.DOScale(new Vector3(1.26f, 0.74f, 1f), 0.09f).SetEase(Ease.OutQuad));
+            seq.Append(rt.DOScale(new Vector3(0.90f, 1.12f, 1f), 0.07f).SetEase(Ease.OutSine));
+            seq.Append(rt.DOScale(Vector3.one,                   0.10f).SetEase(Ease.OutBack, 1.6f));
             yield return seq.WaitForCompletion();
 
-            rt.localScale = Vector3.one;
+            rt.localScale       = Vector3.one;
+            rt.anchoredPosition = origin;
             _animCount--;
         }
 
@@ -443,7 +481,7 @@ namespace RoguelikeTCG.Combat
             AudioManager.Instance.PlaySFX("sfx_card_place");
 
             // Squash-stretch landing on the real card
-            var land = DOTween.Sequence();
+            var land = DOTween.Sequence().SetTarget(targetRT);
             land.Append(targetRT.DOScale(new Vector3(1.14f, 0.80f, 1f), 0.07f).SetEase(Ease.OutQuint));
             land.Append(targetRT.DOScale(new Vector3(0.88f, 1.18f, 1f), 0.07f).SetEase(Ease.OutSine));
             land.Append(targetRT.DOScale(new Vector3(1.05f, 0.95f, 1f), 0.05f).SetEase(Ease.OutSine));
