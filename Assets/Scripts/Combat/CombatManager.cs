@@ -1405,6 +1405,8 @@ namespace RoguelikeTCG.Combat
 
         public void SaveBugReport() => SessionLogger.Instance?.SaveAsBugReport();
 
+        public void SkipCombat() { if (!gameOver) OnVictory(); }
+
         private void Log(string msg)
         {
             combatLog?.AddEntry(msg);

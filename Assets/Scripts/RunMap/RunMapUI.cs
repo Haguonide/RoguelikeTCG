@@ -363,9 +363,9 @@ namespace RoguelikeTCG.RunMap
             // --- Cacher tout (au cas où HideAllNodesAndEdges n'aurait pas été appelé) ---
             HideAllNodesAndEdges();
 
-            const float bumpDur = 1.90f;   // durée du bump d'un nœud
-            const float fadeDur = 1.40f;   // durée du tracé d'une arête
-            const float pause   = 0.30f;   // courte pause entre rangées
+            const float bumpDur = 0.475f;  // durée du bump d'un nœud (÷4 pour tests rapides)
+            const float fadeDur = 0.35f;   // durée du tracé d'une arête (÷4)
+            const float pause   = 0.075f;  // courte pause entre rangées (÷4)
 
             // --- Rangée 0 (Start) : positionner caméra et attendre le bump complet ---
             sr.verticalNormalizedPosition = NormForRow(0);
@@ -403,8 +403,8 @@ namespace RoguelikeTCG.RunMap
             }
 
             // --- Pause au boss, puis retour en bas ---
-            yield return new WaitForSeconds(3.0f);
-            yield return StartCoroutine(SmoothScrollTo(sr, 0f, 4.25f));
+            yield return new WaitForSeconds(0.75f);
+            yield return StartCoroutine(SmoothScrollTo(sr, 0f, 1.0625f));
 
             IsIntroPlaying = false;
         }

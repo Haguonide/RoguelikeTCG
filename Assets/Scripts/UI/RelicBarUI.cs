@@ -18,14 +18,26 @@ namespace RoguelikeTCG.UI
         public Sprite iconGold;
         public Sprite iconRelique;
 
+        public static RelicBarUI Instance { get; private set; }
+
         private GameObject _panel;
+        private GameObject _hpPanel;
+
+        private void Awake()
+        {
+            if (Instance != null && Instance != this) { Destroy(this); return; }
+            Instance = this;
+        }
+
+        private void OnDestroy() { if (Instance == this) Instance = null; }
 
         private void OnEnable() => Refresh();
         private void Start()    => Refresh();
 
         public void Refresh()
         {
-            if (_panel != null) Destroy(_panel);
+            if (_panel   != null) Destroy(_panel);
+            if (_hpPanel != null) Destroy(_hpPanel);
 
             var persistence = RunPersistence.Instance;
             var canvas = GetComponentInParent<Canvas>();
@@ -33,6 +45,27 @@ namespace RoguelikeTCG.UI
 
             int gold   = persistence?.PlayerGold ?? 0;
             var relics = persistence?.PlayerRelics ?? new List<RelicData>();
+
+            // HP display — top-right
+            int rawHP = persistence?.PlayerHP    ?? 0;
+            int maxHP = persistence?.PlayerMaxHP ?? 80;
+            int hp    = Mathf.Clamp(rawHP, 0, maxHP);
+
+            _hpPanel = new GameObject("HPDisplay", typeof(RectTransform));
+            _hpPanel.transform.SetParent(canvas.transform, false);
+            var hpRT = _hpPanel.GetComponent<RectTransform>();
+            hpRT.anchorMin        = new Vector2(1f, 1f);
+            hpRT.anchorMax        = new Vector2(1f, 1f);
+            hpRT.pivot            = new Vector2(1f, 1f);
+            hpRT.anchoredPosition = new Vector2(-12f, -12f);
+            hpRT.sizeDelta        = new Vector2(220f, 60f);
+            var hpTMP = _hpPanel.AddComponent<TextMeshProUGUI>();
+            hpTMP.text          = $"❤ {hp} / {maxHP}";
+            hpTMP.fontSize      = 36f;
+            hpTMP.fontStyle     = FontStyles.Bold;
+            hpTMP.color         = new Color(0.95f, 0.25f, 0.25f);
+            hpTMP.alignment     = TextAlignmentOptions.MidlineRight;
+            hpTMP.raycastTarget = false;
 
             const float iconSz   = 128f;  // icône carrée bien visible
             const float rowGap   = 14f;

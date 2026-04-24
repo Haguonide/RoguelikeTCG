@@ -24,6 +24,8 @@ namespace RoguelikeTCG.RunMap
 
         // ── Point d'entrée ────────────────────────────────────────────────────
 
+        private static void RefreshBar() => RoguelikeTCG.UI.RelicBarUI.Instance?.Refresh();
+
         public void ShowNode(NodeType type)
         {
             switch (type)
@@ -57,13 +59,26 @@ namespace RoguelikeTCG.RunMap
                 Destroy(overlay);
             });
 
+            var playerDeck = RunPersistence.Instance?.PlayerDeck;
+            bool deckAtMin = playerDeck != null && playerDeck.Count <= 20;
+
             var removeBtn = MakeButton(overlay, "BtnRemove", 0.30f, 0.38f, 0.70f, 0.49f,
-                new Color(0.28f, 0.15f, 0.10f), "Supprimer une carte du deck");
-            removeBtn.onClick.AddListener(() =>
+                deckAtMin ? new Color(0.25f, 0.25f, 0.25f) : new Color(0.28f, 0.15f, 0.10f),
+                deckAtMin ? "Supprimer une carte (minimum 20 cartes atteint)" : "Supprimer une carte du deck");
+            if (deckAtMin)
             {
-                Destroy(overlay);
-                ShowCardRemoval();
-            });
+                removeBtn.interactable = false;
+                var lbl = removeBtn.GetComponentInChildren<TextMeshProUGUI>();
+                if (lbl) lbl.color = new Color(0.55f, 0.55f, 0.55f);
+            }
+            else
+            {
+                removeBtn.onClick.AddListener(() =>
+                {
+                    Destroy(overlay);
+                    ShowCardRemoval();
+                });
+            }
 
             var skipBtn = MakeButton(overlay, "BtnSkip", 0.38f, 0.22f, 0.62f, 0.32f,
                 new Color(0.22f, 0.22f, 0.26f), "Passer");
@@ -294,6 +309,7 @@ namespace RoguelikeTCG.RunMap
                     p?.AddCardToDeck(capturedCard);
                     if (capturedLabel != null)
                         capturedLabel.text = $"Votre or : {p?.PlayerGold ?? 0}";
+                    RefreshBar();
                     Destroy(cardGO);
                     btn.interactable = false;
                 });
@@ -315,6 +331,7 @@ namespace RoguelikeTCG.RunMap
                 var p = RunPersistence.Instance;
                 p?.PlayerDeck.Remove(card);
                 p?.AddGold(sellValue);
+                RefreshBar();
                 Destroy(overlay);
             }, showSellPrice: true);
 
@@ -361,11 +378,11 @@ namespace RoguelikeTCG.RunMap
             var capturedOverlay = overlay;
             var btn1 = MakeButton(overlay, "Btn1", 0.18f, 0.28f, 0.46f, 0.39f,
                 new Color(0.15f, 0.22f, 0.32f), ev.btn1Label);
-            btn1.onClick.AddListener(() => { ev.action1?.Invoke(); Destroy(capturedOverlay); });
+            btn1.onClick.AddListener(() => { ev.action1?.Invoke(); RefreshBar(); Destroy(capturedOverlay); });
 
             var btn2 = MakeButton(overlay, "Btn2", 0.54f, 0.28f, 0.82f, 0.39f,
                 new Color(0.28f, 0.15f, 0.15f), ev.btn2Label);
-            btn2.onClick.AddListener(() => { ev.action2?.Invoke(); Destroy(capturedOverlay); });
+            btn2.onClick.AddListener(() => { ev.action2?.Invoke(); RefreshBar(); Destroy(capturedOverlay); });
         }
 
         private List<EventData> BuildEvents()
