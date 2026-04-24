@@ -21,6 +21,9 @@ namespace RoguelikeTCG.Combat
         [Header("Screen Shake")]
         public RectTransform shakeTarget;
 
+        [Header("Effects")]
+        [SerializeField] private DustEffectUI dustEffect;
+
         private Canvas _canvas;
 
         private static readonly Color ColAtk = new Color(1.00f, 0.82f, 0.22f);
@@ -240,6 +243,7 @@ namespace RoguelikeTCG.Combat
             DOTween.Kill(ghost);
             Object.Destroy(ghost);
             AudioManager.Instance.PlaySFX("sfx_card_place");
+            dustEffect?.Play(targetSlot.GetComponent<RectTransform>());
 
             // ─ 5. Squash-stretch landing on real card ─────────────────────────
             if (placed?.animatedRoot == null) { _animCount--; yield break; }
@@ -397,7 +401,11 @@ namespace RoguelikeTCG.Combat
             var seq = DOTween.Sequence().SetTarget(rt);
             seq.Append(rt.DOAnchorPos(origin, 0.11f).SetEase(Ease.InCubic));
             seq.Join(rt.DOScale(new Vector3(0.82f, 1.26f, 1f), 0.11f).SetEase(Ease.InCubic));
-            seq.AppendCallback(() => AudioManager.Instance.PlaySFX("sfx_card_place"));
+            seq.AppendCallback(() =>
+            {
+                AudioManager.Instance.PlaySFX("sfx_card_place");
+                dustEffect?.Play(slot.GetComponent<RectTransform>());
+            });
             seq.Append(rt.DOScale(new Vector3(1.26f, 0.74f, 1f), 0.09f).SetEase(Ease.OutQuad));
             seq.Append(rt.DOScale(new Vector3(0.90f, 1.12f, 1f), 0.07f).SetEase(Ease.OutSine));
             seq.Append(rt.DOScale(Vector3.one,                   0.10f).SetEase(Ease.OutBack, 1.6f));

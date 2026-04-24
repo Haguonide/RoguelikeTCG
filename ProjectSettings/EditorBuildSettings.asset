@@ -13,7 +13,7 @@ EditorBuildSettings:
     guid: 06852b73c110a1f42a2e4eacb6776f8b
   - enabled: 1
     path: Assets/Scenes/Combat/Combat.unity
-    guid: 1991b7144f2dc8e44925dfbea083e915
+    guid: 6d428d75dd20da64b90d63c25bcc614a
   - enabled: 1
     path: Assets/Scenes/CharacterSelect.unity
     guid: 50803b8e0a58a404ba9d1cef80128e3d

@@ -20,6 +20,13 @@ namespace RoguelikeTCG.Combat
         private static readonly Color HighlightSlot  = new Color(0.15f, 1f, 0.3f, 0.45f);
         private static readonly Color HighlightEnemy = new Color(1f, 0.35f, 0.1f, 0.45f);
 
+        // Arrow colors by spell category
+        private static readonly Color ArrowColorEnemy   = new Color(1f, 0.5f, 0.2f, 0.85f);
+        private static readonly Color ArrowColorAlly    = new Color(0.3f, 1f, 0.4f, 0.85f);
+        private static readonly Color ArrowColorNeutral = new Color(1f, 0.9f, 0.4f, 0.85f);
+
+        [SerializeField] private SpellArrowUI spellArrow;
+
         private void Awake()
         {
             if (Instance != null) { Destroy(gameObject); return; }
@@ -27,6 +34,14 @@ namespace RoguelikeTCG.Combat
         }
 
         public bool HasSelection => selectedView != null || mode == Mode.AwaitingBricolage;
+
+        // ── Update ────────────────────────────────────────────────────────────
+
+        private void Update()
+        {
+            if (spellArrow != null && IsSpellMode(mode))
+                spellArrow.UpdateArrow(Input.mousePosition);
+        }
 
         // ── Select from hand ──────────────────────────────────────────────────
 
@@ -61,6 +76,9 @@ namespace RoguelikeTCG.Combat
             }
 
             RefreshHighlights();
+
+            if (IsSpellMode(mode))
+                ShowSpellArrow();
         }
 
         public void SelectBricolage()
@@ -178,18 +196,15 @@ namespace RoguelikeTCG.Combat
                     break;
 
                 case Mode.AwaitingAllyUnit:
-                    foreach (var s in allSlots)
-                        if (s.HasPlayerUnit)
-                            s.SetHighlight(true, HighlightSlot);
+                    // Arrow used instead of slot highlights; no slot highlight needed.
                     break;
 
                 case Mode.AwaitingEnemyUnit:
-                    foreach (var s in allSlots)
-                        if (s.HasEnemyUnit)
-                            s.SetHighlight(true, HighlightEnemy);
+                    // Arrow used instead of slot highlights; no slot highlight needed.
                     break;
 
                 case Mode.AwaitingHero:
+                    // Keep hero portrait highlight so the player knows which portrait is clickable.
                     if (selectedView?.CardInstance == null) break;
                     bool wantsPlayer = selectedView.CardInstance.data.spellTarget == SpellTarget.PlayerHero;
                     foreach (var h in allHeroes)
@@ -197,15 +212,11 @@ namespace RoguelikeTCG.Combat
                     break;
 
                 case Mode.AwaitingAoEConfirm:
-                    foreach (var s in allSlots)
-                        if (s.HasEnemyUnit)
-                            s.SetHighlight(true, HighlightEnemy);
+                    // Arrow used; no slot highlight needed.
                     break;
 
                 case Mode.AwaitingAllAllyUnits:
-                    foreach (var s in allSlots)
-                        if (s.HasPlayerUnit)
-                            s.SetHighlight(true, HighlightSlot);
+                    // Arrow used; no slot highlight needed.
                     break;
 
                 case Mode.AwaitingBricolage:
@@ -222,7 +233,36 @@ namespace RoguelikeTCG.Combat
                 s.SetHighlight(false, Color.clear);
             foreach (var h in FindObjectsOfType<HeroPortraitUI>(true))
                 h.SetHighlight(false);
+            spellArrow?.Hide();
         }
+
+        // ── Spell arrow helpers ───────────────────────────────────────────────
+
+        private static bool IsSpellMode(Mode m) =>
+            m == Mode.AwaitingHero       ||
+            m == Mode.AwaitingAllyUnit   ||
+            m == Mode.AwaitingEnemyUnit  ||
+            m == Mode.AwaitingAoEConfirm ||
+            m == Mode.AwaitingAllAllyUnits;
+
+        private void ShowSpellArrow()
+        {
+            if (spellArrow == null || selectedView == null) return;
+
+            Color color = mode switch
+            {
+                Mode.AwaitingEnemyUnit  => ArrowColorEnemy,
+                Mode.AwaitingAoEConfirm => ArrowColorEnemy,
+                Mode.AwaitingAllyUnit   => ArrowColorAlly,
+                Mode.AwaitingAllAllyUnits => ArrowColorAlly,
+                _                       => ArrowColorNeutral, // AwaitingHero (covers both sides)
+            };
+
+            spellArrow.SetArrowColor(color);
+            spellArrow.Show(selectedView.GetComponent<RectTransform>());
+        }
+
+        // ── Card highlight ────────────────────────────────────────────────────
 
         private void ApplyCardHighlight(bool on)
         {
