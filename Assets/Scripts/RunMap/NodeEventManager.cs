@@ -16,6 +16,8 @@ namespace RoguelikeTCG.RunMap
     {
         public static NodeEventManager Instance { get; private set; }
 
+        private GameObject _activeOverlay;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(this); return; }
@@ -24,7 +26,13 @@ namespace RoguelikeTCG.RunMap
 
         // ── Point d'entrée ────────────────────────────────────────────────────
 
-        private static void RefreshBar() => RoguelikeTCG.UI.RelicBarUI.Instance?.Refresh();
+        private static void RefreshBar()
+        {
+            RoguelikeTCG.UI.RelicBarUI.Instance?.Refresh();
+            // Re-bring the active overlay to front so RelicBar stays behind it
+            if (Instance != null && Instance._activeOverlay != null)
+                Instance._activeOverlay.transform.SetAsLastSibling();
+        }
 
         public void ShowNode(NodeType type)
         {
@@ -60,7 +68,7 @@ namespace RoguelikeTCG.RunMap
             });
 
             var playerDeck = RunPersistence.Instance?.PlayerDeck;
-            bool deckAtMin = playerDeck != null && playerDeck.Count <= 20;
+            bool deckAtMin = playerDeck == null || playerDeck.Count <= 20;
 
             var removeBtn = MakeButton(overlay, "BtnRemove", 0.30f, 0.38f, 0.70f, 0.49f,
                 deckAtMin ? new Color(0.25f, 0.25f, 0.25f) : new Color(0.28f, 0.15f, 0.10f),
@@ -82,7 +90,7 @@ namespace RoguelikeTCG.RunMap
 
             var skipBtn = MakeButton(overlay, "BtnSkip", 0.38f, 0.22f, 0.62f, 0.32f,
                 new Color(0.22f, 0.22f, 0.26f), "Passer");
-            skipBtn.onClick.AddListener(() => Destroy(overlay));
+            skipBtn.onClick.AddListener(() => { RefreshBar(); Destroy(overlay); });
         }
 
         private void ShowCardRemoval()
@@ -104,7 +112,7 @@ namespace RoguelikeTCG.RunMap
 
             var cancelBtn = MakeButton(overlay, "BtnCancel", 0.38f, 0.05f, 0.62f, 0.14f,
                 new Color(0.22f, 0.22f, 0.26f), "Annuler");
-            cancelBtn.onClick.AddListener(() => Destroy(overlay));
+            cancelBtn.onClick.AddListener(() => { RefreshBar(); Destroy(overlay); });
         }
 
         // ── FORGE ─────────────────────────────────────────────────────────────
@@ -196,7 +204,7 @@ namespace RoguelikeTCG.RunMap
 
             var skipBtn = MakeButton(overlay, "BtnSkip", 0.38f, 0.05f, 0.62f, 0.14f,
                 new Color(0.22f, 0.22f, 0.26f), "Passer");
-            skipBtn.onClick.AddListener(() => Destroy(overlay));
+            skipBtn.onClick.AddListener(() => { RefreshBar(); Destroy(overlay); });
         }
 
         // ── SHOP ──────────────────────────────────────────────────────────────
@@ -258,7 +266,7 @@ namespace RoguelikeTCG.RunMap
 
             var skipBtn = MakeButton(overlay, "BtnSkip", 0.52f, 0.05f, 0.78f, 0.14f,
                 new Color(0.22f, 0.22f, 0.26f), "Partir sans rien faire");
-            skipBtn.onClick.AddListener(() => Destroy(overlay));
+            skipBtn.onClick.AddListener(() => { RefreshBar(); Destroy(overlay); });
         }
 
         private void ShowShopCardGrid(GameObject parent, List<CardData> cards, TextMeshProUGUI goldLabel)
@@ -337,7 +345,7 @@ namespace RoguelikeTCG.RunMap
 
             var cancelBtn = MakeButton(overlay, "BtnCancel", 0.38f, 0.05f, 0.62f, 0.14f,
                 new Color(0.22f, 0.22f, 0.26f), "Annuler");
-            cancelBtn.onClick.AddListener(() => Destroy(overlay));
+            cancelBtn.onClick.AddListener(() => { RefreshBar(); Destroy(overlay); });
         }
 
         private static int GetCardPrice(CardRarity rarity) => rarity switch
@@ -609,6 +617,7 @@ namespace RoguelikeTCG.RunMap
             SetAnchors(go, 0, 0, 1, 1);
             go.AddComponent<Image>().color = new Color(0.04f, 0.04f, 0.08f, 0.96f);
             go.transform.SetAsLastSibling();
+            _activeOverlay = go;
             return go;
         }
 
