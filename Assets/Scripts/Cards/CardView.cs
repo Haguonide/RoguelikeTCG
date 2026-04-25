@@ -20,15 +20,15 @@ namespace RoguelikeTCG.Cards
         public Image rarityBorder;
 
         [Header("Zoom")]
-        public GameObject zoomPanel; // fullscreen zoomed view
+        public GameObject zoomPanel;
 
         private CardInstance cardInstance;
         private bool isZoomed;
 
-        // Hover lift state
         private RectTransform _rt;
         private Coroutine     _hoverCo;
         private Vector2       _basePos;
+        private float         _baseRot;
         private bool          _baseCaptured;
 
         public CardInstance CardInstance => cardInstance;
@@ -62,6 +62,14 @@ namespace RoguelikeTCG.Cards
             }
         }
 
+        // Called by HandView after placing the card in the arc layout.
+        public void SetHandBase(Vector2 pos, float zRot)
+        {
+            _basePos      = pos;
+            _baseRot      = zRot;
+            _baseCaptured = true;
+        }
+
         public void OnPointerClick(PointerEventData eventData)
         {
             if (eventData.button == PointerEventData.InputButton.Left)
@@ -86,9 +94,15 @@ namespace RoguelikeTCG.Cards
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (_rt == null) return;
-            if (!_baseCaptured) { _basePos = _rt.anchoredPosition; _baseCaptured = true; }
+            if (!_baseCaptured)
+            {
+                _basePos = _rt.anchoredPosition;
+                _baseRot = NormalizeAngle(_rt.localEulerAngles.z);
+                _baseCaptured = true;
+            }
             if (_hoverCo != null) StopCoroutine(_hoverCo);
-            _hoverCo = StartCoroutine(HoverLerp(_basePos + new Vector2(0f, 18f), 1.06f));
+            transform.SetAsLastSibling();
+            _hoverCo = StartCoroutine(HoverLerp(_basePos + new Vector2(0f, 50f), 0f, 1.1f));
             AudioManager.Instance.PlaySFX("sfx_card_hover");
         }
 
@@ -96,12 +110,13 @@ namespace RoguelikeTCG.Cards
         {
             if (_rt == null || !_baseCaptured) return;
             if (_hoverCo != null) StopCoroutine(_hoverCo);
-            _hoverCo = StartCoroutine(HoverLerp(_basePos, 1f));
+            _hoverCo = StartCoroutine(HoverLerp(_basePos, _baseRot, 1f));
         }
 
-        private IEnumerator HoverLerp(Vector2 targetPos, float targetScale)
+        private IEnumerator HoverLerp(Vector2 targetPos, float targetRot, float targetScale)
         {
             Vector2 fromPos   = _rt.anchoredPosition;
+            float   fromRot   = NormalizeAngle(_rt.localEulerAngles.z);
             float   fromScale = _rt.localScale.x;
             float t = 0f;
             while (t < 1f)
@@ -111,8 +126,15 @@ namespace RoguelikeTCG.Cards
                 _rt.anchoredPosition = Vector2.Lerp(fromPos, targetPos, e);
                 float s = Mathf.Lerp(fromScale, targetScale, e);
                 _rt.localScale = new Vector3(s, s, 1f);
+                _rt.localEulerAngles = new Vector3(0f, 0f, Mathf.Lerp(fromRot, targetRot, e));
                 yield return null;
             }
+        }
+
+        private static float NormalizeAngle(float angle)
+        {
+            if (angle > 180f) angle -= 360f;
+            return angle;
         }
     }
 }

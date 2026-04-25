@@ -37,7 +37,7 @@ namespace RoguelikeTCG.Combat
 
         private Image _highlightOverlay;
 
-        private static readonly Color TintEmpty = new Color(1f, 1f, 1f, 0.45f);
+        private static readonly Color TintEmpty = Color.clear;
 
         // ── Lifecycle ─────────────────────────────────────────────────────────
 
@@ -101,11 +101,7 @@ namespace RoguelikeTCG.Combat
             else
             {
                 if (_playedCard != null) { Destroy(_playedCard.gameObject); _playedCard = null; }
-                if (emptyHintText)
-                {
-                    emptyHintText.text = IsPlayerDeployZone ? "Poser\nune unité" : "";
-                    emptyHintText.gameObject.SetActive(IsPlayerDeployZone);
-                }
+                if (emptyHintText) emptyHintText.gameObject.SetActive(false);
             }
         }
     }

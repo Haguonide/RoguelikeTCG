@@ -11,6 +11,12 @@ namespace RoguelikeTCG.UI
 {
     public class HandView : MonoBehaviour
     {
+        [Header("Hand Fan")]
+        [SerializeField] private float maxRotation = 12f;
+        [SerializeField] private float arcDepth    = 20f;
+        [SerializeField] private float sinkY       = -60f;
+        [SerializeField] private float cardSpacing = -20f; // négatif = overlap entre cartes
+
         private List<CardView> cardViews = new();
         private GameObject _bricolageGO;
 
@@ -18,30 +24,29 @@ namespace RoguelikeTCG.UI
 
         public IReadOnlyList<CardView> CardViews => cardViews;
 
-        // Slide existing cards to their new positions to make room for incoming cards.
-        // Call BEFORE InsertCardsInvisible. totalFinalCount includes Bricolage slot if present.
         public void SlideExistingCards(int totalFinalCount)
         {
             if (cardViews.Count == 0) return;
-            float cardW = 160f, spacing = 10f;
+            float cardW = 160f, spacing = cardSpacing;
             float totalW = totalFinalCount * cardW + (totalFinalCount - 1) * spacing;
             float startX = -totalW / 2f + cardW / 2f;
 
             for (int i = 0; i < cardViews.Count; i++)
             {
-                if (cardViews[i] == null) continue;
-                cardViews[i].GetComponent<RectTransform>()
-                    .DOAnchorPos(new Vector2(startX + i * (cardW + spacing), 0f), 0.18f)
-                    .SetEase(Ease.OutCubic);
+                var cv = cardViews[i];
+                if (cv == null) continue;
+                var (pos, rot) = ArcTransform(i, totalFinalCount, startX, cardW, spacing);
+                cv.GetComponent<RectTransform>()
+                    .DOAnchorPos(pos, 0.18f).SetEase(Ease.OutCubic);
+                cv.transform.DOLocalRotate(new Vector3(0f, 0f, rot), 0.18f).SetEase(Ease.OutCubic);
+                cv.SetHandBase(pos, rot);
             }
         }
 
-        // Build new card GOs at scale=0 at their final hand positions and append them to cardViews.
-        // Call AFTER SlideExistingCards. existingCount = cardViews.Count before this call.
         public RectTransform[] InsertCardsInvisible(
             List<CardInstance> newCards, int existingCount, int totalFinalCount)
         {
-            float cardW = 160f, cardH = 240f, spacing = 10f;
+            float cardW = 160f, cardH = 240f, spacing = cardSpacing;
             float totalW = totalFinalCount * cardW + (totalFinalCount - 1) * spacing;
             float startX = -totalW / 2f + cardW / 2f;
 
@@ -51,13 +56,19 @@ namespace RoguelikeTCG.UI
                 int globalIdx = existingCount + i;
                 var go = BuildCard(newCards[i], globalIdx);
                 go.transform.SetParent(transform, false);
-                var rt             = go.GetComponent<RectTransform>();
-                rt.sizeDelta       = new Vector2(cardW, cardH);
-                rt.anchorMin       = rt.anchorMax = new Vector2(0.5f, 0.5f);
-                rt.pivot           = new Vector2(0.5f, 0.5f);
-                rt.anchoredPosition = new Vector2(startX + globalIdx * (cardW + spacing), 0f);
-                rt.localScale      = Vector3.zero;
-                cardViews.Add(go.GetComponent<CardView>());
+                var rt = go.GetComponent<RectTransform>();
+                rt.sizeDelta  = new Vector2(cardW, cardH);
+                rt.anchorMin  = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot      = new Vector2(0.5f, 0.5f);
+                rt.localScale = Vector3.zero;
+
+                var (pos, rot) = ArcTransform(globalIdx, totalFinalCount, startX, cardW, spacing);
+                rt.anchoredPosition  = pos;
+                rt.localEulerAngles  = new Vector3(0f, 0f, rot);
+
+                var cv = go.GetComponent<CardView>();
+                cv?.SetHandBase(pos, rot);
+                cardViews.Add(cv);
                 rts[i] = rt;
             }
             return rts;
@@ -78,7 +89,7 @@ namespace RoguelikeTCG.UI
             int  totalCount    = regularCount + (hasBricolage ? 1 : 0);
             if (totalCount == 0) return;
 
-            float cardW = 160f, cardH = 240f, spacing = 10f;
+            float cardW = 160f, cardH = 240f, spacing = cardSpacing;
             float totalW = totalCount * cardW + (totalCount - 1) * spacing;
             float startX = -totalW / 2f + cardW / 2f;
 
@@ -86,7 +97,7 @@ namespace RoguelikeTCG.UI
             {
                 var go = BuildCard(hand[i], i);
                 go.transform.SetParent(transform, false);
-                PlaceCard(go, i, startX, cardW, cardH, spacing);
+                ApplyArcTransform(go, i, totalCount, startX, cardW, cardH, spacing);
                 cardViews.Add(go.GetComponent<CardView>());
             }
 
@@ -94,21 +105,35 @@ namespace RoguelikeTCG.UI
             {
                 _bricolageGO = BuildBricolageCard(bricolageCardData, gearCount, gearATK, gearHP);
                 _bricolageGO.transform.SetParent(transform, false);
-                PlaceCard(_bricolageGO, regularCount, startX, cardW, cardH, spacing);
+                ApplyArcTransform(_bricolageGO, regularCount, totalCount, startX, cardW, cardH, spacing);
             }
         }
 
-        // ── Construction ─────────────────────────────────────────────────────
+        // ── Arc helpers ───────────────────────────────────────────────────────
 
-        private static void PlaceCard(GameObject go, int index, float startX,
-            float cardW, float cardH, float spacing)
+        private (Vector2 pos, float rot) ArcTransform(int index, int total, float startX, float cardW, float spacing)
         {
+            float t   = total > 1 ? (index / (total - 1f)) * 2f - 1f : 0f; // -1..+1
+            float x   = startX + index * (cardW + spacing);
+            float y   = sinkY - t * t * arcDepth;
+            float rot = -t * maxRotation;
+            return (new Vector2(x, y), rot);
+        }
+
+        private void ApplyArcTransform(GameObject go, int index, int total,
+            float startX, float cardW, float cardH, float spacing)
+        {
+            var (pos, rot) = ArcTransform(index, total, startX, cardW, spacing);
             var rt = go.GetComponent<RectTransform>();
             rt.sizeDelta        = new Vector2(cardW, cardH);
             rt.anchorMin        = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot            = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = new Vector2(startX + index * (cardW + spacing), 0);
+            rt.anchoredPosition = pos;
+            rt.localEulerAngles = new Vector3(0f, 0f, rot);
+            go.GetComponent<CardView>()?.SetHandBase(pos, rot);
         }
+
+        // ── Construction ─────────────────────────────────────────────────────
 
         private GameObject BuildCard(CardInstance card, int index)
         {
@@ -178,7 +203,7 @@ namespace RoguelikeTCG.UI
 
         private GameObject BuildBricolageCard(CardData data, int gearCount, int gearATK, int gearHP)
         {
-            bool active = gearCount >= 2;  // Bricolage: ≥2 unités mortes au cimetière
+            bool active = gearCount >= 2;
             var  cfg    = Resources.Load<CardTemplateConfig>("CardTemplateConfig");
             var  tint   = active ? Color.white : new Color(0.55f, 0.55f, 0.55f, 0.75f);
 
@@ -243,7 +268,6 @@ namespace RoguelikeTCG.UI
                 descTMP.raycastTarget      = false;
             }
 
-            // Button — only functional when 3 gears accumulated
             var btn = go.AddComponent<Button>();
             btn.interactable = active;
             if (active)
