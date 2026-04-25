@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using RoguelikeTCG.Cards;
@@ -17,8 +18,10 @@ namespace RoguelikeTCG.Combat
         private Mode     mode = Mode.None;
 
         private static readonly Color HighlightCard  = new Color(1f, 0.85f, 0.1f, 1f);
-        private static readonly Color HighlightSlot  = new Color(0.15f, 1f, 0.3f, 0.45f);
-        private static readonly Color HighlightEnemy = new Color(1f, 0.35f, 0.1f, 0.45f);
+        private static readonly Color HighlightSlot  = new Color(0.2f, 1f, 0.35f, 1f);
+        private static readonly Color HighlightEnemy = new Color(1f, 0.3f, 0.15f, 1f);
+
+        private readonly List<LaneSlotUI> _highlightedSlots = new();
 
         // Arrow colors by spell category
         private static readonly Color ArrowColorEnemy   = new Color(1f, 0.5f, 0.2f, 0.85f);
@@ -181,6 +184,22 @@ namespace RoguelikeTCG.Combat
 
         // ── Highlights ────────────────────────────────────────────────────────
 
+        // ── Slot hover (called by LaneSlotUI) ────────────────────────────────
+
+        public void OnSlotHoverEnter(LaneSlotUI slot)
+        {
+            foreach (var s in _highlightedSlots)
+                s.StartShake();
+        }
+
+        public void OnSlotHoverExit(LaneSlotUI slot)
+        {
+            foreach (var s in _highlightedSlots)
+                s.StopShake();
+        }
+
+        // ── Highlights ────────────────────────────────────────────────────────
+
         private void RefreshHighlights()
         {
             ClearHighlights();
@@ -192,19 +211,22 @@ namespace RoguelikeTCG.Combat
                 case Mode.AwaitingCell:
                     foreach (var s in allSlots)
                         if (s.gameObject.activeInHierarchy && s.IsPlayerDeployZone && !s.IsOccupied)
-                            s.SetHighlight(true, HighlightSlot);
+                            Highlight(s, HighlightSlot);
                     break;
 
                 case Mode.AwaitingAllyUnit:
-                    // Arrow used instead of slot highlights; no slot highlight needed.
+                    foreach (var s in allSlots)
+                        if (s.HasPlayerUnit)
+                            Highlight(s, HighlightSlot);
                     break;
 
                 case Mode.AwaitingEnemyUnit:
-                    // Arrow used instead of slot highlights; no slot highlight needed.
+                    foreach (var s in allSlots)
+                        if (s.HasEnemyUnit)
+                            Highlight(s, HighlightEnemy);
                     break;
 
                 case Mode.AwaitingHero:
-                    // Keep hero portrait highlight so the player knows which portrait is clickable.
                     if (selectedView?.CardInstance == null) break;
                     bool wantsPlayer = selectedView.CardInstance.data.spellTarget == SpellTarget.PlayerHero;
                     foreach (var h in allHeroes)
@@ -212,25 +234,36 @@ namespace RoguelikeTCG.Combat
                     break;
 
                 case Mode.AwaitingAoEConfirm:
-                    // Arrow used; no slot highlight needed.
+                    foreach (var s in allSlots)
+                        if (s.HasEnemyUnit)
+                            Highlight(s, HighlightEnemy);
                     break;
 
                 case Mode.AwaitingAllAllyUnits:
-                    // Arrow used; no slot highlight needed.
+                    foreach (var s in allSlots)
+                        if (s.HasPlayerUnit)
+                            Highlight(s, HighlightSlot);
                     break;
 
                 case Mode.AwaitingBricolage:
                     foreach (var s in allSlots)
                         if (s.IsPlayerDeployZone && !s.IsOccupied)
-                            s.SetHighlight(true, HighlightSlot);
+                            Highlight(s, HighlightSlot);
                     break;
             }
         }
 
+        private void Highlight(LaneSlotUI slot, Color color)
+        {
+            slot.SetHighlight(true, color);
+            _highlightedSlots.Add(slot);
+        }
+
         private void ClearHighlights()
         {
-            foreach (var s in FindObjectsOfType<LaneSlotUI>(true))
+            foreach (var s in _highlightedSlots)
                 s.SetHighlight(false, Color.clear);
+            _highlightedSlots.Clear();
             foreach (var h in FindObjectsOfType<HeroPortraitUI>(true))
                 h.SetHighlight(false);
             spellArrow?.Hide();

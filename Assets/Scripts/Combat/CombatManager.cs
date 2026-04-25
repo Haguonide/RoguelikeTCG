@@ -91,12 +91,13 @@ namespace RoguelikeTCG.Combat
         {
             var nodeType = RunPersistence.Instance?.CurrentNode?.type;
 
-            // Lane count: Normal=2, Elite=3, Boss/Miniboss=4
+            // Lane count: Normal/Elite=2, Mini-boss/Boss=3
+            // null = pas de RunPersistence (CombatSandbox) → 3 lanes pour les tests
             int laneCount = nodeType switch
             {
-                NodeType.Elite => 3,
-                NodeType.Boss  => 4,
-                _              => 2,
+                null          => 3,
+                NodeType.Boss => 3,
+                _             => 2,
             };
 
             // Activate only the required lanes (logic + UI rows)
@@ -106,6 +107,23 @@ namespace RoguelikeTCG.Combat
                 if (lanes[i] != null) lanes[i].gameObject.SetActive(active);
                 if (laneRowUIs != null && i < laneRowUIs.Length && laneRowUIs[i] != null)
                     laneRowUIs[i].SetActive(active);
+            }
+
+            // Center active lanes vertically inside LanesArea
+            // Max 3 lanes — each lane takes 1/3 of LanesArea height
+            const float laneH = 1f / 3f;
+            float padY = (1f - laneCount * laneH) / 2f;
+            for (int i = 0; i < laneCount; i++)
+            {
+                if (laneRowUIs == null || i >= laneRowUIs.Length || laneRowUIs[i] == null) continue;
+                var rt = laneRowUIs[i].GetComponent<RectTransform>();
+                if (rt == null) continue;
+                float maxY = 1f - padY - i * laneH;
+                float minY = maxY - laneH;
+                rt.anchorMin        = new Vector2(rt.anchorMin.x, minY);
+                rt.anchorMax        = new Vector2(rt.anchorMax.x, maxY);
+                rt.sizeDelta        = new Vector2(rt.sizeDelta.x, 0f);
+                rt.anchoredPosition = Vector2.zero;
             }
 
             enemyMaxHP = nodeType switch

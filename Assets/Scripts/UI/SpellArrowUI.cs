@@ -11,6 +11,7 @@ namespace RoguelikeTCG.UI
 
         private RectTransform   _originRT;
         private RectTransform   _selfRT;
+        private Camera          _canvasCamera;
 
         private RectTransform[] _segments;
         private Image[]         _segmentImages;
@@ -29,6 +30,8 @@ namespace RoguelikeTCG.UI
         private void Awake()
         {
             _selfRT = GetComponent<RectTransform>();
+            var canvas = GetComponentInParent<Canvas>();
+            _canvasCamera = canvas != null ? canvas.worldCamera : null;
 
             _segments      = new RectTransform[dotCount];
             _segmentImages = new Image[dotCount];
@@ -110,7 +113,7 @@ namespace RoguelikeTCG.UI
             Vector2 p0 = OriginLocalPoint();
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _selfRT, mouseScreenPos, null, out Vector2 p2);
+                _selfRT, mouseScreenPos, _canvasCamera, out Vector2 p2);
 
             // Control point: above midpoint, curvature scales with horizontal distance
             float height = Mathf.Abs(p2.x - p0.x) * 0.4f + 80f;
@@ -165,8 +168,8 @@ namespace RoguelikeTCG.UI
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 _selfRT,
-                RectTransformUtility.WorldToScreenPoint(null, topCenter),
-                null,
+                RectTransformUtility.WorldToScreenPoint(_canvasCamera, topCenter),
+                _canvasCamera,
                 out Vector2 local);
             return local;
         }

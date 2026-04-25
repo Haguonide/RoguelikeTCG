@@ -51,8 +51,8 @@ Le combat se joue sur des **lanes partagées** visibles simultanément — les u
 | Type de combat | Nombre de lanes |
 |---|---|
 | Normal | 2 lanes |
-| Elite (mini-boss) | 3 lanes |
-| Boss / Boss final | 4 lanes |
+| Elite | 2 lanes |
+| Mini-boss / Boss final | 3 lanes |
 
 - **6 cases par lane** — cases 0-2 : zone joueur, cases 3-5 : zone ennemie.
 - Joueur avance **gauche → droite** (index croissant), Ennemi avance **droite → gauche** (index décroissant).
