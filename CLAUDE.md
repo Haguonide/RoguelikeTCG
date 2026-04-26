@@ -38,122 +38,152 @@ Roguelike deckbuilder de type stratégique, inspiré de **Slay the Spire** et **
 - **Univers** : Un dieu fatigué organise un tournoi de cartes pour trouver son successeur. Les participants sont des figures historiques réinterprétées de façon absurde et anachronique (ex : Léonard de Vinci inventeur alcoolique, Jules César agent immobilier "Veni Vidi Vendu", Marie Curie baronne de la drogue…).
 - **Ton** : Absurde assumé. Humour noir, anachronisme volontaire, grotesque maîtrisé.
 - **Structure narrative** : 5 chapitres organisés autour de 4 régions du royaume (Le Vice, Le Contrôle, La Guerre, Le Spectacle). Boss final : Jules César. Destination finale : le Bureau du Dieu.
-- **Style graphique** : Inspiré de **Wildfrost** — personnages aux proportions trapues (stocky), contours épais et gras (bold outlines), cel shading flat, couleurs vives légèrement désaturées (bright muted colors). Template de carte en métal industriel avec rivets. Cohérence graphique stricte sur tous les éléments.
+- **Style graphique** : En cours de définition. Direction retenue : **cartes carrées** (format adapté à la grille 4×4), style **flat + minimal** avec une palette de couleurs forte par personnage. Fond de grille sobre, flèches d'attaque lisibles sur les cartes. Une couleur dominante par personnage (De Vinci : bleu/cuivre, Curie : vert/jaune, César : rouge/or). Lisibilité avant tout — pas de template complexe. Cohérence graphique stricte sur tous les éléments.
 
 ---
 
 ## ⚔️ Système de combat
 
-### Structure des lanes
+### Structure de la grille
 
-Le combat se joue sur des **lanes partagées** visibles simultanément — les unités avancent case par case vers l'ennemi.
+Le combat se joue sur une **grille 4×4 partagée** entre le joueur et l'ennemi, comme un Tic-Tac-Toe.
 
-| Type de combat | Nombre de lanes |
+- **16 cases**, toutes accessibles aux deux joueurs
+- **1 unité maximum par case**
+- Une case libérée par la mort d'une unité peut être réoccupée
+- **Coin flip** en début de combat pour déterminer qui joue en premier
+- **1 HP bar par camp** : joueur (global à tous les combats), ennemi (spécifique au combat)
+- **Victoire** : HP ennemi tombe à zéro. **Défaite** : HP joueur global tombe à zéro
+- Les **intentions ennemies ne sont pas visibles**
+
+### Structure d'un tour
+
+1. Le joueur joue **1 unité maximum** (sur une case vide) + **autant de sorts** que son mana le permet
+2. Le joueur clique **"Fin de Tour"**
+3. Le **compte à rebours** de chaque unité en jeu descend de 1
+4. Les unités dont le compte à rebours atteint **0 attaquent** (voir ci-dessous), puis leur CD repart à sa valeur max
+5. L'ennemi joue son tour (même structure)
+6. Répéter jusqu'à **10 tours par joueur** (20 actions totales alternées) = **1 manche**
+
+### Anatomie d'une carte unité (format carré)
+
+| Champ | Description |
 |---|---|
-| Normal | 2 lanes |
-| Elite | 2 lanes |
-| Mini-boss / Boss final | 3 lanes |
+| **ATK** | Dégâts infligés lors d'une attaque |
+| **HP** | Points de vie |
+| **CD (Compte à rebours)** | Tours avant la première attaque (1–4) |
+| **Flèches (1–4)** | Directions des cases adjacentes attaquées |
+| **Keyword** | Optionnel |
+| **Coût mana** | Commun unités et sorts |
 
-- **6 cases par lane** — cases 0-2 : zone joueur, cases 3-5 : zone ennemie.
-- Joueur avance **gauche → droite** (index croissant), Ennemi avance **droite → gauche** (index décroissant).
-- Case de déploiement : case 0 (joueur) / case 5 (ennemi). **1 unité max par case.**
-- **Coin flip** en début de combat pour déterminer qui joue en premier.
-- **1 HP bar par camp** : joueur (global à tous les combats), ennemi (spécifique au combat).
-- **Victoire** : HP ennemi tombe à zéro. **Défaite** : HP joueur global tombe à zéro.
-- Les **intentions ennemies ne sont pas visibles**.
+### Mécanique d'attaque
 
-### Mécanique d'avancement
+Quand le compte à rebours d'une unité atteint 0 :
+- Elle attaque toutes les **cases adjacentes pointées par ses flèches**
+- **Unité ennemie** sur une case ciblée → reçoit les dégâts (peut mourir)
+- **Case vide ou unité alliée** → aucun effet
+- Le CD repart à sa valeur initiale (l'unité continue de menacer)
 
-- **Tour où posée** : summoning sickness — l'unité ne bouge pas (sauf keyword **Charge**).
-- **Fin de tour du propriétaire** : l'unité tente d'avancer d'1 case :
-  - Case suivante occupée par une unité ennemie → **clash simultané** (les deux infligent leurs dégâts en même temps)
-  - Case vide → avance
-  - Au-delà de la dernière case → attaque les HP ennemis directement, puis va en **DÉFAUSSE** (recyclable)
-- Unité tuée par un clash ou un sort → **CIMETIÈRE** (perdue définitivement, ne revient jamais dans le deck)
-- Unité ayant traversé toutes les cases → **DÉFAUSSE** (recyclable quand le deck est vide)
+### Système de scoring
+
+**Ce qui rapporte des points :**
+
+| Combinaison | Points |
+|---|---|
+| 3 unités alliées en ligne (horizontal/vertical) | 2 pts |
+| 3 unités alliées en diagonale | 3 pts |
+| Carré 2×2 d'unités alliées | 2 pts |
+| Tuer une unité ennemie | 1 pt |
+
+**Règles :**
+- Une combinaison score **immédiatement** dès qu'elle est complétée
+- Chaque combinaison spécifique (les 3 cases exactes) ne peut scorer **qu'une fois par manche**
+- Les unités restent en jeu après avoir scoré — elles peuvent participer à d'**autres combinaisons**
+- Le keyword **Combo** ajoute +1 pt bonus si le placement complète une combinaison
+
+### Résolution d'une manche
+
+- Fin de manche : toutes les unités survivantes → **défausse**
+- Points comparés : le gagnant inflige **(ses points − points adverses) dégâts** aux HP ennemis
+- Si égalité : aucun dégât
+- **Le deck ne se réinitialise pas** entre les manches
+- Les manches se répètent jusqu'à ce qu'un camp tombe à 0 HP
 
 ### Cartes
 
-- **2 types** : Unités et Sorts.
-- **Mana unifié** : unités ET sorts coûtent du mana.
-- **Unités** : valeurs d'attaque et de points de vie, posées sur les cases de déploiement joueur.
-- **Sorts** : effets instantanés (dégâts, soins, buffs, débuffs).
-  - Ciblage sorts : `PlayerHero`, `EnemyHero`, `AllyUnit`, `EnemyUnit`, `AllEnemyUnits` (AoE)
-- **Format** : TCG classique (style Pokémon / Magic). Template métal industriel avec rivets.
-- **Raretés** : Commune / Rare / Épique / Légendaire.
-- Les cartes peuvent être **upgradées** (version +).
+- **2 types** : Unités et Sorts
+- **Mana unifié** : unités ET sorts coûtent du mana
+- **Unités** : posées sur une case vide de la grille, ATK/HP/CD/Flèches
+- **Sorts** : effets instantanés (dégâts, soins, buffs, débuffs), ne prennent pas de case
+- **Raretés** : Commune / Rare / Épique / Légendaire
+- Les cartes peuvent être **upgradées** (version +)
 
 ### Deck et main
 
-- Deck initial : **20 cartes** (minimum 20 cartes en permanence).
-- **5 cartes** en main au démarrage.
-- **2 cartes piochées** au début de chaque tour.
-- Main maximale : **10 cartes**.
-- Quand le deck est vide, la **défausse** est mélangée pour reformer un nouveau deck.
-- Le **cimetière** n'est jamais recyclé — les cartes y sont perdues définitivement.
+- Deck initial : **20 cartes** (minimum 20 cartes en permanence)
+- **5 cartes** en main au démarrage
+- **1 carte piochée** au début de chaque tour joueur
+- Main maximale : **10 cartes**
+- Quand le deck est vide, la **défausse** est mélangée pour reformer un nouveau deck
+- Il n'y a **pas de cimetière** — toutes les unités mortes vont en défausse
 
 ### Mana
 
-- **Mana croissant** : 1 au tour 1, +1 par tour joueur, **plafond à 6**.
-- Se **régénère entièrement** chaque tour (pas d'accumulation).
-- Commun aux unités et aux sorts.
+- **Mana croissant** : 1 au tour 1 de chaque manche, +1 par tour joueur, **plafond à 6**
+- Se **régénère entièrement** au début de chaque manche
+- Commun aux unités et aux sorts
 
-### Keywords (16 validés)
+### Keywords (10 validés)
 
 | Keyword | Description |
 |---|---|
-| **Épine** | À la mort, X dégâts à l'unité tueuse |
-| **Inspiration** | Pioche X cartes à l'entrée |
-| **Vigilance** | Si traverse sans clash → dégâts ×2 aux HP ennemis |
-| **Percée** | L'overkill d'un clash saigne sur les HP ennemis |
-| **Résilience** | Soigne X HP au héros si survit à un clash ce tour |
-| **Légion** | +1 ATK à l'entrée si ≥1 allié présent (toutes lanes) |
-| **Conquête** | Soigne X HP au héros quand cette unité tue |
-| **Sacrifice offensif** | X dégâts directs aux HP ennemis à la mort |
-| **Irradiation** | 1 dégât AoE à toutes les unités ennemies (toutes lanes) au début de chaque tour allié |
-| **Explosion radioactive** | AoE X dégâts à toutes les unités ennemies à la mort |
-| **Contagion** | -X ATK à l'unité ennemie adjacente à la mort |
-| **Exploiter** | +2 dégâts directs si l'unité ennemie en face est à 0 ATK |
-| **Charge** | Peut avancer le tour où elle est posée (pas de summoning sickness) |
-| **Rapide** | Avance 2 cases par tour au lieu de 1 |
+| **Hâte** | Le compte à rebours démarre à 1 (frappe le tour suivant) |
 | **Blindage** | -1 dégât reçu de toutes sources |
-| **Ralliement** | +1 ATK à toutes les unités alliées présentes à l'entrée |
+| **Épine** | À la mort, X dégâts aux unités **ennemies** adjacentes |
+| **Explosion** | À la mort, X dégâts à **toutes** les unités adjacentes (alliés compris) |
+| **Combo** | Si ce placement complète une ligne/diagonale/carré → +1 pt bonus |
+| **Inspiration** | À la pose, pioche 1 carte |
+| **Légion** | +1 ATK par unité alliée adjacente (calculé au moment de l'attaque) |
+| **Dominance** | Si encore vivante à la fin de la manche, +1 pt |
+| **Percée** | Si tue une unité ennemie, attaque aussi la case derrière dans la même direction |
+| **Ralliement** | À la pose, +1 ATK à toutes les unités alliées adjacentes |
 
 ### IA ennemie
 
-- Joue jusqu'à **2 cartes par tour**.
-- Priorise la pose d'unités sur les cases de déploiement libres, puis utilise ses sorts si elle a du mana.
-- Stratégie spécifique à César : Légionnaires en early, Centurion + Ordre de charge en mid, Veni Vidi Vendu si ≥4 mana.
+- Joue **1 unité** (priorité : cases qui menacent une ligne adversaire ou complètent une ligne IA) + sorts si mana disponible
+- Stratégie spécifique à César : unités agressives en early, sorts de buff en mid, Veni Vidi Vendu si ≥4 mana
+- Les intentions ne sont **pas visibles**
 
 ---
 
 ## 🖥️ Interface de combat
 
-### Layout validé (implémenté 2026-04-21)
+### Layout cible (à construire — refonte grille 2026-04-26)
 
 ```
-[ Or | Reliques ]                                    ← barre haut (full width)
+[ Or | Reliques | Score joueur vs Score ennemi ]     ← barre haut (full width)
 
-[Portrait joueur]  [ Lane 1 ][ Lane 2 ]...  [Portrait ennemi]
-     HP ↓          [6 cases par lane]             HP ↓
+[Portrait joueur]  [  Grille 4×4 partagée  ]  [Portrait ennemi]
+     HP ↓          [ 16 cases carrées       ]       HP ↓
 
-[Mana / Deck / Défausse / Cimetière]        [ Main du joueur ]   [Fin de Tour]
-      ↑ bas-gauche                             ↑ centré bas          ↑ bas-droite
+[Mana / Deck / Défausse]       [ Main du joueur ]   [Fin de Tour]
+      ↑ bas-gauche               ↑ centré bas          ↑ bas-droite
 ```
 
-### Hiérarchie Canvas (scène Combat)
+### Hiérarchie Canvas cible (scène Combat — à reconstruire)
 
 ```
 Canvas/
   FullBG                      — fond plein écran
-  LanesArea                   — anchor (0.09,0.22)→(0.91,0.86), 4 LaneRow
-    LaneRow_1..4              — chacune avec 6 Cell_0..5 (LaneSlotUI câblés)
-  PortraitPlayer              — anchor (0,0.22)→(0.09,0.86), gauche
+  GridArea                    — grille 4×4, anchor centré (0.15,0.18)→(0.85,0.88)
+    Row_0..3                  — 4 lignes × 4 cases (GridCellUI câblés)
+  PortraitPlayer              — anchor (0,0.18)→(0.15,0.88), gauche
     HPLabel / HPText (TMP vert)
-  PortraitEnemy               — anchor (0.91,0.22)→(1,0.86), droite
+  PortraitEnemy               — anchor (0.85,0.18)→(1,0.88), droite
     HPLabel / HPText (TMP rouge)
-  BottomInfo                  — anchor (0,0)→(0.22,0.18), bas-gauche
-    ManaText / DeckText / DiscardText / CemeteryText
+  ScoreBar                    — dans RelicBar, affiche score joueur / score ennemi en temps réel
+  BottomInfo                  — anchor (0,0)→(0.22,0.15), bas-gauche
+    ManaText / DeckText / DiscardText
   Hand                        — main joueur, centré bas
   EndTurnButton               — anchor (0.78,0)→(1,0.12), bas-droite
   CombatUI                    — GO logique, toutes refs TMP câblées
@@ -161,7 +191,8 @@ Canvas/
 ```
 
 - **Clic droit sur une carte** : affiche une copie agrandie (CardZoomPanel). Reclic pour fermer.
-- **Journal de combat** : masqué (legacy), remplacé par les infos distribuées dans le layout.
+- **Flèches d'attaque** : affichées sur chaque carte posée, indiquent les cases ciblées
+- **Compte à rebours** : affiché sur chaque unité posée, décrémente visuellement à chaque tour
 
 ---
 
@@ -257,73 +288,35 @@ Napoléon (startup founder), Ada Lovelace, Attila, Shakespeare, Cléopâtre…
 
 ---
 
-## 🃏 Decks (refonte 2026-04-20 — système lanes/mana unifié)
+## 🃏 Decks (à redesigner — refonte grille 2026-04-26)
+
+> ⚠️ Les decks ci-dessous sont **à redesigner** pour le nouveau système de grille 4×4.
+> Le format des cartes unités change : ATK / HP / CD / Flèches (1–4 directions) / Keyword / Coût.
+> Les noms, flavour et archétypes de personnages sont conservés.
 
 ### Léonard de Vinci — Contrôle / Survie (80 HP)
 
-Archétype : unités défensives durables, heal régulier, victoire par usure.
-**Mécanique signature — Bricolage** : si ≥2 unités alliées dans le cimetière ce combat, peut placer une unité de fortune (ATK = somme ATK mortes / 2 arrondi haut, HP = 2). Cimetière uniquement (pas défausse).
+Archétype : unités défensives durables, scoring par survie, victory condition via Dominance.
+**Mécanique signature — Bricolage** : si ≥2 unités alliées sont mortes cette manche, peut placer gratuitement un "Automate de Fortune" (ATK = somme ATK mortes / 2 arrondi haut, HP = 2, CD = 2, 1 flèche) sur n'importe quelle case vide.
 
-| Carte | Type | ATK | HP | Keyword | Coût | Rareté | ×copies |
-|---|---|---|---|---|---|---|---|
-| Automate boiteux | Unité | 1 | 2 | Épine (1 dmg au tueur) | 1 | Commune | ×3 |
-| Chien de garde | Unité | 1 | 3 | Vigilance (ATK×2 si traverse sans clash) | 1 | Commune | ×2 |
-| Bouclier parapluie troué | Sort | — | — | +3 HP unité alliée + Shield 2 héros | 1 | Commune | ×3 |
-| Ailes volantes | Sort | — | — | +4 ATK unité alliée, -2 HP ("l'invention explose") | 2 | Commune | ×2 |
-| Vitruve | Unité | 1 | 4 | Résilience (soigne 1 héros si survit à un clash) | 2 | Commune | ×2 |
-| Arbalète géante | Unité | 3 | 1 | Percée (overkill saigne sur HP ennemis) | 2 | Rare | ×2 |
-| Joconde | Unité | 2 | 2 | Inspiration (pioche 1 à l'entrée) | 2 | Rare | ×2 |
-| Revigorant | Sort | — | — | Heal 5 héros + pioche 1 | 3 | Rare | ×2 |
-| Réveil explosif | Sort | — | — | 3 dmg AoE unités ennemies lane choisie + 1 dmg unité alliée | 3 | Rare | ×2 |
-
-**Épiques (pool rewards, hors deck de départ) :**
-- Char d'assaut (2/6, Blindage, coût 4) — débloqué via leveling
-- Dragon (3/3, Souffle AoE toutes lanes à l'entrée, coût 5) — débloqué via leveling
+*Cards à redéfinir — archétype : Blindage, Dominance, Inspiration, Épine*
 
 ---
 
-### Marie Curie — Poison / Débuff (80 HP)
+### Marie Curie — Poison / Contrôle de zone (80 HP)
 
-Archétype : neutralise les unités ennemies via réduction ATK, exploite les 0 ATK. Moins de heal que De Vinci, pas de burst.
-**Mécanique signature — Contamination (passive)** : chaque sort joué place automatiquement 1 jeton Poison sur une unité ennemie au choix (ou héros ennemi si aucune unité). Poison : 1 dmg au début de chaque tour ennemi.
+Archétype : neutralise les unités ennemies adjacentes, Explosion pour contrôler la grille, Combo pour scorer efficacement.
+**Mécanique signature — Contamination (passive)** : chaque sort joué place 1 jeton Poison sur une unité ennemie adjacente à une unité alliée. Poison : 1 dmg au début de chaque tour ennemi.
 
-| Carte | Type | ATK | HP | Keyword | Coût | Rareté | ×copies |
-|---|---|---|---|---|---|---|---|
-| Assistante contaminée | Unité | 1 | 2 | Contagion (-1 ATK unité ennemie adjacente à la mort) | 1 | Commune | ×3 |
-| Sérum affaiblissant | Sort | — | — | -2 ATK à une unité ennemie ciblée | 1 | Commune | ×3 |
-| Cobaye volontaire | Unité | 1 | 3 | Blindage (-1 dmg reçu) | 2 | Commune | ×2 |
-| Injection radioactive | Sort | — | — | 2 dmg unité ennemie + Poison 1 | 2 | Commune | ×2 |
-| Antidote corrompu | Sort | — | — | Heal 4 héros + Poison 1 sur unité ennemie | 2 | Commune | ×2 |
-| Dealer en blouse blanche | Unité | 2 | 2 | Exploiter (+2 dmg directs si ennemi en face à 0 ATK) | 2 | Rare | ×2 |
-| Trafiquante de radium | Unité | 3 | 2 | Contrebande (-1 ATK ennemi aléatoire à l'entrée) | 3 | Rare | ×2 |
-| Chimiste véreux | Unité | 2 | 3 | Synthèse (soigne 2 HP héros si ≥1 ennemi à 0 ATK en fin de tour) | 2 | Rare | ×2 |
-| Brouillard toxique | Sort | — | — | -1 ATK à TOUTES les unités ennemies (toutes lanes) | 3 | Rare | ×2 |
-
-**Épiques (pool rewards, hors deck de départ) :**
-- Baron de la Pechblende (3/4, Irradiation, coût 5) — débloqué via leveling
-- Monstre de Polonium (4/3, Explosion radioactive AoE 2 dmg à la mort, coût 5) — débloqué via leveling
+*Cards à redéfinir — archétype : Explosion, Combo, Épine, Percée*
 
 ---
 
-### Jules César — Agression / Puissance brute (100 HP — BOSS)
+### Jules César — Agression / Pression (100 HP — BOSS)
 
-Archétype : snowball de force, écrase par la pression pure. Stats ~20% supérieures aux jouables. Rôle : Boss final et IA ennemie (pas jouable).
+Archétype : unités à fort ATK, clustering via Légion, Ralliement pour buff en chaîne. Stats ~20% supérieures aux jouables. Rôle : Boss final et IA ennemie (pas jouable).
 
-| Carte | Type | ATK | HP | Keyword | Coût | Rareté | ×copies |
-|---|---|---|---|---|---|---|---|
-| Légionnaire | Unité | 2 | 2 | Légion (+1 ATK si ≥1 allié présent) | 2 | Commune | ×3 |
-| Ordre de charge | Sort | — | — | +3 ATK à une unité alliée + Charge | 2 | Commune | ×3 |
-| Gladiateur kamikaze | Unité | 4 | 1 | Sacrifice offensif (3 dmg directs à la mort) | 2 | Commune | ×2 |
-| Tactique décisive | Sort | — | — | 2 dmg unité ennemie + Ralentissement (ne peut pas avancer ce tour) | 2 | Commune | ×2 |
-| Garde prétorienne | Unité | 2 | 4 | Blindage (-1 dmg reçu) | 3 | Commune | ×2 |
-| Centurion agressif | Unité | 3 | 2 | Charge (avance le tour où posé) | 3 | Rare | ×2 |
-| Tribun militaire | Unité | 3 | 3 | Ralliement (+1 ATK à toutes unités alliées présentes) | 4 | Rare | ×2 |
-| Veni Vidi Vendu | Sort | — | — | 5 dmg directs HP ennemis | 4 | Rare | ×2 |
-| Formation de combat | Sort | — | — | +1 ATK et +1 HP à toutes unités alliées d'une lane | 3 | Rare | ×2 |
-
-**Épiques :**
-- Proconsul de la mort (4/4, Conquête soigne 2 HP, coût 5)
-- César lui-même (5/3, Ralliement++ +1 ATK alliés + AoE 3 dmg ennemis, coût 6)
+*Cards à redéfinir — archétype : Hâte, Légion, Ralliement, Blindage*
 
 ---
 
@@ -386,25 +379,25 @@ Assets/
 
 ## 📋 État d'avancement et priorités
 
-### ✅ Réalisé
+### ✅ Réalisé (pré-refonte grille)
 
-- Système de combat complet : lanes 2/3/4 selon type, 6 cases, avancement de troupes, summoning sickness, clash simultané, cimetière vs défausse, mana unifié croissant cap 6
-- 16 keywords implémentés (Épine, Inspiration, Vigilance, Percée, Résilience, Légion, Conquête, Sacrifice offensif, Irradiation, Explosion radioactive, Contagion, Exploiter, Charge, Rapide, Blindage, Ralliement)
-- Mécaniques signature : Bricolage (De Vinci), Contamination + Poison (Marie Curie)
-- Animations DOTween complètes : arc Bézier pioche, clash, mort, pose, screen shake, squash-stretch
-- Scène RunMap (arbre de progression, nœuds, scroll, animation intro, états visuels)
-- Scènes MainMenu + CharacterSelect
-- Nœuds non-combat (Rest, Forge, Shop, Event, Mystery) — 12 événements narratifs
-- Système or, reliques (avec tooltip hover), sauvegarde disque, leveling de compte
-- Assets : portraits De Vinci / Curie / César, template carte métal industriel
-- 46 cartes ScriptableObjects (base + upgradées, 3 decks complets)
-- SessionLogger (logs par session pour analyser le game flow)
+- Scène RunMap (arbre de progression, nœuds, scroll, animation intro, états visuels) ✅
+- Scènes MainMenu + CharacterSelect ✅
+- Nœuds non-combat (Rest, Forge, Shop, Event, Mystery) — 12 événements narratifs ✅
+- Système or, reliques (avec tooltip hover), sauvegarde disque, leveling de compte ✅
+- Assets : portraits De Vinci / Curie / César ✅
+- SessionLogger ✅
+- Animations DOTween (arc Bézier pioche, mort, pose, screen shake, squash-stretch) — à adapter au nouveau système
 
-### 🔄 Priorités actuelles
+> ⚠️ Le système de combat lanes + les 46 cartes ScriptableObjects sont **obsolètes** depuis la refonte grille du 2026-04-26. Le code combat est à réécrire from scratch.
 
-1. **Valider le rythme de jeu** via analyse des logs SessionLogger
-2. **Personnage actif du Dieu** — nœuds "Bénédiction", interventions contextuelles pendant combats/événements
-3. **3 personnages jouables supplémentaires** — après que De Vinci soit stable et fun
+### 🔄 Priorités actuelles (refonte grille)
+
+1. **Redesigner les 3 decks** (nouvelles stats : ATK / HP / CD / Flèches) pour le système grille
+2. **Réécrire le système de combat** : GridManager, GridCellUI, CombatManager (grille), scoring, manche
+3. **Reconstruire la scène Combat** via MCP pour la nouvelle grille 4×4
+4. **Adapter les animations** au nouveau contexte (pose sur grille, attaque directionnelle, score popup)
+5. **IA ennemie** pour la grille (priorité cases stratégiques, complétion de lignes)
 
 ### 📌 Post-prototype v1
 
@@ -412,6 +405,7 @@ Assets/
 - Roster complet (Napoléon, Ada Lovelace, Attila, Shakespeare, Cléopâtre…)
 - Système d'Ascension (15-20 modificateurs de difficulté)
 - Synergies secrètes + équilibrage fin
+- **Personnage actif du Dieu** — nœuds "Bénédiction", interventions contextuelles
 
 ---
 

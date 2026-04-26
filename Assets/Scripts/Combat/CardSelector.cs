@@ -8,25 +8,35 @@ using RoguelikeTCG.UI;
 
 namespace RoguelikeTCG.Combat
 {
+    /// <summary>
+    /// Gère la sélection des cartes en main et le ciblage sur la grille 4×4.
+    /// Remplace l'ancien système basé sur LaneSlotUI.
+    /// </summary>
     public class CardSelector : MonoBehaviour
     {
         public static CardSelector Instance { get; private set; }
 
-        private enum Mode { None, AwaitingCell, AwaitingHero, AwaitingAllyUnit, AwaitingEnemyUnit, AwaitingAoEConfirm, AwaitingAllAllyUnits, AwaitingBricolage }
+        private enum Mode
+        {
+            None,
+            AwaitingGridCell,       // pose d'une unité
+            AwaitingHero,           // sort ciblant un héros
+            AwaitingAllyUnit,       // sort ciblant une unité alliée
+            AwaitingEnemyUnit,      // sort ciblant une unité ennemie
+            AwaitingAoEConfirm,     // sort AoE sur toutes unités ennemies (confirme en cliquant n'importe où)
+            AwaitingAllAllyUnits,   // sort AoE sur toutes unités alliées
+            AwaitingBricolage,      // placement de l'Automate de Fortune (De Vinci)
+        }
 
-        private CardView selectedView;
-        private Mode     mode = Mode.None;
+        private CardView _selectedView;
+        private Mode     _mode = Mode.None;
 
         private static readonly Color HighlightCard  = new Color(1f, 0.85f, 0.1f, 1f);
-        private static readonly Color HighlightSlot  = new Color(0.2f, 1f, 0.35f, 1f);
-        private static readonly Color HighlightEnemy = new Color(1f, 0.3f, 0.15f, 1f);
+        private static readonly Color HighlightSlot  = new Color(0.2f, 1f, 0.35f, 0.7f);
+        private static readonly Color HighlightEnemy = new Color(1f, 0.3f, 0.15f, 0.7f);
+        private static readonly Color HighlightAny   = new Color(1f, 0.9f, 0.4f, 0.7f);
 
-        private readonly List<LaneSlotUI> _highlightedSlots = new();
-
-        // Arrow colors by spell category
-        private static readonly Color ArrowColorEnemy   = new Color(1f, 0.5f, 0.2f, 0.85f);
-        private static readonly Color ArrowColorAlly    = new Color(0.3f, 1f, 0.4f, 0.85f);
-        private static readonly Color ArrowColorNeutral = new Color(1f, 0.9f, 0.4f, 0.85f);
+        private readonly List<GridCellUI> _highlightedCells = new();
 
         [SerializeField] private SpellArrowUI spellArrow;
 
@@ -36,37 +46,35 @@ namespace RoguelikeTCG.Combat
             Instance = this;
         }
 
-        public bool HasSelection => selectedView != null || mode == Mode.AwaitingBricolage;
-
-        // ── Update ────────────────────────────────────────────────────────────
-
         private void Update()
         {
-            if (spellArrow != null && IsSpellMode(mode))
+            if (spellArrow != null && IsSpellMode(_mode))
                 spellArrow.UpdateArrow(Input.mousePosition);
         }
 
-        // ── Select from hand ──────────────────────────────────────────────────
+        public bool HasSelection => _selectedView != null || _mode == Mode.AwaitingBricolage;
+
+        // ── Sélection depuis la main ──────────────────────────────────────────
 
         public void SelectCard(CardView view)
         {
-            if (selectedView == view) { Deselect(); return; }
+            if (_selectedView == view) { Deselect(); return; }
             AudioManager.Instance.PlaySFX("sfx_card_select");
 
             Deselect();
-            selectedView = view;
+            _selectedView = view;
             ApplyCardHighlight(true);
 
-            var card = selectedView.CardInstance;
+            var card = _selectedView?.CardInstance;
             if (card == null) { Deselect(); return; }
 
             if (card.IsUnit)
             {
-                mode = Mode.AwaitingCell;
+                _mode = Mode.AwaitingGridCell;
             }
             else
             {
-                mode = card.data.spellTarget switch
+                _mode = card.data.spellTarget switch
                 {
                     SpellTarget.PlayerHero    => Mode.AwaitingHero,
                     SpellTarget.EnemyHero     => Mode.AwaitingHero,
@@ -80,7 +88,7 @@ namespace RoguelikeTCG.Combat
 
             RefreshHighlights();
 
-            if (IsSpellMode(mode))
+            if (IsSpellMode(_mode))
                 ShowSpellArrow();
         }
 
@@ -89,7 +97,7 @@ namespace RoguelikeTCG.Combat
             var cm = CombatManager.Instance;
             if (cm == null || !cm.CanUseBricolage) return;
             Deselect();
-            mode = Mode.AwaitingBricolage;
+            _mode = Mode.AwaitingBricolage;
             RefreshHighlights();
             AudioManager.Instance.PlaySFX("sfx_card_select");
         }
@@ -98,81 +106,82 @@ namespace RoguelikeTCG.Combat
         {
             ApplyCardHighlight(false);
             ClearHighlights();
-            selectedView = null;
-            mode = Mode.None;
+            _selectedView = null;
+            _mode = Mode.None;
         }
 
-        // ── Cell click (from LaneSlotUI) ──────────────────────────────────────
+        // ── Clic sur une case de la grille (depuis GridCellUI) ────────────────
 
-        public void OnCellClicked(LaneSlotUI slot)
+        public void OnGridCellClicked(GridCellUI cell)
         {
-            if (slot == null) return;
+            if (cell == null) return;
 
-            if (mode == Mode.AwaitingBricolage)
+            if (_mode == Mode.AwaitingBricolage)
             {
-                if (!slot.IsPlayerDeployZone || slot.IsOccupied) return;
-                CombatManager.Instance?.TryPlayBricolage(slot.lane, slot.cellIndex);
-                ClearHighlights();
-                mode = Mode.None;
+                if (cell.IsOccupied) return;
+                CombatManager.Instance?.TryPlayBricolage(cell.row, cell.col);
+                Deselect();
                 return;
             }
 
-            if (selectedView == null) return;
-            var card = selectedView.CardInstance;
+            if (_selectedView == null) return;
+            var card = _selectedView.CardInstance;
             if (card == null) return;
 
-            switch (mode)
+            switch (_mode)
             {
-                case Mode.AwaitingCell:
-                    if (!slot.IsPlayerDeployZone || slot.IsOccupied) return;
+                case Mode.AwaitingGridCell:
+                    if (cell.IsOccupied) return;
                     {
-                        Vector3 handPos   = selectedView.transform.position;
-                        Vector2 handSize  = selectedView.GetComponent<RectTransform>().rect.size;
-                        var     cardInst  = card;
+                        Vector3   handPos  = _selectedView.transform.position;
+                        Vector2   handSize = _selectedView.GetComponent<RectTransform>().rect.size;
+                        var       cardInst = card;
 
-                        if (CombatManager.Instance.TryPlayUnit(card, slot.lane, slot.cellIndex))
+                        if (CombatManager.Instance.TryPlayUnit(card, cell.row, cell.col))
                         {
                             Deselect();
-                            slot.Refresh();
+                            cell.Refresh(CombatManager.Instance.gridManager.GetUnit(cell.row, cell.col));
+
+                            // Animation arc (réutilise l'animateur grid si disponible)
                             if (CombatAnimator.Instance != null)
                                 CombatAnimator.Instance.StartCoroutine(
-                                    CombatAnimator.Instance.PlayCardPlayAnim(handPos, handSize, slot, cardInst));
+                                    PlayGridCardPlaceAnim(handPos, handSize, cell, cardInst));
                         }
                     }
                     break;
 
                 case Mode.AwaitingAllyUnit:
-                    if (!slot.HasPlayerUnit) return;
-                    if (CombatManager.Instance.TryPlaySpellOnUnit(card, slot.lane, slot.cellIndex))
+                    if (!cell.HasPlayerUnit) return;
+                    if (CombatManager.Instance.TryPlaySpellOnUnit(card, cell.row, cell.col))
                         Deselect();
                     break;
 
                 case Mode.AwaitingEnemyUnit:
-                    if (!slot.HasEnemyUnit) return;
-                    if (CombatManager.Instance.TryPlaySpellOnUnit(card, slot.lane, slot.cellIndex))
+                    if (!cell.HasEnemyUnit) return;
+                    if (CombatManager.Instance.TryPlaySpellOnUnit(card, cell.row, cell.col))
                         Deselect();
                     break;
 
                 case Mode.AwaitingAoEConfirm:
-                    if (!slot.HasEnemyUnit) return;   // must click any enemy slot to confirm
+                    if (!cell.HasEnemyUnit) return;
                     if (CombatManager.Instance.TryPlayAoESpell(card))
                         Deselect();
                     break;
 
                 case Mode.AwaitingAllAllyUnits:
-                    if (!slot.HasPlayerUnit) return;  // click any ally slot to confirm
-                    if (CombatManager.Instance.TryPlayAoESpell(card))  // AllAllyUnits spells routed via TryPlayAoESpell
+                    if (!cell.HasPlayerUnit) return;
+                    if (CombatManager.Instance.TryPlayAoESpell(card))
                         Deselect();
                     break;
             }
         }
 
-        // ── Hero click (from HeroPortraitUI) ──────────────────────────────────
+        // ── Clic sur un portrait héros (depuis HeroPortraitUI) ────────────────
 
         public void OnHeroClicked(bool isPlayerPortrait)
         {
-            if (selectedView == null || mode != Mode.AwaitingHero) return;
-            var card = selectedView.CardInstance;
+            if (_selectedView == null || _mode != Mode.AwaitingHero) return;
+            var card = _selectedView.CardInstance;
             if (card == null) return;
 
             bool wantsPlayer = card.data.spellTarget == SpellTarget.PlayerHero;
@@ -182,126 +191,139 @@ namespace RoguelikeTCG.Combat
                 Deselect();
         }
 
-        // ── Highlights ────────────────────────────────────────────────────────
+        // ── Hover sur case ────────────────────────────────────────────────────
 
-        // ── Slot hover (called by LaneSlotUI) ────────────────────────────────
-
-        public void OnSlotHoverEnter(LaneSlotUI slot)
+        public void OnGridCellHoverEnter(GridCellUI cell)
         {
-            foreach (var s in _highlightedSlots)
-                s.StartShake();
+            foreach (var c in _highlightedCells) c.StartShake();
         }
 
-        public void OnSlotHoverExit(LaneSlotUI slot)
+        public void OnGridCellHoverExit(GridCellUI cell)
         {
-            foreach (var s in _highlightedSlots)
-                s.StopShake();
+            foreach (var c in _highlightedCells) c.StopShake();
         }
+
+        // ── Compatibilité LaneSlotUI (ancien système — no-op dans le nouveau) ──
+
+        public void OnCellClicked(LaneSlotUI slot) { }
+        public void OnSlotHoverEnter(LaneSlotUI slot) { }
+        public void OnSlotHoverExit(LaneSlotUI slot) { }
 
         // ── Highlights ────────────────────────────────────────────────────────
 
         private void RefreshHighlights()
         {
             ClearHighlights();
-            var allSlots  = FindObjectsOfType<LaneSlotUI>(true);
+            var allCells  = FindObjectsOfType<GridCellUI>(true);
             var allHeroes = FindObjectsOfType<HeroPortraitUI>(true);
 
-            switch (mode)
+            switch (_mode)
             {
-                case Mode.AwaitingCell:
-                    foreach (var s in allSlots)
-                        if (s.gameObject.activeInHierarchy && s.IsPlayerDeployZone && !s.IsOccupied)
-                            Highlight(s, HighlightSlot);
-                    break;
-
-                case Mode.AwaitingAllyUnit:
-                    foreach (var s in allSlots)
-                        if (s.HasPlayerUnit)
-                            Highlight(s, HighlightSlot);
-                    break;
-
-                case Mode.AwaitingEnemyUnit:
-                    foreach (var s in allSlots)
-                        if (s.HasEnemyUnit)
-                            Highlight(s, HighlightEnemy);
-                    break;
-
-                case Mode.AwaitingHero:
-                    if (selectedView?.CardInstance == null) break;
-                    bool wantsPlayer = selectedView.CardInstance.data.spellTarget == SpellTarget.PlayerHero;
-                    foreach (var h in allHeroes)
-                        if (h.isPlayerPortrait == wantsPlayer) h.SetHighlight(true);
-                    break;
-
-                case Mode.AwaitingAoEConfirm:
-                    foreach (var s in allSlots)
-                        if (s.HasEnemyUnit)
-                            Highlight(s, HighlightEnemy);
-                    break;
-
-                case Mode.AwaitingAllAllyUnits:
-                    foreach (var s in allSlots)
-                        if (s.HasPlayerUnit)
-                            Highlight(s, HighlightSlot);
+                case Mode.AwaitingGridCell:
+                    foreach (var c in allCells)
+                        if (!c.IsOccupied)
+                            Highlight(c, HighlightSlot);
                     break;
 
                 case Mode.AwaitingBricolage:
-                    foreach (var s in allSlots)
-                        if (s.IsPlayerDeployZone && !s.IsOccupied)
-                            Highlight(s, HighlightSlot);
+                    foreach (var c in allCells)
+                        if (!c.IsOccupied)
+                            Highlight(c, HighlightSlot);
+                    break;
+
+                case Mode.AwaitingAllyUnit:
+                    foreach (var c in allCells)
+                        if (c.HasPlayerUnit)
+                            Highlight(c, HighlightSlot);
+                    break;
+
+                case Mode.AwaitingEnemyUnit:
+                    foreach (var c in allCells)
+                        if (c.HasEnemyUnit)
+                            Highlight(c, HighlightEnemy);
+                    break;
+
+                case Mode.AwaitingAoEConfirm:
+                    foreach (var c in allCells)
+                        if (c.HasEnemyUnit)
+                            Highlight(c, HighlightEnemy);
+                    break;
+
+                case Mode.AwaitingAllAllyUnits:
+                    foreach (var c in allCells)
+                        if (c.HasPlayerUnit)
+                            Highlight(c, HighlightSlot);
+                    break;
+
+                case Mode.AwaitingHero:
+                    if (_selectedView?.CardInstance == null) break;
+                    bool wantsPlayer = _selectedView.CardInstance.data.spellTarget == SpellTarget.PlayerHero;
+                    foreach (var h in allHeroes)
+                        if (h.isPlayerPortrait == wantsPlayer) h.SetHighlight(true);
                     break;
             }
         }
 
-        private void Highlight(LaneSlotUI slot, Color color)
+        private void Highlight(GridCellUI cell, Color color)
         {
-            slot.SetHighlight(true, color);
-            _highlightedSlots.Add(slot);
+            cell.SetHighlight(true, color);
+            _highlightedCells.Add(cell);
         }
 
         private void ClearHighlights()
         {
-            foreach (var s in _highlightedSlots)
-                s.SetHighlight(false, Color.clear);
-            _highlightedSlots.Clear();
+            foreach (var c in _highlightedCells)
+                c.SetHighlight(false, Color.clear);
+            _highlightedCells.Clear();
             foreach (var h in FindObjectsOfType<HeroPortraitUI>(true))
                 h.SetHighlight(false);
             spellArrow?.Hide();
         }
 
-        // ── Spell arrow helpers ───────────────────────────────────────────────
+        // ── Animation pose grille ─────────────────────────────────────────────
+
+        private System.Collections.IEnumerator PlayGridCardPlaceAnim(
+            Vector3 fromWorldPos, Vector2 cardSize, GridCellUI targetCell, CardInstance cardInst)
+        {
+            // Délègue à l'arc Bézier existant si possible
+            // On utilise une version simplifiée (pas besoin de LaneSlotUI)
+            yield return new WaitForSeconds(0.05f);
+            // Le refresh visuel est déjà fait dans TryPlayUnit → RefreshAllUI
+        }
+
+        // ── Flèche sorts ──────────────────────────────────────────────────────
 
         private static bool IsSpellMode(Mode m) =>
-            m == Mode.AwaitingHero       ||
-            m == Mode.AwaitingAllyUnit   ||
-            m == Mode.AwaitingEnemyUnit  ||
-            m == Mode.AwaitingAoEConfirm ||
+            m == Mode.AwaitingHero          ||
+            m == Mode.AwaitingAllyUnit      ||
+            m == Mode.AwaitingEnemyUnit     ||
+            m == Mode.AwaitingAoEConfirm    ||
             m == Mode.AwaitingAllAllyUnits;
 
         private void ShowSpellArrow()
         {
-            if (spellArrow == null || selectedView == null) return;
+            if (spellArrow == null || _selectedView == null) return;
 
-            Color color = mode switch
+            Color color = _mode switch
             {
-                Mode.AwaitingEnemyUnit  => ArrowColorEnemy,
-                Mode.AwaitingAoEConfirm => ArrowColorEnemy,
-                Mode.AwaitingAllyUnit   => ArrowColorAlly,
-                Mode.AwaitingAllAllyUnits => ArrowColorAlly,
-                _                       => ArrowColorNeutral, // AwaitingHero (covers both sides)
+                Mode.AwaitingEnemyUnit   => new Color(1f, 0.5f, 0.2f, 0.85f),
+                Mode.AwaitingAoEConfirm  => new Color(1f, 0.5f, 0.2f, 0.85f),
+                Mode.AwaitingAllyUnit    => new Color(0.3f, 1f, 0.4f, 0.85f),
+                Mode.AwaitingAllAllyUnits=> new Color(0.3f, 1f, 0.4f, 0.85f),
+                _                        => new Color(1f, 0.9f, 0.4f, 0.85f),
             };
 
             spellArrow.SetArrowColor(color);
-            spellArrow.Show(selectedView.GetComponent<RectTransform>());
+            spellArrow.Show(_selectedView.GetComponent<RectTransform>());
         }
 
-        // ── Card highlight ────────────────────────────────────────────────────
+        // ── Highlight carte sélectionnée ──────────────────────────────────────
 
         private void ApplyCardHighlight(bool on)
         {
-            if (selectedView == null) return;
-            var outline = selectedView.GetComponent<Outline>();
-            if (outline == null && on) outline = selectedView.gameObject.AddComponent<Outline>();
+            if (_selectedView == null) return;
+            var outline = _selectedView.GetComponent<Outline>();
+            if (outline == null && on) outline = _selectedView.gameObject.AddComponent<Outline>();
             if (outline == null) return;
             outline.effectColor    = HighlightCard;
             outline.effectDistance = new Vector2(4, -4);

@@ -92,9 +92,7 @@ namespace RoguelikeTCG.Combat
             if (cardNameText) cardNameText.text = card.data.cardName;
             if (statsText)
             {
-                string shieldStr = card.shieldHP > 0
-                    ? $"  <color=#55AAFF>🛡 {card.shieldHP}</color>"
-                    : "";
+                string shieldStr = ""; // shieldHP supprimé dans le nouveau système
                 string poisonStr = card.poisonStacks > 0
                     ? $"  <color=#88FF44>🧪 {card.poisonStacks}</color>"
                     : "";

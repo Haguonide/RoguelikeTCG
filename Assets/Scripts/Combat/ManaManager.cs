@@ -4,56 +4,77 @@ using UnityEngine;
 namespace RoguelikeTCG.Combat
 {
     /// <summary>
-    /// Growing mana system : cap starts at 0, increases by 1 each player-turn start up to MAX_CAP (6).
-    /// Each turn (player or enemy) fully refills mana to the current cap.
+    /// Mana croissant 1→6, reset complet au début de chaque manche (pas chaque tour).
+    /// +1 par tour joueur, cap à 6.
     /// </summary>
     public class ManaManager : MonoBehaviour
     {
         private const int MAX_CAP = 6;
 
-        private int manaCap;
-        private int currentMana;
+        private int _manaCap;
+        private int _currentMana;
+        private int _turnCount; // nombre de tours joueur dans la manche courante
 
-        public int CurrentMana => currentMana;
-        public int MaxMana     => manaCap;
+        public int CurrentMana => _currentMana;
+        public int MaxMana     => _manaCap;
 
         public event Action OnManaChanged;
 
+        /// <summary>Initialise le ManaManager (appelé une fois au démarrage du combat).</summary>
         public void Initialize()
         {
-            manaCap     = 0;
-            currentMana = 0;
+            _manaCap     = 0;
+            _currentMana = 0;
+            _turnCount   = 0;
             OnManaChanged?.Invoke();
         }
 
-        /// Call once per round at the START of the player's turn.
-        /// Grows the cap by 1 (capped at MAX_CAP), then refills.
-        public void PlayerTurnRegen()
+        /// <summary>
+        /// Appelé au début de chaque manche.
+        /// Reset mana à 1 et repart du turnCount = 1.
+        /// </summary>
+        public void ResetForNewRound()
         {
-            if (manaCap < MAX_CAP) manaCap++;
-            currentMana = manaCap;
+            _turnCount   = 1;
+            _manaCap     = 1;
+            _currentMana = 1;
             OnManaChanged?.Invoke();
         }
 
-        /// Call at the start of the enemy's turn — refills to current cap without growing it.
+        /// <summary>
+        /// Appelé au début de chaque tour joueur dans une manche.
+        /// Mana = min(turnCount, 6), puis turnCount++.
+        /// </summary>
+        public void OnPlayerTurnStart()
+        {
+            _manaCap     = Mathf.Min(_turnCount, MAX_CAP);
+            _currentMana = _manaCap;
+            _turnCount++;
+            OnManaChanged?.Invoke();
+        }
+
+        /// <summary>Compatibilité ancienne API.</summary>
+        public void PlayerTurnRegen() => OnPlayerTurnStart();
+
+        /// <summary>L'ennemi utilise le même pool de mana.</summary>
         public void EnemyTurnRegen()
         {
-            currentMana = manaCap;
+            _currentMana = _manaCap;
             OnManaChanged?.Invoke();
         }
 
-        /// Relic or other bonus — adds mana on top of the current value (does not change cap).
+        /// <summary>Bonus de relique — ajoute du mana sans changer le cap.</summary>
         public void AddBonus(int amount)
         {
-            currentMana = Mathf.Min(manaCap + amount, currentMana + amount);
+            _currentMana = Mathf.Min(_manaCap + amount, _currentMana + amount);
             OnManaChanged?.Invoke();
         }
 
-        public bool CanAfford(int cost) => currentMana >= cost;
+        public bool CanAfford(int cost) => _currentMana >= cost;
 
         public void Spend(int cost)
         {
-            currentMana = Mathf.Max(0, currentMana - cost);
+            _currentMana = Mathf.Max(0, _currentMana - cost);
             OnManaChanged?.Invoke();
         }
     }

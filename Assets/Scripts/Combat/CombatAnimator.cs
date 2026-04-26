@@ -598,5 +598,68 @@ namespace RoguelikeTCG.Combat
             tmp.raycastTarget = false;
             return tmp;
         }
+
+        // ── Méthodes Grille 4×4 ───────────────────────────────────────────────
+
+        /// <summary>
+        /// Animation d'attaque sur la grille : lunge de la cellule attaquante, damage popup sur la cible.
+        /// </summary>
+        public IEnumerator PlayAttackAnimGrid(GridCellUI attackerCell, GridCellUI defenderCell, int dmg)
+        {
+            if (attackerCell == null) yield break;
+            var rt = attackerCell.GetComponent<RectTransform>();
+            if (rt == null) yield break;
+
+            _animCount++;
+            Vector2 origin = rt.anchoredPosition;
+
+            // Direction approximative : droite si défenseur à droite, gauche sinon
+            float lungeX = defenderCell != null ? (defenderCell.col > attackerCell.col ? 22f : -22f) : 22f;
+            float lungeY = defenderCell != null ? (defenderCell.row > attackerCell.row ? -16f : 16f) : 0f;
+            if (defenderCell != null && Mathf.Abs(defenderCell.row - attackerCell.row) > Mathf.Abs(defenderCell.col - attackerCell.col))
+                lungeX = 0f; // attaque verticale
+
+            AudioManager.Instance.PlaySFX("sfx_attack");
+            var seq = DOTween.Sequence().SetTarget(rt);
+            seq.Append(rt.DOAnchorPos(origin + new Vector2(lungeX, lungeY), 0.10f).SetEase(Ease.OutExpo));
+            seq.Join(rt.DOScale(new Vector3(1.22f, 0.82f, 1f), 0.10f).SetEase(Ease.OutExpo));
+            seq.Append(rt.DOAnchorPos(origin, 0.15f).SetEase(Ease.OutBack, 1.6f));
+            seq.Join(rt.DOScale(Vector3.one, 0.15f).SetEase(Ease.OutBack, 1.6f));
+
+            if (defenderCell != null && dmg > 0)
+                DamagePopup.ShowDamage(defenderCell.GetComponent<RectTransform>(), dmg);
+
+            if (shakeTarget != null)
+                shakeTarget.DOShakeAnchorPos(0.14f, 6f, 10, 60f, false, true).SetTarget(shakeTarget);
+
+            yield return seq.WaitForCompletion();
+            rt.anchoredPosition = origin;
+            rt.localScale       = Vector3.one;
+            _animCount--;
+        }
+
+        /// <summary>
+        /// Animation de mort sur la grille : scale vers zéro avec spin.
+        /// </summary>
+        public IEnumerator PlayDeathAnimGrid(GridCellUI cell)
+        {
+            if (cell == null) yield break;
+            var rt = cell.GetComponent<RectTransform>();
+            if (rt == null) yield break;
+
+            _animCount++;
+            AudioManager.Instance.PlaySFX("sfx_death");
+
+            var seq = DOTween.Sequence().SetTarget(rt);
+            seq.Append(rt.DOScale(new Vector3(1.30f, 1.30f, 1f), 0.08f).SetEase(Ease.OutQuad));
+            seq.Append(rt.DOScale(Vector3.zero, 0.20f).SetEase(Ease.InBack, 2f));
+            seq.Join(rt.DOLocalRotate(new Vector3(0f, 0f, 180f), 0.20f).SetEase(Ease.InCubic));
+            yield return seq.WaitForCompletion();
+
+            // Reset pour le prochain Refresh
+            rt.localScale       = Vector3.one;
+            rt.localEulerAngles = Vector3.zero;
+            _animCount--;
+        }
     }
 }

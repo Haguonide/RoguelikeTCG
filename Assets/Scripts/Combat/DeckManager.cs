@@ -5,26 +5,28 @@ using RoguelikeTCG.Cards;
 
 namespace RoguelikeTCG.Combat
 {
+    /// <summary>
+    /// Gestion du deck, de la main, et de la défausse.
+    /// Plus de cimetière : toutes les morts vont en défausse (recyclable).
+    /// </summary>
     public class DeckManager : MonoBehaviour
     {
-        public int maxHandSize  = 10;
-        public int drawPerTurn  = 2;
-        public int initialDraw  = 5;
+        public int maxHandSize = 10;
+        public int drawPerTurn = 1;    // 1 carte par tour joueur dans le nouveau système
+        public int initialDraw = 5;
 
-        private List<CardInstance> deck     = new();
-        private List<CardInstance> hand     = new();
-        private List<CardInstance> discard  = new();  // recyclable (traversed units + played spells)
-        private List<CardInstance> cemetery = new();  // permanent (killed in combat)
+        private List<CardInstance> deck    = new();
+        private List<CardInstance> hand    = new();
+        private List<CardInstance> discard = new();  // toutes les cartes jouées/mortes
 
-        public List<CardInstance> Hand       => hand;
-        public int DeckCount                 => deck.Count;
-        public int DiscardCount              => discard.Count;
-        public int CemeteryCount             => cemetery.Count;
-        public List<CardInstance> Cemetery   => cemetery;
+        public List<CardInstance> Hand         => hand;
+        public int                DeckCount    => deck.Count;
+        public int                DiscardCount => discard.Count;
+        public int                CemeteryCount => 0; // supprimé — compatibilité CombatUI
 
         public void InitializeDeck(List<CardData> cards, bool isPlayerDeck)
         {
-            deck.Clear(); hand.Clear(); discard.Clear(); cemetery.Clear();
+            deck.Clear(); hand.Clear(); discard.Clear();
             foreach (var cd in cards) deck.Add(new CardInstance(cd, isPlayerDeck));
             Shuffle(deck);
         }
@@ -43,35 +45,38 @@ namespace RoguelikeTCG.Combat
             }
         }
 
-        /// Call when a SPELL is played — removes from hand, adds to discard.
+        /// <summary>Sort joué depuis la main → défausse.</summary>
         public void PlayCard(CardInstance card)
         {
             hand.Remove(card);
             discard.Add(card);
         }
 
-        /// Call when a UNIT is placed on the board — only removes from hand.
-        /// The unit goes to Cemetery or Discard when it leaves the board.
+        /// <summary>Unité posée sur la grille → retirée de la main seulement.</summary>
         public void RemoveFromHand(CardInstance card) => hand.Remove(card);
 
-        /// Unit traversed the lane — goes to DISCARD (recyclable).
+        /// <summary>Unité morte OU unité ayant survécu à une manche → défausse.</summary>
         public void AddToDiscard(CardInstance card)
         {
-            discard.Add(card);
+            hand.Remove(card);
+            if (!discard.Contains(card))
+                discard.Add(card);
         }
 
-        /// Unit killed in combat — goes to CEMETERY (never returns).
-        public void AddToCemetery(CardInstance card)
-        {
-            hand.Remove(card);
-            discard.Remove(card);
-            cemetery.Add(card);
-        }
+        /// <summary>Compatibilité ancienne API — redirige vers AddToDiscard.</summary>
+        public void AddToCemetery(CardInstance card) => AddToDiscard(card);
 
         public void DiscardHand()
         {
             discard.AddRange(hand);
             hand.Clear();
+        }
+
+        /// <summary>Réinitialise les CD de toutes les cartes de la défausse pour la prochaine manche.</summary>
+        public void ResetDiscardCountdowns()
+        {
+            foreach (var c in discard)
+                c.currentCountdown = c.data.countdown;
         }
 
         private void RecycleDiscard()

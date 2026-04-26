@@ -56,17 +56,19 @@ namespace RoguelikeTCG.Combat
 
         public void PlaceUnit(CardInstance unit, int cell)
         {
-            cells[cell]       = unit;
-            unit.cellPosition = cell;
-            unit.laneIndex    = laneIndex;
+            cells[cell] = unit;
+            // gridRow/gridCol sont les nouveaux champs de position dans CardInstance
+            // Pour compatibilité avec l'ancien système : on encode laneIndex dans gridRow et cell dans gridCol
+            unit.gridRow = laneIndex;
+            unit.gridCol = cell;
         }
 
         public void ClearCell(int cell)
         {
             if (cells[cell] == null) return;
-            cells[cell].cellPosition = -1;
-            cells[cell].laneIndex    = -1;
-            cells[cell]              = null;
+            cells[cell].gridRow = -1;
+            cells[cell].gridCol = -1;
+            cells[cell]         = null;
         }
 
         public void ClearAll()
