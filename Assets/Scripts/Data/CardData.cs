@@ -14,12 +14,23 @@ namespace RoguelikeTCG.Data
         public CardRarity rarity;
 
         [Header("Cost")]
-        public int manaCost; // Always 0 for units
+        public int manaCost;
 
         [Header("Unit Stats (Unit only)")]
         public int attackPower;
         public int maxHP;
-        public List<UnitPassive> unitPassives;
+
+        [Header("Unit — Grille 4x4")]
+        [Tooltip("Valeur initiale du countdown (1-4). À 0 l'unité attaque puis revient à cette valeur.")]
+        [Range(1, 4)]
+        public int countdown = 2;
+        [EnumFlags]
+        [Tooltip("Directions attaquées (flags combinables : Up, Down, Left, Right)")]
+        public AttackDirection attackDirections = AttackDirection.Right;
+        [Tooltip("Keyword unique de l'unité")]
+        public UnitKeyword keyword = UnitKeyword.Aucun;
+        [Tooltip("Valeur numérique du keyword (ex: Épine=1 signifie 1 dégât à la mort)")]
+        public int keywordValue = 0;
 
         [Header("Spell Targeting & Effects (Spell only)")]
         public SpellTarget spellTarget;

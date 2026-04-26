@@ -19,11 +19,11 @@ MonoBehaviour:
   rarity: 0
   manaCost: 1
   attackPower: 2
-  maxHP: 2
-  unitPassives:
-  - passiveType: 5
-    value: 1
-    keyword: "\xC9pine"
+  maxHP: 3
+  countdown: 2
+  attackDirections: 16
+  keyword: 3
+  keywordValue: 2
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

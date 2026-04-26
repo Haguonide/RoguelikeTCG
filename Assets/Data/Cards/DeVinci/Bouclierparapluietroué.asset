@@ -21,12 +21,13 @@ MonoBehaviour:
   manaCost: 1
   attackPower: 0
   maxHP: 0
+  countdown: 2
+  attackDirections: 8
+  keyword: 0
+  keywordValue: 0
   spellTarget: 2
   effects:
   - effectType: 3
     value: 3
     target: 2
-  - effectType: 5
-    value: 2
-    target: 0
   upgradedVersion: {fileID: 11400000, guid: fa41870aee2033b4aac7ec370b7b8060, type: 2}

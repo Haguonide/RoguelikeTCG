@@ -21,10 +21,14 @@ MonoBehaviour:
   manaCost: 2
   attackPower: 0
   maxHP: 0
+  countdown: 2
+  attackDirections: 8
+  keyword: 0
+  keywordValue: 0
   spellTarget: 2
   effects:
   - effectType: 2
-    value: 4
+    value: 3
     target: 2
   - effectType: 3
     value: -2

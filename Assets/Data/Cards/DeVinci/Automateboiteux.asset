@@ -21,10 +21,10 @@ MonoBehaviour:
   manaCost: 1
   attackPower: 1
   maxHP: 2
-  unitPassives:
-  - passiveType: 5
-    value: 1
-    keyword: "\xC9pine"
+  countdown: 2
+  attackDirections: 16
+  keyword: 3
+  keywordValue: 1
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: aff277f6729e2824ba82842db8fb25a6, type: 2}

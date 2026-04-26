@@ -20,10 +20,10 @@ MonoBehaviour:
   manaCost: 2
   attackPower: 2
   maxHP: 3
-  unitPassives:
-  - passiveType: 0
-    value: 1
-    keyword: Inspiration
+  countdown: 2
+  attackDirections: 26
+  keyword: 6
+  keywordValue: 0
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

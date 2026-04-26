@@ -18,13 +18,13 @@ MonoBehaviour:
   artwork: {fileID: 21300000, guid: 24e8fefe208203a4e8ce24d278ae4be3, type: 3}
   cardType: 0
   rarity: 0
-  manaCost: 1
+  manaCost: 2
   attackPower: 2
-  maxHP: 3
-  unitPassives:
-  - passiveType: 9
-    value: 0
-    keyword: Vigilance
+  maxHP: 5
+  countdown: 3
+  attackDirections: 16
+  keyword: 8
+  keywordValue: 0
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

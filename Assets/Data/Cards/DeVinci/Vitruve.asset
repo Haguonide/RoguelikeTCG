@@ -19,12 +19,12 @@ MonoBehaviour:
   cardType: 0
   rarity: 0
   manaCost: 2
-  attackPower: 1
+  attackPower: 2
   maxHP: 4
-  unitPassives:
-  - passiveType: 14
-    value: 1
-    keyword: "R\xE9silience"
+  countdown: 3
+  attackDirections: 18
+  keyword: 2
+  keywordValue: 0
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: 499fe322346685e4d825d8ddec70b425, type: 2}

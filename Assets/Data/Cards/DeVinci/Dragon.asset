@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
   m_Name: Dragon
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
-  cardName: Dragon
+  cardName: "Dragon m\xE9canique"
   description: Robot-dragon. Une seule aile, trois pattes. Instable. Terriblement
     redoutable.
   artwork: {fileID: 21300000, guid: bcfbeaaa871751147bf79612de6ae648, type: 3}
@@ -21,10 +21,10 @@ MonoBehaviour:
   manaCost: 5
   attackPower: 3
   maxHP: 3
-  unitPassives:
-  - passiveType: 4
-    value: 2
-    keyword: Souffle
+  countdown: 2
+  attackDirections: 30
+  keyword: 0
+  keywordValue: 0
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 11400000, guid: 68819b9449dafed4c843bf58c59306ef, type: 2}

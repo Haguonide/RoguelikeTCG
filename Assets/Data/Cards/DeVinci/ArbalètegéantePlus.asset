@@ -18,13 +18,13 @@ MonoBehaviour:
   artwork: {fileID: 21300000, guid: 401a587fb6bf7ab418f607f6f92eaeda, type: 3}
   cardType: 0
   rarity: 2
-  manaCost: 2
-  attackPower: 4
-  maxHP: 1
-  unitPassives:
-  - passiveType: 10
-    value: 0
-    keyword: "Perc\xE9e"
+  manaCost: 3
+  attackPower: 5
+  maxHP: 2
+  countdown: 2
+  attackDirections: 16
+  keyword: 9
+  keywordValue: 0
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}
