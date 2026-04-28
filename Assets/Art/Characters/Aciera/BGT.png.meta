@@ -1,19 +1,10 @@
 fileFormatVersion: 2
-guid: 7e1981acccec0de4f8cd9e7f4e0eac4d
+guid: 51cbf3001c549d54697ea71c202df0c3
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5932337171297972888
-    second: CadrePerso_0
-  - first:
-      213: 6468481259813924007
-    second: CadrePerso_1
-  - first:
-      213: -2235322443275386530
-    second: CadrePerso_2
-  - first:
-      213: -1429253387013232729
-    second: CadrePerso_3
+      213: -3717458359769386433
+    second: gemini-2.5-flash-image_Revove_everything_around_and_the_blood_inside-0_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -122,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CadrePerso_0
+      name: gemini-2.5-flash-image_Revove_everything_around_and_the_blood_inside-0_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1024
-        height: 1024
+        x: 61
+        y: 50
+        width: 908
+        height: 901
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -137,74 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 892bf07f935e35250800000000000000
-      internalID: 5932337171297972888
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: CadrePerso_1
-      rect:
-        serializedVersion: 2
-        x: 534
-        y: 104
-        width: 16
-        height: 17
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7acea7f2f69a4c950800000000000000
-      internalID: 6468481259813924007
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: CadrePerso_2
-      rect:
-        serializedVersion: 2
-        x: 587
-        y: 113
-        width: 26
-        height: 15
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e51cc12c41a8af0e0800000000000000
-      internalID: -2235322443275386530
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: CadrePerso_3
-      rect:
-        serializedVersion: 2
-        x: 594
-        y: 92
-        width: 61
-        height: 34
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7a76d05fd954a2ce0800000000000000
-      internalID: -1429253387013232729
+      spriteID: f32b3a6515fe86cc0800000000000000
+      internalID: -3717458359769386433
       vertices: []
       indices: 
       edges: []
@@ -223,10 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      CadrePerso_0: 5932337171297972888
-      CadrePerso_1: 6468481259813924007
-      CadrePerso_2: -2235322443275386530
-      CadrePerso_3: -1429253387013232729
+      gemini-2.5-flash-image_Revove_everything_around_and_the_blood_inside-0_0: -3717458359769386433
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

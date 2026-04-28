@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 434df8d48d64a3b4aae0fb07df6c2f93
+guid: 75ea0d27f4b9b3945989c212bbfe06b0
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7592134178046050912
-    second: BGT1_0
+      213: -6038815440017253974
+    second: CartePasFaite_0
+  - first:
+      213: -7013001347001171284
+    second: CartePasFaite_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +49,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -75,7 +78,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -113,13 +116,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: BGT1_0
+      name: CartePasFaite_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 10
-        width: 1595
-        height: 1579
+        x: 432
+        y: 1456
+        width: 588
+        height: 617
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +131,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 06289816fcdac5960800000000000000
-      internalID: 7592134178046050912
+      spriteID: aa990a13a51d13ca0800000000000000
+      internalID: -6038815440017253974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CartePasFaite_1
+      rect:
+        serializedVersion: 2
+        x: 619
+        y: 1206
+        width: 211
+        height: 207
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca2c8ae6e60dcae90800000000000000
+      internalID: -7013001347001171284
       vertices: []
       indices: 
       edges: []
@@ -138,7 +163,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +173,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      BGT1_0: 7592134178046050912
+      CartePasFaite_0: -6038815440017253974
+      CartePasFaite_1: -7013001347001171284
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
