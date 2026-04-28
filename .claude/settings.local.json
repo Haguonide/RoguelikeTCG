@@ -40,7 +40,8 @@
       "Bash(sed -i 's/passiveType: 6/passiveType: 5/' /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/Automateboiteux.asset /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/AutomateboiteuxPlus.asset)",
       "Bash(sed -i 's/passiveType: 14/passiveType: 13/' /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/Chardassaut.asset /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/ChardassautPlus.asset)",
       "Bash(sed -i 's/passiveType: 10/passiveType: 9/' /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/Chiendegarde.asset /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/ChiendegardePlus.asset)",
-      "Bash(sed -i 's/passiveType: 1/passiveType: 4/' /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/Dragon.asset /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/DragonPlus.asset)"
+      "Bash(sed -i 's/passiveType: 1/passiveType: 4/' /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/Dragon.asset /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/DragonPlus.asset)",
+      "mcp__unity-mcp__Unity_ReadResource"
     ]
   }
 }

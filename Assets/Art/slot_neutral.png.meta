@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: a22b4bf16f35bc4448a242564e863105
+guid: 2bef88042cbe3c342b9ce6697554a706
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1981548690230170952
-    second: flux-dev_drkcmcstyle_illustration_concept_design_sheet_1.4_concept_art_hand-drawn_flat_2D-1-Photoroom_0
+      213: 5320898757418587914
+    second: slot_neutral_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: flux-dev_drkcmcstyle_illustration_concept_design_sheet_1.4_concept_art_hand-drawn_flat_2D-1-Photoroom_0
+      name: slot_neutral_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 847
-        height: 896
+        x: 47
+        y: 88
+        width: 927
+        height: 745
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8455f4af800ef7b10800000000000000
-      internalID: 1981548690230170952
+      spriteID: a0790c18a31a7d940800000000000000
+      internalID: 5320898757418587914
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      flux-dev_drkcmcstyle_illustration_concept_design_sheet_1.4_concept_art_hand-drawn_flat_2D-1-Photoroom_0: 1981548690230170952
+      slot_neutral_0: 5320898757418587914
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

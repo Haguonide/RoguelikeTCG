@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: e67fb48b4cce6b34abfbe4c74128bf19
+guid: b4ddeac9d6cbf9c4897ec84262b70bce
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3250195507621667465
-    second: CityOnFire_0
+      213: 21628994331974460
+    second: "Capture d'\xE9cran 2026-04-27 131940_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CityOnFire_0
+      name: "Capture d'\xE9cran 2026-04-27 131940_0"
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 2560
-        height: 1440
+        width: 465
+        height: 682
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9822c5a08930b1d20800000000000000
-      internalID: 3250195507621667465
+      spriteID: c3b910ca477dc4000800000000000000
+      internalID: 21628994331974460
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      CityOnFire_0: 3250195507621667465
+      "Capture d'\xE9cran 2026-04-27 131940_0": 21628994331974460
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

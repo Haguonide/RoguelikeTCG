@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 51cbf3001c549d54697ea71c202df0c3
+guid: 63677b1693b8d304e89e2670645dbe8a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 394899941297033794
-    second: BGT_0
+      213: -234078692673348540
+    second: CadrePersoTest-Photoroom_0
+  - first:
+      213: -2946608078970414953
+    second: CadrePersoTest-Photoroom_1
+  - first:
+      213: -2336057864884273580
+    second: CadrePersoTest-Photoroom_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,13 +52,13 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 550
-  spriteBorder: {x: 250, y: 250, z: 250, w: 250}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -75,7 +81,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -113,23 +119,67 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: BGT_0
+      name: CadrePersoTest-Photoroom_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1024
-        height: 1024
+        width: 896
+        height: 896
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 24215d28767fa7500800000000000000
-      internalID: 394899941297033794
+      spriteID: 44c97b15ba260ccf0800000000000000
+      internalID: -234078692673348540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CadrePersoTest-Photoroom_1
+      rect:
+        serializedVersion: 2
+        x: 467
+        y: 91
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7981ca0609b8b17d0800000000000000
+      internalID: -2946608078970414953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CadrePersoTest-Photoroom_2
+      rect:
+        serializedVersion: 2
+        x: 519
+        y: 79
+        width: 54
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45eb0d4bfb7a49fd0800000000000000
+      internalID: -2336057864884273580
       vertices: []
       indices: 
       edges: []
@@ -138,8 +188,8 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    spriteID: 
+    internalID: 0
     vertices: []
     indices: 
     edges: []
@@ -148,7 +198,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      BGT_0: 394899941297033794
+      CadrePersoTest-Photoroom_0: -234078692673348540
+      CadrePersoTest-Photoroom_1: -2946608078970414953
+      CadrePersoTest-Photoroom_2: -2336057864884273580
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
