@@ -33,7 +33,7 @@ namespace RoguelikeTCG.Combat
         [SerializeField] private Image      highlightImage;
 
         // Couleurs de fond par état
-        private static readonly Color ColorEmpty       = new Color(0.15f, 0.15f, 0.20f, 0.85f);
+        private static readonly Color ColorEmpty       = Color.clear;
         private static readonly Color ColorPlayerUnit  = new Color(0.10f, 0.30f, 0.12f, 0.95f);
         private static readonly Color ColorEnemyUnit   = new Color(0.30f, 0.10f, 0.10f, 0.95f);
 
@@ -120,7 +120,9 @@ namespace RoguelikeTCG.Combat
 
         private void SetBackground(Color color)
         {
-            if (bgImage != null) bgImage.color = color;
+            if (bgImage == null) return;
+            bgImage.enabled = color.a > 0f;
+            bgImage.color = color;
         }
 
         private void SetCardVisuals(bool visible, Sprite artwork,
