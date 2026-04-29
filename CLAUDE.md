@@ -76,18 +76,30 @@ Numérotation des cases (référence interne) :
 
 | Champ | Description |
 |---|---|
-| **CD (Compte à rebours)** | Tours avant la première attaque (1–4) |
-| **Flèches (1–4)** | Directions des cases adjacentes attaquées |
-| **Keyword** | Optionnel |
+| **HP (1–3)** | Icônes gouttes : remplies = HP actuel, contour vide = HP perdu |
+| **ATK** | Toujours 1 — pas de stat affichée, représenté par les flèches directionnelles avec glow récurrent |
+| **CD (Compte à rebours)** | Tours avant la première attaque (1–4), affiché dans un cercle/icône sur la carte |
+| **Flèches (1–4)** | Directions d'attaque, bump/glow récurrent. Option paramètres : affichage permanent ou survol uniquement |
+| **Passif positionnel** | Optionnel. Effet déclenché si l'unité est sur coin / bord / centre. Indiqué par mini-schéma grille 3×3 sur la carte |
+| **Keyword** | Optionnel — effet permanent toujours actif |
 | **Coût mana** | Commun unités et sorts |
 
-> ⚠️ **Pas d'ATK ni de HP sur les unités.** Les kills sont instantanés.
+> ℹ️ **ATK est toujours 1.** Si un boost est actif (passif positionnel ou sort), une flèche rouge scintillante apparaît sur la carte (grisée quand le passif est inactif mais toujours visible pour indiquer sa présence).
+
+### Passifs positionnels
+
+Couche stratégique indépendante des keywords — une carte peut avoir les deux simultanément.
+
+- **Condition absolue** : coin (cases 1,3,7,9) / bord (cases 2,4,6,8) / centre (case 5)
+- **Dynamique** : si l'unité est déplacée (Carte Déplacement), le passif s'active ou se désactive immédiatement
+- **Feedback visuel** : particules vertes montantes + son à l'activation / particules rouges-grises descendantes + son à la désactivation
+- **Effets possibles** : +1 ATK (ATK=2 ce tour), -1 CD, pioche 1 carte, +1 pt, etc.
 
 ### Mécanique d'attaque
 
 Quand le compte à rebours d'une unité atteint 0 :
 - Elle attaque toutes les **cases adjacentes pointées par ses flèches**
-- **Unité ennemie** sur une case ciblée → **détruite instantanément** (va en défausse)
+- **Unité ennemie** sur une case ciblée → **perd 1 HP** (ou 2 si ATK boostée). Si HP = 0 → détruite (va en défausse)
 - **Case vide ou unité alliée** → aucun effet
 - L'unité attaquante **reste sur la grille**, CD repart à sa valeur initiale
 
@@ -182,20 +194,21 @@ X X X      . X .      X . X      X . X      . X .
 - Se **régénère entièrement** au début de chaque manche
 - Commun à tous les types de cartes
 
-### Keywords (10 validés)
+### Keywords (9 validés)
 
-| Keyword | Description |
-|---|---|
-| **Hâte** | Le compte à rebours démarre à 1 (frappe le tour suivant) |
-| **Bouclier** | Survit à la première attaque reçue cette manche |
-| **Épine** | À la mort, détruit une unité ennemie adjacente au choix |
-| **Explosion** | À la mort, détruit toutes les unités adjacentes (alliées + ennemies) |
-| **Combo** | Si ce placement complète un motif actif → +1 pt bonus |
-| **Inspiration** | À la pose, pioche 1 carte |
-| **Légion** | CD -1 par unité alliée adjacente (minimum 1) |
-| **Dominance** | Si encore en vie en fin de manche, +1 pt |
-| **Percée** | Si tue une unité ennemie, attaque aussi la case derrière dans la même direction |
-| **Ralliement** | À la pose, -1 CD à toutes les unités alliées adjacentes |
+| Keyword | Description | Rareté min |
+|---|---|---|
+| **Hâte** | Le compte à rebours démarre à 1 (frappe le tour suivant) | Libre |
+| **Épine** | À la mort, inflige 1 dégât à l'unité attaquante | **Rare+** |
+| **Explosion** | À la mort, inflige 1 dégât à toutes les unités adjacentes (alliées + ennemies) | **Rare+** |
+| **Combo** | Si ce placement complète un motif actif → +1 pt bonus | Libre |
+| **Inspiration** | À la pose, pioche 1 carte | Libre |
+| **Légion** | CD -1 par unité alliée adjacente (minimum 1) | Libre |
+| **Dominance** | Si encore en vie en fin de manche, +1 pt | Libre |
+| **Percée** | Si tue une unité ennemie (HP=0), attaque aussi la case derrière dans la même direction | Libre |
+| **Ralliement** | À la pose, -1 CD à toutes les unités alliées adjacentes | Libre |
+
+> **Bouclier supprimé** — rendu redondant par le système HP. Épine et Explosion restreintes Rare+ : empêche une commune de counter une légendaire via kill automatique. Les deux keywords passent à 1 dégât pour rester cohérents avec la règle HP uniforme.
 
 ### IA ennemie
 
@@ -377,8 +390,9 @@ Super-héros sous CDI. Pouvoirs réels, motivation inexistante. Font ça comme u
 
 ## 🃏 Decks
 
-> À designer — les cartes doivent respecter la nouvelle anatomie : CD / Flèches / Keyword / Coût. Pas d'ATK ni de HP.
+> À designer — les cartes doivent respecter la nouvelle anatomie : HP (1-3) / ATK implicite=1 / CD / Flèches / Passif positionnel (optionnel) / Keyword (optionnel) / Coût.
 > Archétypes validés : Programme R (Aggro — Hâte/Percée/Explosion/Ralliement) et Les Éternels (Combo — Combo/Inspiration/Dominance/Ralliement).
+> Cible : 4 decks jouables total (2 pour le prototype).
 
 ---
 
@@ -455,17 +469,17 @@ Assets/
 - Nœuds non-combat (Rest, Forge, Shop, Event, Mystery) — 12 événements narratifs ✅
 - Système or, reliques (avec tooltip hover), sauvegarde disque, leveling de compte ✅
 - SessionLogger ✅
-- Scène Combat : grille 4×4 (⚠️ à migrer en 3×3), portraits, layout bas (mana/deck/défausse), GridLinesDrawer ✅
+- Scène Combat : grille 3×3, portraits, layout bas (mana/deck/défausse), GridLinesDrawer ✅
 
 ### 🔄 Priorités actuelles
 
-1. **Migrer la grille** de 4×4 à 3×3 (scripts + scène)
-2. **Implémenter le système de motifs** : banque ScriptableObject, tirage aléatoire, scoring à la pose, logique premier arrivé premier servi
-3. **Réécrire le système de combat** : kills instantanés, 6 tours max, mana croissant, cartes Déplacement/Repioche
-4. **Adapter les CardData ScriptableObjects** à la nouvelle anatomie (supprimer ATK/HP)
-5. **Redesigner les decks** Programme R et Les Éternels
+1. **Adapter les CardData ScriptableObjects** : ajouter HP (1-3), passif positionnel (condition + effet), retirer Bouclier, mettre à jour Épine/Explosion (Rare+, 1 dégât)
+2. **Réécrire le système de combat** : HP sur les unités, dégâts par attaque (1 ou 2 si boost), mort à HP=0, passifs positionnels dynamiques, 6 tours max, mana croissant
+3. **Implémenter les passifs positionnels** : détection coin/bord/centre, activation/désactivation au déplacement, feedback visuel (particules + son)
+4. **Implémenter le système de motifs** : banque ScriptableObject, tirage aléatoire, scoring à la pose, logique premier arrivé premier servi
+5. **Redesigner les decks** Programme R et Les Éternels (2 prototype, 4 cible total)
 6. **IA ennemie** (Les Contractuels) — priorité cases complétant un motif ou bloquant le joueur
-7. **Animations** : pose sur grille, kill, score popup, motif complété
+7. **Animations** : pose sur grille, HP loss, kill, score popup, motif complété, activation/désactivation passif positionnel
 
 ### 📌 Post-prototype
 
