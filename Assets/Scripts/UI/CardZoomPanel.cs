@@ -106,8 +106,8 @@ namespace RoguelikeTCG.UI
                 var statsTMP = MakeTMP("Stats", textsGO,
                     0.03f, 0.28f, 0.97f, 0.44f, 28f, FontStyles.Bold, TextAlignmentOptions.Center);
                 statsTMP.richText = true;
-                statsTMP.text = $"<color=#{ColorUtility.ToHtmlStringRGB(ColAtk)}>⚔ {card.CurrentAttack}</color>" +
-                                $"   <color=#{ColorUtility.ToHtmlStringRGB(ColHP)}>❤ {card.currentHP}</color>";
+                string kwLabel = card.data.keyword != UnitKeyword.Aucun ? $"  [{card.data.keyword}]" : "";
+                statsTMP.text = $"CD {card.currentCountdown}{kwLabel}";
             }
             else
             {

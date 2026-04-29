@@ -7,11 +7,11 @@ namespace RoguelikeTCG.Combat
 
     /// <summary>
     /// Gère les tours et les manches.
-    /// 10 tours par joueur par manche (20 alternances totales).
+    /// 6 tours par joueur par manche (12 alternances totales).
     /// </summary>
     public class TurnManager : MonoBehaviour
     {
-        public const int TURNS_PER_ROUND = 10;
+        public const int TURNS_PER_ROUND = 6;
 
         private TurnPhase _currentPhase;
 

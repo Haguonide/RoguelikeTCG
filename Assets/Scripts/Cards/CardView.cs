@@ -57,7 +57,7 @@ namespace RoguelikeTCG.Cards
             if (statsText)
             {
                 statsText.text = data.cardType == CardType.Unit
-                    ? $"{cardInstance.CurrentAttack}/{cardInstance.currentHP}"
+                    ? $"CD {cardInstance.currentCountdown}"
                     : "";
             }
         }

@@ -227,8 +227,8 @@ namespace RoguelikeTCG.AI
                         float s = 0f;
                         foreach (var eff in card.data.effects)
                         {
-                            if (eff.effectType == EffectType.Damage    ) s += eff.value * (t.currentHP <= eff.value ? 3f : 1.5f);
-                            if (eff.effectType == EffectType.BuffAttack && eff.value < 0) s += -eff.value * 2f;
+                            if (eff.effectType == EffectType.Damage || eff.effectType == EffectType.DestroyUnit) s += 3f;
+                            if (eff.effectType == EffectType.ReduceCountdown) s += eff.value * 1.5f;
                         }
                         if (s > bestS) { bestS = s; bestTarget = t; }
                     }

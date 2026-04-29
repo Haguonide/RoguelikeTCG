@@ -25,7 +25,7 @@ namespace RoguelikeTCG.Combat
             AwaitingEnemyUnit,      // sort ciblant une unité ennemie
             AwaitingAoEConfirm,     // sort AoE sur toutes unités ennemies (confirme en cliquant n'importe où)
             AwaitingAllAllyUnits,   // sort AoE sur toutes unités alliées
-            AwaitingBricolage,      // placement de l'Automate de Fortune (De Vinci)
+            AwaitingBricolage,      // obsolète
         }
 
         private CardView _selectedView;
@@ -92,15 +92,7 @@ namespace RoguelikeTCG.Combat
                 ShowSpellArrow();
         }
 
-        public void SelectBricolage()
-        {
-            var cm = CombatManager.Instance;
-            if (cm == null || !cm.CanUseBricolage) return;
-            Deselect();
-            _mode = Mode.AwaitingBricolage;
-            RefreshHighlights();
-            AudioManager.Instance.PlaySFX("sfx_card_select");
-        }
+        public void SelectBricolage() { } // obsolète
 
         public void Deselect()
         {
@@ -116,13 +108,6 @@ namespace RoguelikeTCG.Combat
         {
             if (cell == null) return;
 
-            if (_mode == Mode.AwaitingBricolage)
-            {
-                if (cell.IsOccupied) return;
-                CombatManager.Instance?.TryPlayBricolage(cell.row, cell.col);
-                Deselect();
-                return;
-            }
 
             if (_selectedView == null) return;
             var card = _selectedView.CardInstance;

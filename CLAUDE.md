@@ -46,15 +46,22 @@ Roguelike deckbuilder stratégique, inspiré de **Slay the Spire** et **Wildfros
 
 ### Structure de la grille
 
-Le combat se joue sur une **grille 4×4 partagée** entre le joueur et l'ennemi, comme un Tic-Tac-Toe.
+Le combat se joue sur une **grille 3×3 partagée** entre le joueur et l'ennemi.
 
-- **16 cases**, toutes accessibles aux deux joueurs
+- **9 cases**, toutes accessibles aux deux joueurs
 - **1 unité maximum par case**
 - Une case libérée par la mort d'une unité peut être réoccupée
 - **Coin flip** en début de combat pour déterminer qui joue en premier
 - **1 HP bar par camp** : joueur (global à tous les combats), ennemi (spécifique au combat)
 - **Victoire** : HP ennemi tombe à zéro. **Défaite** : HP joueur global tombe à zéro
 - Les **intentions ennemies ne sont pas visibles**
+
+Numérotation des cases (référence interne) :
+```
+1 2 3
+4 5 6
+7 8 9
+```
 
 ### Structure d'un tour
 
@@ -63,7 +70,7 @@ Le combat se joue sur une **grille 4×4 partagée** entre le joueur et l'ennemi,
 3. Le **compte à rebours** de chaque unité en jeu descend de 1
 4. Les unités dont le compte à rebours atteint **0 attaquent** (kill instantané), puis leur CD repart à sa valeur max
 5. L'ennemi joue son tour (même structure)
-6. Répéter jusqu'à **10 tours par joueur** = **1 manche**
+6. Répéter jusqu'à **6 tours max par joueur** = **1 manche**
 
 ### Anatomie d'une carte unité (format carré)
 
@@ -88,17 +95,57 @@ Quand le compte à rebours d'une unité atteint 0 :
 
 **Score immédiat à la pose** — les points sont encaissés au moment du placement, pas en fin de manche.
 
-| Combinaison | Points |
+| Événement | Points |
 |---|---|
-| 3 unités alliées en ligne (horizontal/vertical) | 2 pts |
-| 3 unités alliées en diagonale | 3 pts |
-| Carré 2×2 d'unités alliées | 2 pts |
+| Compléter un motif 3 cases | 4 pts |
+| Compléter un motif 4 cases | 6 pts |
+| Compléter un motif 5 cases | 9 pts |
 | Tuer une unité ennemie | 1 pt (immédiat au kill) |
 
-**Règles :**
-- Chaque combinaison spécifique (les 3 cases exactes) ne peut scorer **qu'une fois par manche**
-- Les unités restent en jeu après avoir scoré — elles peuvent participer à d'**autres combinaisons**
-- Le keyword **Combo** ajoute +1 pt bonus si le placement complète une combinaison
+**Motifs de combat :**
+- **3 motifs** sont tirés aléatoirement dans la banque au début de chaque combat
+- Ils sont **communs aux deux joueurs** et **fixes pour tout le combat**
+- **Premier arrivé premier servi** : le premier joueur qui complète un motif le score et le **ferme pour la manche**
+- Un motif fermé se **réouvre au début de la manche suivante** (les deux joueurs peuvent le rechasser)
+- Chaque motif peut ainsi être scoré **une fois par joueur par manche** mais pas deux fois par le même joueur
+- Le tirage garantit **maximum 2 motifs utilisant la case centrale (5)** par combat
+
+**Banque de motifs :**
+
+*3 cases — 4 pts (8 motifs)*
+```
+Ligne H    Col V      Diag ↘     Diag ↗     Coin TL    Coin TR    Coin BL    Coin BR
+X X X      X . .      X . .      . . X      X X .      . X X      . . .      . . .
+. . .      X . .      . X .      . X .      X . .      . . X      X . .      . . X
+. . .      X . .      . . X      X . .      . . .      . . .      X X .      . X X
+(×3 lignes)(×3 cols)
+```
+*(les 3 lignes et 3 colonnes sont 6 motifs distincts + 2 diagonales + 4 coins = 12 motifs 3 cases au total)*
+
+*4 cases — 6 pts (10 motifs)*
+```
+Carré TL   Carré TR   Carré BL   Carré BR   4 Coins
+X X .      . X X      . . .      . . .      X . X
+X X .      . X X      X X .      . X X      . . .
+. . .      . . .      X X .      . X X      X . X
+
+T haut     T bas      T gauche   T droite   L (×4 rotations)
+. X .      . . .      . X .      . X .      X . .
+X X X      X X X      X X .      . X X      X . .
+. . .      . X .      . X .      . X .      X X .
+```
+
+*5 cases — 9 pts (5 motifs)*
+```
+Croix      X total    U haut     U bas      Z
+. X .      X . X      X . X      . . .      X X .
+X X X      . X .      X . X      X . X      . X .
+. X .      X . X      X X X      X X X      . X X
+```
+
+**Règles supplémentaires :**
+- Les unités restent en jeu après avoir contribué à un motif scoré
+- Le keyword **Combo** ajoute +1 pt bonus si le placement complète un motif
 
 ### Résolution d'une manche
 
@@ -143,7 +190,7 @@ Quand le compte à rebours d'une unité atteint 0 :
 | **Bouclier** | Survit à la première attaque reçue cette manche |
 | **Épine** | À la mort, détruit une unité ennemie adjacente au choix |
 | **Explosion** | À la mort, détruit toutes les unités adjacentes (alliées + ennemies) |
-| **Combo** | Si ce placement complète une ligne/diagonale/carré → +1 pt bonus |
+| **Combo** | Si ce placement complète un motif actif → +1 pt bonus |
 | **Inspiration** | À la pose, pioche 1 carte |
 | **Légion** | CD -1 par unité alliée adjacente (minimum 1) |
 | **Dominance** | Si encore en vie en fin de manche, +1 pt |
@@ -152,7 +199,7 @@ Quand le compte à rebours d'une unité atteint 0 :
 
 ### IA ennemie
 
-- Joue **1 unité** (priorité : cases qui menacent les unités adverses ou complètent une ligne IA)
+- Joue **1 unité** (priorité : cases qui complètent un motif actif pour l'IA, ou qui bloquent un motif que le joueur est en train de construire)
 - Stratégie spécifique par team ennemie
 - Les intentions ne sont **pas visibles**
 
@@ -165,8 +212,9 @@ Quand le compte à rebours d'une unité atteint 0 :
 ```
 [ Or | Reliques | Score joueur vs Score ennemi ]     ← barre haut (full width)
 
-[Portrait joueur]  [  Grille 4×4 partagée  ]  [Portrait ennemi]
-     HP ↓          [ 16 cases carrées       ]       HP ↓
+[Portrait joueur]  [  Grille 3×3 partagée  ]  [Portrait ennemi]
+     HP ↓          [  9 cases carrées       ]       HP ↓
+                   [ Motifs actifs (×3)     ]
 
 [Mana / Deck / Défausse]       [ Main du joueur ]   [Fin de Tour]
       ↑ bas-gauche               ↑ centré bas          ↑ bas-droite
@@ -177,9 +225,11 @@ Quand le compte à rebours d'une unité atteint 0 :
 ```
 Canvas/
   FullBG                      — fond plein écran
-  GridArea                    — grille 4×4, anchor centré
-    Row_0..3                  — 4 lignes × 4 cases (GridCellUI câblés)
+  GridArea                    — grille 3×3, anchor centré
+    Row_0..2                  — 3 lignes × 3 cases (GridCellUI câblés)
     GridLines                 — lignes de grille (GridLinesDrawer, raycastTarget=false)
+    PatternOverlay            — surbrillance des cases cibles des 3 motifs actifs
+  PatternDisplay              — affichage des 3 motifs du combat (icônes + statut ouvert/fermé)
   PortraitPlayer              — anchor gauche
     HPLabel / HPText (TMP vert)
   PortraitEnemy               — anchor droite
@@ -405,15 +455,17 @@ Assets/
 - Nœuds non-combat (Rest, Forge, Shop, Event, Mystery) — 12 événements narratifs ✅
 - Système or, reliques (avec tooltip hover), sauvegarde disque, leveling de compte ✅
 - SessionLogger ✅
-- Scène Combat : grille 4×4, portraits, layout bas (mana/deck/défausse), GridLinesDrawer ✅
+- Scène Combat : grille 4×4 (⚠️ à migrer en 3×3), portraits, layout bas (mana/deck/défausse), GridLinesDrawer ✅
 
 ### 🔄 Priorités actuelles
 
-1. **Redesigner les decks** Programme R et Les Éternels (CD / Flèches / Keyword, pas d'ATK/HP)
-2. **Réécrire le système de combat** : kills instantanés, scoring à la pose, cartes Déplacement/Repioche
-3. **Adapter les CardData ScriptableObjects** à la nouvelle anatomie (supprimer ATK/HP)
-4. **IA ennemie** (Les Contractuels)
-5. **Animations** : pose sur grille, kill, score popup
+1. **Migrer la grille** de 4×4 à 3×3 (scripts + scène)
+2. **Implémenter le système de motifs** : banque ScriptableObject, tirage aléatoire, scoring à la pose, logique premier arrivé premier servi
+3. **Réécrire le système de combat** : kills instantanés, 6 tours max, mana croissant, cartes Déplacement/Repioche
+4. **Adapter les CardData ScriptableObjects** à la nouvelle anatomie (supprimer ATK/HP)
+5. **Redesigner les decks** Programme R et Les Éternels
+6. **IA ennemie** (Les Contractuels) — priorité cases complétant un motif ou bloquant le joueur
+7. **Animations** : pose sur grille, kill, score popup, motif complété
 
 ### 📌 Post-prototype
 

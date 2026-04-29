@@ -3,25 +3,25 @@ using System;
 namespace RoguelikeTCG.Data
 {
     /// <summary>
-    /// Keyword unique d'une unité dans le nouveau système grille 4×4.
+    /// Keyword unique d'une unité dans le système grille 3×3.
     /// </summary>
     public enum UnitKeyword
     {
         Aucun       = 0,
         Hâte        = 1,  // CD fixe à 1 (le CardData.countdown doit être 1)
-        Blindage    = 2,  // -1 dmg reçu de toutes sources
-        Épine       = 3,  // à la mort : X dmg aux unités ENNEMIES adjacentes
-        Explosion   = 4,  // à la mort : X dmg à TOUTES unités adjacentes (alliés compris)
-        Combo       = 5,  // si la pose complète une ligne/diagonale/carré → +1 pt bonus
+        Bouclier    = 2,  // survit à la première attaque reçue cette manche
+        Épine       = 3,  // à la mort : détruit une unité ennemie adjacente au choix
+        Explosion   = 4,  // à la mort : détruit toutes les unités adjacentes (alliées + ennemies)
+        Combo       = 5,  // si la pose complète un motif actif → +1 pt bonus
         Inspiration = 6,  // à la pose : pioche 1 carte
-        Légion      = 7,  // +1 ATK par unité alliée adjacente (calculé au moment de l'attaque)
-        Dominance   = 8,  // si vivante à la fin de la manche : +1 pt
+        Légion      = 7,  // CD -1 par unité alliée adjacente (minimum 1)
+        Dominance   = 8,  // si encore en vie en fin de manche : +1 pt
         Percée      = 9,  // si kill → attaque aussi la case derrière dans la même direction
-        Ralliement  = 10, // à la pose : +1 ATK à toutes les unités alliées adjacentes
+        Ralliement  = 10, // à la pose : -1 CD à toutes les unités alliées adjacentes
     }
 
     /// <summary>
-    /// Directions d'attaque d'une unité sur la grille 4×4.
+    /// Directions d'attaque d'une unité sur la grille 3×3.
     /// Flags combinables : une unité peut attaquer plusieurs directions.
     /// </summary>
     [Flags]
@@ -36,7 +36,7 @@ namespace RoguelikeTCG.Data
 
     // ── Conservés de l'ancien système ────────────────────────────────────────
 
-    public enum CardType { Unit, Spell }
+    public enum CardType { Unit, Spell, Utility }
 
     public enum CardRarity { Common, Uncommon, Rare, Epic, Legendary }
 
@@ -52,13 +52,15 @@ namespace RoguelikeTCG.Data
 
     public enum EffectType
     {
-        Damage,
-        Heal,
-        BuffAttack,
-        BuffHP,
-        DrawCard,
-        Shield,
-        ApplyPoison,
-        SlowUnit,
+        Damage,          // dégâts au héros cible, ou kill instantané si cible = unité
+        Heal,            // soins au héros joueur uniquement
+        DrawCard,        // pioche X cartes
+        ReduceCountdown, // réduit le CD d'une unité de X (min 1)
+        DestroyUnit,     // détruit instantanément une unité ciblée
+        BuffAttack,      // obsolète — conservé pour compatibilité sérialisation
+        BuffHP,          // obsolète — conservé pour compatibilité sérialisation
+        Shield,          // obsolète — conservé pour compatibilité sérialisation
+        ApplyPoison,     // obsolète — conservé pour compatibilité sérialisation
+        SlowUnit,        // obsolète — conservé pour compatibilité sérialisation
     }
 }

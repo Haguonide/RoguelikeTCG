@@ -545,8 +545,8 @@ namespace RoguelikeTCG.Combat
                     0.03f, 0.04f, 0.97f, 0.22f, 10f, FontStyles.Bold, TextAlignmentOptions.Center);
                 statsTMP.enableWordWrapping = false;
                 statsTMP.richText = true;
-                statsTMP.text = $"<color=#{ColorUtility.ToHtmlStringRGB(ColAtk)}>⚔ {card.CurrentAttack}</color>" +
-                                $"  <color=#{ColorUtility.ToHtmlStringRGB(ColHP)}>❤ {card.currentHP}</color>";
+                string kwLabel = card.data.keyword != UnitKeyword.Aucun ? $"  [{card.data.keyword}]" : "";
+                statsTMP.text = $"CD {card.currentCountdown}{kwLabel}";
             }
             else
             {

@@ -9,7 +9,7 @@ using RoguelikeTCG.UI;
 namespace RoguelikeTCG.Combat
 {
     /// <summary>
-    /// Représentation visuelle d'une case de la grille 4×4.
+    /// Représentation visuelle d'une case de la grille 3x3.
     /// Forwarde les clics au CardSelector.
     /// Affiche l'unité présente, son CD, et les flèches d'attaque.
     /// </summary>
@@ -56,7 +56,7 @@ namespace RoguelikeTCG.Combat
             Color bg = unit.isPlayerCard ? ColorPlayerUnit : ColorEnemyUnit;
             SetBackground(bg);
 
-            string stats   = $"{unit.CurrentAttack}/{unit.currentHP}";
+            string stats   = $"CD {unit.currentCountdown}";
             string kw      = unit.data.keyword != UnitKeyword.Aucun
                            ? unit.data.keyword.ToString()
                            : "";

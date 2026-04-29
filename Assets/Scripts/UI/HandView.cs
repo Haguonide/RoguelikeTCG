@@ -74,9 +74,7 @@ namespace RoguelikeTCG.UI
             return rts;
         }
 
-        public void RefreshHand(List<CardInstance> hand,
-            CardData bricolageCardData = null,
-            int gearCount = 0, int gearATK = 0, int gearHP = 0)
+        public void RefreshHand(List<CardInstance> hand)
         {
             foreach (var cv in cardViews)
                 if (cv != null) Destroy(cv.gameObject);
@@ -84,28 +82,19 @@ namespace RoguelikeTCG.UI
 
             if (_bricolageGO != null) { Destroy(_bricolageGO); _bricolageGO = null; }
 
-            bool hasBricolage  = bricolageCardData != null && CombatManager.Instance?.IsDeVinciRun() == true;
-            int  regularCount  = hand?.Count ?? 0;
-            int  totalCount    = regularCount + (hasBricolage ? 1 : 0);
-            if (totalCount == 0) return;
+            int count = hand?.Count ?? 0;
+            if (count == 0) return;
 
             float cardW = 160f, cardH = 240f, spacing = cardSpacing;
-            float totalW = totalCount * cardW + (totalCount - 1) * spacing;
+            float totalW = count * cardW + (count - 1) * spacing;
             float startX = -totalW / 2f + cardW / 2f;
 
-            for (int i = 0; i < regularCount; i++)
+            for (int i = 0; i < count; i++)
             {
                 var go = BuildCard(hand[i], i);
                 go.transform.SetParent(transform, false);
-                ApplyArcTransform(go, i, totalCount, startX, cardW, cardH, spacing);
+                ApplyArcTransform(go, i, count, startX, cardW, cardH, spacing);
                 cardViews.Add(go.GetComponent<CardView>());
-            }
-
-            if (hasBricolage)
-            {
-                _bricolageGO = BuildBricolageCard(bricolageCardData, gearCount, gearATK, gearHP);
-                _bricolageGO.transform.SetParent(transform, false);
-                ApplyArcTransform(_bricolageGO, regularCount, totalCount, startX, cardW, cardH, spacing);
             }
         }
 

@@ -47,27 +47,15 @@ namespace RoguelikeTCG.Combat
         public List<RelicData> relicRewardPool;
         private const int      RewardCount = 3;
 
-        [Header("Bricolage (De Vinci)")]
-        public CardData bricolageCardData;
-
         // ── État joueur ───────────────────────────────────────────────────────
         public int playerHP;
         public int playerMaxHP;
-
-        // ── État Bricolage ────────────────────────────────────────────────────
-        private int _bricolageDeadCount = 0;
-        private int _bricolageDeadATK   = 0;
-        public int  BricolageDeadCount  => _bricolageDeadCount;
-        public bool CanUseBricolage     => _bricolageDeadCount >= 2 && IsDeVinciRun();
-
-        // ── État Contamination (Marie Curie) ──────────────────────────────────
-        // Stacks de poison sur le héros ennemi (si aucune unité ennemie disponible)
-        private int _enemyHeroPoisonStacks = 0;
 
         // ── Interne ───────────────────────────────────────────────────────────
         private bool _gameOver;
         private int  _lastGoldEarned;
         private GridCellUI[] _allCells;
+        private bool _playerPlayedUnitThisTurn;
 
         // ─────────────────────────────────────────────────────────────────────
         // LIFECYCLE
@@ -101,10 +89,8 @@ namespace RoguelikeTCG.Combat
         private void InitializeCombat()
         {
             SessionLogger.Instance?.StartSession();
-            _gameOver            = false;
-            _bricolageDeadCount  = 0;
-            _bricolageDeadATK    = 0;
-            _enemyHeroPoisonStacks = 0;
+            _gameOver = false;
+            _playerPlayedUnitThisTurn = false;
 
             var persistence = RunPersistence.Instance;
             if (persistence?.SelectedCharacter != null)
@@ -124,7 +110,7 @@ namespace RoguelikeTCG.Combat
             }
             else
             {
-                playerMaxHP = playerCharacter?.maxHP ?? 80;
+                playerMaxHP = persistence?.PlayerMaxHP ?? 80;
                 playerHP    = playerMaxHP;
             }
 
@@ -151,6 +137,9 @@ namespace RoguelikeTCG.Combat
             // Mana
             manaManager.Initialize();
 
+            // Motifs de scoring — tirage unique pour tout le combat
+            gridManager.patternManager?.DrawPatterns();
+
             // IA
             enemyAI.Initialize(enemyDeck, gridManager, manaManager);
 
@@ -174,9 +163,7 @@ namespace RoguelikeTCG.Combat
             gridManager.ResetRoundTracking();
             manaManager.ResetForNewRound();
             turnManager.ResetRound();
-
-            _bricolageDeadCount = 0;
-            _bricolageDeadATK   = 0;
+            _playerPlayedUnitThisTurn = false;
 
             if (playerFirst)
                 StartPlayerTurn();
@@ -197,6 +184,8 @@ namespace RoguelikeTCG.Combat
             if (bonusMana > 0) manaManager.AddBonus(bonusMana);
 
             turnManager.StartPlayerTurn();
+            _playerPlayedUnitThisTurn = false;
+
             int extraDraw = RelicManager.Instance?.GetExtraDrawPerTurn() ?? 0;
             int prevCount = playerDeck.Hand.Count;
             playerDeck.DrawCards(playerDeck.drawPerTurn + extraDraw);
@@ -206,7 +195,7 @@ namespace RoguelikeTCG.Combat
             if (drawn > 0 && combatAnimator != null && endTurnButtonRT != null && handView != null)
                 StartCoroutine(combatAnimator.PlayDrawCardsAnim(
                     playerDeck.Hand, drawn,
-                    playerDeck.Hand.Count + (IsDeVinciRun() ? 1 : 0),
+                    playerDeck.Hand.Count,
                     endTurnButtonRT, handView));
 
             Log($"--- Votre tour ({TurnManager.TURNS_PER_ROUND - turnManager.PlayerTurnsLeft + 1}/{TurnManager.TURNS_PER_ROUND}) ---");
@@ -231,13 +220,6 @@ namespace RoguelikeTCG.Combat
             // Tick countdowns + attaques
             yield return StartCoroutine(ProcessAttacks());
             if (_gameOver) yield break;
-
-            // Scoring joueur (pose de carte déjà faite pendant le tour)
-            int ptsEarned = gridManager.CheckAndScorePlayer();
-            if (ptsEarned > 0) Log($"  Score joueur +{ptsEarned} pts ! Total manche : {gridManager.PlayerRoundScore}");
-
-            // Poison tour ennemi (héros)
-            TickEnemyHeroPoison();
 
             RefreshAllUI();
 
@@ -270,13 +252,6 @@ namespace RoguelikeTCG.Combat
             // Tick countdowns + attaques
             yield return StartCoroutine(ProcessAttacks());
             if (_gameOver) yield break;
-
-            // Scoring ennemi
-            int ptsEarned = gridManager.CheckAndScoreEnemy();
-            if (ptsEarned > 0) Log($"  Score ennemi +{ptsEarned} pts ! Total manche : {gridManager.EnemyRoundScore}");
-
-            // Poison stacks sur unités joueur (déposés pendant le tour ennemi)
-            TickPlayerUnitsPoison();
 
             turnManager.EndEnemyTurn();
             RefreshAllUI();
@@ -327,77 +302,71 @@ namespace RoguelikeTCG.Combat
             var dirs = attacker.data.attackDirections;
             var targets = gridManager.GetAttackTargets(row, col, dirs);
 
-            bool killedAny = false;
-
             foreach (var (tr, tc) in new List<(int, int)>(targets))
             {
                 var defender = gridManager.GetUnit(tr, tc);
                 if (defender == null) continue;
-                if (defender.isPlayerCard == attacker.isPlayerCard) continue; // ignore alliés
+                if (defender.isPlayerCard == attacker.isPlayerCard) continue;
 
-                // Calcul des dégâts
-                int dmg = attacker.CurrentAttack;
-                if (defender.data.keyword == UnitKeyword.Blindage)
-                    dmg = Mathf.Max(0, dmg - 1);
-
-                // Animation
-                var attackerCell  = GetCellUI(row, col);
-                var defenderCell  = GetCellUI(tr, tc);
-                if (combatAnimator != null && attackerCell != null)
-                    yield return StartCoroutine(
-                        combatAnimator.PlayAttackAnimGrid(attackerCell, defenderCell, dmg));
-
-                bool defenderDied = ApplyDamageToUnit(defender, attacker, dmg, tr, tc);
-                if (defenderDied)
+                // Bouclier : absorbe la première attaque
+                if (defender.data.keyword == UnitKeyword.Bouclier && defender.hasShield)
                 {
-                    killedAny = true;
-                    // Score kill
-                    if (attacker.isPlayerCard)
-                    {
-                        gridManager.PlayerRoundScore++;
-                        Log($"  Kill ! Score joueur +1 ({gridManager.PlayerRoundScore} pts)");
-                    }
-                    else
-                    {
-                        gridManager.EnemyRoundScore++;
-                        Log($"  Kill ! Score ennemi +1 ({gridManager.EnemyRoundScore} pts)");
-                    }
-
-                    // Percée : attaque la case derrière dans chaque direction
-                    if (attacker.data.keyword == UnitKeyword.Percée && attacker.IsAlive)
-                    {
-                        yield return StartCoroutine(ApplyPercée(attacker, tr, tc, dirs));
-                    }
+                    defender.hasShield = false;
+                    Log($"  [Bouclier] {defender.data.cardName} absorbe l'attaque !");
+                    continue;
                 }
 
-                // Légion : +1 ATK par unité alliée adjacente (déjà intégré dans CurrentAttack via bonusAttack — pas ici)
-                // Note : Légion est calculé dynamiquement au moment de l'attaque dans ApplyDamageToUnit
+                var attackerCell = GetCellUI(row, col);
+                var defenderCell = GetCellUI(tr, tc);
+                if (combatAnimator != null && attackerCell != null)
+                    yield return StartCoroutine(
+                        combatAnimator.PlayAttackAnimGrid(attackerCell, defenderCell, 1));
+
+                bool killed = InstantKillUnit(defender, tr, tc, attacker.isPlayerCard);
+
+                if (killed && attacker.data.keyword == UnitKeyword.Percée && attacker.IsAlive)
+                {
+                    foreach (AttackDirection dir in new[] {
+                        AttackDirection.Up, AttackDirection.Down,
+                        AttackDirection.Left, AttackDirection.Right })
+                    {
+                        if ((dirs & dir) == 0) continue;
+                        var (nr, nc) = ScoringSystem.GetCellInDirection(tr, tc, dir);
+                        if (nr < 0) continue;
+                        var behind = gridManager.GetUnit(nr, nc);
+                        if (behind == null || behind.isPlayerCard == attacker.isPlayerCard) continue;
+                        Log($"  [Percée] {attacker.data.cardName} enchaîne sur {behind.data.cardName}");
+                        InstantKillUnit(behind, nr, nc, attacker.isPlayerCard);
+                    }
+                    yield return null;
+                }
             }
 
             RefreshAllUI();
-
             if (_gameOver) yield break;
-
-            // Check victoire/défaite après chaque attaque
-            if (playerHP <= 0) { OnDefeat(); yield break; }
-            if (enemyCurrentHP <= 0) { OnVictory(); yield break; }
+            if (playerHP <= 0)        { OnDefeat();  yield break; }
+            if (enemyCurrentHP <= 0)  { OnVictory(); yield break; }
         }
 
-        private bool ApplyDamageToUnit(CardInstance defender, CardInstance attacker, int dmg, int dr, int dc)
+        private bool InstantKillUnit(CardInstance unit, int row, int col, bool killedByPlayer)
         {
-            defender.currentHP -= dmg;
-            Log($"  {attacker.data.cardName} attaque {defender.data.cardName} : {dmg} dmg → {defender.currentHP} HP");
+            Log($"  {unit.data.cardName} est détruit !");
+            TriggerOnDeathKeyword(unit, row, col);
+            gridManager.RemoveUnit(row, col);
+            SendToDiscard(unit);
 
-            if (defender.IsAlive) return false;
+            if (killedByPlayer)
+            {
+                gridManager.PlayerRoundScore++;
+                Log($"  Kill ! Score joueur +1 ({gridManager.PlayerRoundScore} pts)");
+            }
+            else
+            {
+                gridManager.EnemyRoundScore++;
+                Log($"  Kill ! Score ennemi +1 ({gridManager.EnemyRoundScore} pts)");
+            }
 
-            // Mort du defender
-            TriggerOnDeathKeyword(defender, dr, dc);
-            gridManager.RemoveUnit(dr, dc);
-            SendToDiscard(defender);
-            Log($"  {defender.data.cardName} est détruit !");
-
-            // Animation mort
-            var cell = GetCellUI(dr, dc);
+            var cell = GetCellUI(row, col);
             if (combatAnimator != null && cell != null)
                 StartCoroutine(combatAnimator.PlayDeathAnimGrid(cell));
 
@@ -405,79 +374,41 @@ namespace RoguelikeTCG.Combat
             return true;
         }
 
-        private IEnumerator ApplyPercée(CardInstance attacker, int killedRow, int killedCol,
-                                         AttackDirection dirs)
-        {
-            // Pour chaque direction qui a tué, attaque la case derrière
-            foreach (AttackDirection dir in new[] {
-                AttackDirection.Up, AttackDirection.Down,
-                AttackDirection.Left, AttackDirection.Right })
-            {
-                if ((dirs & dir) == 0) continue;
-
-                var (nr, nc) = ScoringSystem.GetCellInDirection(killedRow, killedCol, dir);
-                if (nr < 0) continue;
-
-                var behind = gridManager.GetUnit(nr, nc);
-                if (behind == null || behind.isPlayerCard == attacker.isPlayerCard) continue;
-
-                int dmg = attacker.CurrentAttack;
-                if (behind.data.keyword == UnitKeyword.Blindage)
-                    dmg = Mathf.Max(0, dmg - 1);
-
-                Log($"  [Percée] {attacker.data.cardName} attaque {behind.data.cardName} en ({nr},{nc}) : {dmg} dmg");
-                ApplyDamageToUnit(behind, attacker, dmg, nr, nc);
-            }
-            yield return null;
-        }
-
         private void TriggerOnDeathKeyword(CardInstance dead, int dr, int dc)
         {
-            // Bricolage tracking pour De Vinci
-            if (dead.isPlayerCard && IsDeVinciRun())
-            {
-                _bricolageDeadCount++;
-                _bricolageDeadATK += dead.data.attackPower;
-            }
-
             switch (dead.data.keyword)
             {
                 case UnitKeyword.Épine:
                 {
-                    // X dmg aux unités ENNEMIES adjacentes (orthogonales)
-                    var neighbors = ScoringSystem.GetOrthogonalNeighbors(dr, dc);
-                    foreach (var (nr, nc) in neighbors)
+                    // Détruit une unité ennemie adjacente (la première trouvée)
+                    foreach (var (nr, nc) in ScoringSystem.GetOrthogonalNeighbors(dr, dc))
                     {
                         var adj = gridManager.GetUnit(nr, nc);
                         if (adj == null || adj.isPlayerCard == dead.isPlayerCard) continue;
-                        adj.currentHP -= dead.data.keywordValue;
-                        Log($"  [Épine] {dead.data.cardName} : {dead.data.keywordValue} dmg à {adj.data.cardName} ({adj.currentHP} HP)");
-                        if (!adj.IsAlive)
-                        {
-                            TriggerOnDeathKeyword(adj, adj.gridRow, adj.gridCol);
-                            gridManager.RemoveUnit(adj.gridRow, adj.gridCol);
-                            SendToDiscard(adj);
-                        }
+                        Log($"  [Épine] {dead.data.cardName} détruit {adj.data.cardName}");
+                        TriggerOnDeathKeyword(adj, nr, nc);
+                        gridManager.RemoveUnit(nr, nc);
+                        SendToDiscard(adj);
+                        if (dead.isPlayerCard) gridManager.PlayerRoundScore++;
+                        else                   gridManager.EnemyRoundScore++;
+                        break;
                     }
                     break;
                 }
 
                 case UnitKeyword.Explosion:
                 {
-                    // X dmg à TOUTES les unités adjacentes (alliés compris)
-                    var allNeighbors = ScoringSystem.GetAllNeighbors(dr, dc);
-                    foreach (var (nr, nc) in allNeighbors)
+                    // Détruit toutes les unités adjacentes (alliées + ennemies)
+                    foreach (var (nr, nc) in ScoringSystem.GetAllNeighbors(dr, dc))
                     {
                         var adj = gridManager.GetUnit(nr, nc);
                         if (adj == null) continue;
-                        adj.currentHP -= dead.data.keywordValue;
-                        Log($"  [Explosion] {dead.data.cardName} : {dead.data.keywordValue} dmg à {adj.data.cardName} ({adj.currentHP} HP)");
-                        if (!adj.IsAlive)
-                        {
-                            TriggerOnDeathKeyword(adj, adj.gridRow, adj.gridCol);
-                            gridManager.RemoveUnit(adj.gridRow, adj.gridCol);
-                            SendToDiscard(adj);
-                        }
+                        Log($"  [Explosion] {dead.data.cardName} détruit {adj.data.cardName}");
+                        TriggerOnDeathKeyword(adj, nr, nc);
+                        gridManager.RemoveUnit(nr, nc);
+                        SendToDiscard(adj);
+                        if (dead.isPlayerCard) gridManager.PlayerRoundScore++;
+                        else                   gridManager.EnemyRoundScore++;
                     }
                     break;
                 }
@@ -492,21 +423,22 @@ namespace RoguelikeTCG.Combat
         {
             if (!CanPlay()) return false;
             if (!card.IsUnit) return false;
+            if (_playerPlayedUnitThisTurn) return false;
             if (!gridManager.IsEmpty(row, col)) return false;
             if (!manaManager.CanAfford(card.data.manaCost)) return false;
 
             manaManager.Spend(card.data.manaCost);
             gridManager.PlaceUnit(card, row, col);
             playerDeck.RemoveFromHand(card);
+            _playerPlayedUnitThisTurn = true;
 
-            Log($"> Vous posez {card.data.cardName} en ({row},{col}) " +
-                $"({card.CurrentAttack}/{card.currentHP} CD:{card.currentCountdown})");
+            Log($"> Vous posez {card.data.cardName} en ({row},{col}) CD:{card.currentCountdown}");
 
             TriggerOnPlaceKeyword(card, row, col, isPlayer: true);
 
-            // Score immédiat si combo complété
-            int pts = gridManager.CheckAndScorePlayer();
-            if (pts > 0) Log($"  Combo ! +{pts} pts (total manche : {gridManager.PlayerRoundScore})");
+            // Score immédiat si motif complété (scoring à la pose)
+            int pts = gridManager.CheckAndScorePlayer(row, col);
+            if (pts > 0) Log($"  Motif complété ! +{pts} pts (total manche : {gridManager.PlayerRoundScore})");
 
             // Keyword Combo : +1 pt bonus si la pose complète une ligne/diag/carré
             if (card.data.keyword == UnitKeyword.Combo && pts > 0)
@@ -527,7 +459,6 @@ namespace RoguelikeTCG.Combat
             manaManager.Spend(card.data.manaCost);
             Log($"> Vous lancez {card.data.cardName} sur {(isPlayerHero ? "votre héros" : "le héros ennemi")}");
             ApplyAllEffects(card, -1, -1, isPlayerHero);
-            if (IsCurieRun()) ApplyContamination();
             playerDeck.PlayCard(card);
             AudioManager.Instance.PlaySFX("sfx_spell_cast");
             RefreshAllUI();
@@ -543,7 +474,6 @@ namespace RoguelikeTCG.Combat
             manaManager.Spend(card.data.manaCost);
             Log($"> Vous lancez {card.data.cardName} sur {target.data.cardName}");
             ApplyAllEffects(card, row, col, false);
-            if (IsCurieRun()) ApplyContamination();
             playerDeck.PlayCard(card);
             AudioManager.Instance.PlaySFX("sfx_spell_cast");
             RefreshAllUI();
@@ -557,32 +487,10 @@ namespace RoguelikeTCG.Combat
             manaManager.Spend(card.data.manaCost);
             Log($"> Vous lancez {card.data.cardName} — AoE !");
             ApplyAllEffects(card, -1, -1, false);
-            if (IsCurieRun()) ApplyContamination();
             playerDeck.PlayCard(card);
-            AudioManager.Instance.PlaySFX("sfx_spell_aoe");
+            AudioManager.Instance.PlaySFX("sfx_spell_cast");
             RefreshAllUI();
             return true;
-        }
-
-        public void TryPlayBricolage(int row, int col)
-        {
-            if (!CanPlay()) return;
-            if (!CanUseBricolage) return;
-            if (!gridManager.IsEmpty(row, col)) return;
-
-            int atk = Mathf.CeilToInt(_bricolageDeadATK / 2f);
-            var auto = new CardInstance(bricolageCardData, isPlayerCard: true);
-            auto.bonusAttack      = atk - bricolageCardData.attackPower;
-            auto.currentHP        = 2;
-            auto.currentCountdown = 2;
-
-            gridManager.PlaceUnit(auto, row, col);
-            _bricolageDeadCount = 0;
-            _bricolageDeadATK   = 0;
-
-            Log($"> Bricolage ! Automate de Fortune ({auto.CurrentAttack}/2 CD:2) en ({row},{col})");
-            AudioManager.Instance.PlaySFX("sfx_card_place");
-            RefreshAllUI();
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -599,8 +507,8 @@ namespace RoguelikeTCG.Combat
 
             TriggerOnPlaceKeyword(card, row, col, isPlayer: false);
 
-            int ptsEnemy = gridManager.CheckAndScoreEnemy();
-            if (ptsEnemy > 0) Log($"  Score ennemi +{ptsEnemy} pts (combo)");
+            int ptsEnemy = gridManager.CheckAndScoreEnemy(row, col);
+            if (ptsEnemy > 0) Log($"  Score ennemi +{ptsEnemy} pts (motif)");
 
             RefreshAllUI();
         }
@@ -641,34 +549,34 @@ namespace RoguelikeTCG.Combat
                     }
                     break;
 
+                case UnitKeyword.Bouclier:
+                    unit.hasShield = true;
+                    Log($"  [Bouclier] {unit.data.cardName} protégé pour la première attaque");
+                    break;
+
                 case UnitKeyword.Légion:
-                    // Calculé dynamiquement au moment de l'attaque (bonus ATK = nombre d'alliés adjacents)
-                    // On applique en tant que bonusAttack au moment de la pose pour simplifier
                 {
                     int allies = CountAdjacentAllies(r, c, isPlayer);
                     if (allies > 0)
                     {
-                        unit.bonusAttack += allies;
-                        Log($"  [Légion] {unit.data.cardName} : +{allies} ATK ({unit.CurrentAttack} ATK)");
+                        unit.currentCountdown = System.Math.Max(1, unit.currentCountdown - allies);
+                        Log($"  [Légion] {unit.data.cardName} : CD réduit à {unit.currentCountdown}");
                     }
                     break;
                 }
 
                 case UnitKeyword.Ralliement:
                 {
-                    var allies = gridManager.GetAllUnits(isPlayer);
-                    foreach (var a in allies)
+                    foreach (var a in gridManager.GetAllUnits(isPlayer))
                     {
                         if (a == unit) continue;
-                        var (ar, ac) = (a.gridRow, a.gridCol);
-                        var neighbors = ScoringSystem.GetOrthogonalNeighbors(r, c);
                         bool isAdjacent = false;
-                        foreach (var (nr, nc) in neighbors)
-                            if (nr == ar && nc == ac) { isAdjacent = true; break; }
+                        foreach (var (nr, nc) in ScoringSystem.GetOrthogonalNeighbors(r, c))
+                            if (nr == a.gridRow && nc == a.gridCol) { isAdjacent = true; break; }
                         if (isAdjacent)
                         {
-                            a.bonusAttack++;
-                            Log($"  [Ralliement] {a.data.cardName} +1 ATK ({a.CurrentAttack} ATK)");
+                            a.currentCountdown = System.Math.Max(1, a.currentCountdown - 1);
+                            Log($"  [Ralliement] {a.data.cardName} CD réduit à {a.currentCountdown}");
                         }
                     }
                     break;
@@ -685,54 +593,6 @@ namespace RoguelikeTCG.Combat
                 if (u != null && u.isPlayerCard == isPlayer) count++;
             }
             return count;
-        }
-
-        // ─────────────────────────────────────────────────────────────────────
-        // POISON
-        // ─────────────────────────────────────────────────────────────────────
-
-        private void TickEnemyHeroPoison()
-        {
-            if (_enemyHeroPoisonStacks <= 0) return;
-            DamageEnemy(_enemyHeroPoisonStacks);
-            Log($"  Poison héros ennemi : {_enemyHeroPoisonStacks} dmg ({enemyCurrentHP}/{enemyMaxHP})");
-        }
-
-        private void TickPlayerUnitsPoison()
-        {
-            var units = gridManager.GetAllUnits(isPlayer: true);
-            foreach (var unit in new List<CardInstance>(units))
-            {
-                if (unit.poisonStacks <= 0) continue;
-                unit.currentHP -= unit.poisonStacks;
-                Log($"  Poison : {unit.data.cardName} subit {unit.poisonStacks} dmg ({unit.currentHP} HP)");
-                if (!unit.IsAlive)
-                {
-                    TriggerOnDeathKeyword(unit, unit.gridRow, unit.gridCol);
-                    gridManager.RemoveUnit(unit);
-                    SendToDiscard(unit);
-                }
-            }
-        }
-
-        // ─────────────────────────────────────────────────────────────────────
-        // CONTAMINATION (Curie)
-        // ─────────────────────────────────────────────────────────────────────
-
-        private void ApplyContamination()
-        {
-            var enemies = gridManager.GetAllUnits(isPlayer: false);
-            if (enemies.Count > 0)
-            {
-                var target = enemies[Random.Range(0, enemies.Count)];
-                target.poisonStacks++;
-                Log($"  [Contamination] 1 poison sur {target.data.cardName} ({target.poisonStacks} stacks)");
-            }
-            else
-            {
-                _enemyHeroPoisonStacks++;
-                Log($"  [Contamination] 1 poison sur le héros ennemi ({_enemyHeroPoisonStacks} stacks)");
-            }
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -909,41 +769,14 @@ namespace RoguelikeTCG.Combat
 
             switch (eff.effectType)
             {
+                case EffectType.DestroyUnit:
                 case EffectType.Damage:
-                {
-                    int dmg = eff.value;
-                    target.currentHP -= dmg;
-                    if (cellRT != null && dmg > 0) DamagePopup.ShowDamage(cellRT, dmg);
-                    Log($"  {eff.value} dmg à {target.data.cardName} ({target.currentHP} HP)");
-                    if (!target.IsAlive)
-                    {
-                        TriggerOnDeathKeyword(target, tr, tc);
-                        gridManager.RemoveUnit(tr, tc);
-                        SendToDiscard(target);
-                        Log($"  {target.data.cardName} est détruit !");
-                    }
+                    Log($"  Sort : {target.data.cardName} détruit !");
+                    InstantKillUnit(target, tr, tc, playerCasting);
                     break;
-                }
-                case EffectType.Heal:
-                {
-                    int healed = Mathf.Min(target.data.maxHP - target.currentHP, eff.value);
-                    target.currentHP += healed;
-                    if (cellRT != null && healed > 0) DamagePopup.ShowHeal(cellRT, healed);
-                    Log($"  {target.data.cardName} récupère {healed} HP ({target.currentHP}/{target.data.maxHP})");
-                    break;
-                }
-                case EffectType.BuffAttack:
-                    target.bonusAttack += eff.value;
-                    Log($"  {target.data.cardName} {(eff.value >= 0 ? $"+{eff.value}" : $"{eff.value}")} ATK ({target.CurrentAttack} ATK)");
-                    break;
-                case EffectType.BuffHP:
-                    target.data.maxHP += eff.value;
-                    target.currentHP  += eff.value;
-                    Log($"  {target.data.cardName} +{eff.value} HP max");
-                    break;
-                case EffectType.ApplyPoison:
-                    target.poisonStacks += eff.value;
-                    Log($"  {target.data.cardName} empoisonné ({target.poisonStacks} stacks)");
+                case EffectType.ReduceCountdown:
+                    target.currentCountdown = System.Math.Max(1, target.currentCountdown - eff.value);
+                    Log($"  {target.data.cardName} CD réduit à {target.currentCountdown}");
                     break;
             }
         }
@@ -1017,9 +850,7 @@ namespace RoguelikeTCG.Combat
             }
 
             if (handView != null)
-                handView.RefreshHand(playerDeck.Hand,
-                    IsDeVinciRun() ? bricolageCardData : null,
-                    _bricolageDeadCount);
+                handView.RefreshHand(playerDeck.Hand);
 
             if (_allCells != null)
                 foreach (var cell in _allCells)
@@ -1046,9 +877,6 @@ namespace RoguelikeTCG.Combat
             if (!manaManager.CanAfford(card.data.manaCost)) return false;
             return true;
         }
-
-        public bool IsDeVinciRun() => playerCharacter?.characterName == "Léonard de Vinci";
-        public bool IsCurieRun()   => playerCharacter?.characterName == "Marie Curie";
 
         private GridCellUI GetCellUI(int row, int col)
         {

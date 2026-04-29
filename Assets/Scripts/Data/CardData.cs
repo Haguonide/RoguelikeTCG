@@ -16,13 +16,9 @@ namespace RoguelikeTCG.Data
         [Header("Cost")]
         public int manaCost;
 
-        [Header("Unit Stats (Unit only)")]
-        public int attackPower;
-        public int maxHP;
-
-        [Header("Unit — Grille 4x4")]
-        [Tooltip("Valeur initiale du countdown (1-4). À 0 l'unité attaque puis revient à cette valeur.")]
-        [Range(1, 4)]
+        [Header("Unit — Grille 3x3")]
+        [Tooltip("Valeur initiale du countdown (1-3). À 0 l'unité attaque puis revient à cette valeur.")]
+        [Range(1, 3)]
         public int countdown = 2;
         [EnumFlags]
         [Tooltip("Directions attaquées (flags combinables : Up, Down, Left, Right)")]
