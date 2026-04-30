@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: dbdf6f86257524940b9bf56ec9f8a0be
+guid: 271a3efdb2f3944458847e47257d990e
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -116,10 +116,10 @@ TextureImporter:
       name: icon_cd_0
       rect:
         serializedVersion: 2
-        x: 56
-        y: 55
-        width: 283
-        height: 282
+        x: 31
+        y: 25
+        width: 341
+        height: 349
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

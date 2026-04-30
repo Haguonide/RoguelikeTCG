@@ -12,12 +12,19 @@ namespace RoguelikeTCG.Cards
     public class CardView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("UI References")]
+        public TextMeshProUGUI manaCostText;
+        public TextMeshProUGUI cdText;
+        public Image artwork;
+        public Image rarityBorder;
+
+        [Header("HP Hearts (3 slots, index 0-2)")]
+        public Image[] heartImages;
+
+        [Header("Legacy — unused on CardPrefab, kept pour compatibilité")]
         public TextMeshProUGUI cardNameText;
         public TextMeshProUGUI descriptionText;
         public TextMeshProUGUI statsText;
-        public TextMeshProUGUI manaCostText;
-        public Image artwork;
-        public Image rarityBorder;
+        public TextMeshProUGUI keywordText;
 
         [Header("Zoom")]
         public GameObject zoomPanel;
@@ -49,17 +56,33 @@ namespace RoguelikeTCG.Cards
             if (cardInstance == null) return;
             var data = cardInstance.data;
 
-            if (cardNameText)  cardNameText.text  = data.cardName;
-            if (descriptionText) descriptionText.text = data.description;
             if (artwork && data.artwork) artwork.sprite = data.artwork;
-            if (manaCostText)  manaCostText.text  = data.cardType == CardType.Spell ? $"{data.manaCost}" : "";
+            if (manaCostText) manaCostText.text = $"{data.manaCost}";
+            if (cdText) cdText.text = $"{cardInstance.currentCountdown}";
 
-            if (statsText)
+            if (heartImages != null)
             {
-                statsText.text = data.cardType == CardType.Unit
-                    ? $"CD {cardInstance.currentCountdown}"
-                    : "";
+                for (int i = 0; i < heartImages.Length; i++)
+                {
+                    if (heartImages[i] == null) continue;
+                    bool withinMax = data.cardType == CardType.Unit && i < data.hp;
+                    heartImages[i].gameObject.SetActive(withinMax);
+                    if (withinMax)
+                        heartImages[i].color = i < cardInstance.currentHP
+                            ? Color.white
+                            : new Color(1f, 1f, 1f, 0.2f);
+                }
             }
+
+            // Legacy fields — null-safe, ignorés si non assignés dans le prefab
+            if (cardNameText)    cardNameText.text    = data.cardName;
+            if (descriptionText) descriptionText.text = data.description;
+            if (statsText)       statsText.text       = data.cardType == CardType.Unit
+                ? $"HP {cardInstance.currentHP}/{data.hp}  CD {cardInstance.currentCountdown}"
+                : "";
+            if (keywordText)     keywordText.text     = (data.cardType == CardType.Unit && data.keyword != UnitKeyword.Aucun)
+                ? data.keyword.ToString()
+                : "";
         }
 
         // Called by HandView after placing the card in the arc layout.

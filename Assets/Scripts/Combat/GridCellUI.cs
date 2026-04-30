@@ -56,10 +56,10 @@ namespace RoguelikeTCG.Combat
             Color bg = unit.isPlayerCard ? ColorPlayerUnit : ColorEnemyUnit;
             SetBackground(bg);
 
-            string stats   = $"CD {unit.currentCountdown}";
-            string kw      = unit.data.keyword != UnitKeyword.Aucun
-                           ? unit.data.keyword.ToString()
-                           : "";
+            string stats = $"HP {unit.currentHP}/{unit.data.hp}  CD {unit.currentCountdown}";
+            string kw    = unit.data.keyword != UnitKeyword.Aucun
+                         ? unit.data.keyword.ToString()
+                         : "";
             SetCardVisuals(true, unit.data.artwork, unit.data.cardName, stats,
                            unit.currentCountdown, unit.data.attackDirections, kw);
         }

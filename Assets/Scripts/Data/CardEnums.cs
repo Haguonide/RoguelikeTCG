@@ -9,9 +9,8 @@ namespace RoguelikeTCG.Data
     {
         Aucun       = 0,
         Hâte        = 1,  // CD fixe à 1 (le CardData.countdown doit être 1)
-        Bouclier    = 2,  // survit à la première attaque reçue cette manche
-        Épine       = 3,  // à la mort : détruit une unité ennemie adjacente au choix
-        Explosion   = 4,  // à la mort : détruit toutes les unités adjacentes (alliées + ennemies)
+        Épine       = 3,  // à la mort : inflige 1 dégât à l'unité attaquante (Rare+)
+        Explosion   = 4,  // à la mort : inflige 1 dégât à toutes les unités adjacentes (Rare+)
         Combo       = 5,  // si la pose complète un motif actif → +1 pt bonus
         Inspiration = 6,  // à la pose : pioche 1 carte
         Légion      = 7,  // CD -1 par unité alliée adjacente (minimum 1)
@@ -19,6 +18,10 @@ namespace RoguelikeTCG.Data
         Percée      = 9,  // si kill → attaque aussi la case derrière dans la même direction
         Ralliement  = 10, // à la pose : -1 CD à toutes les unités alliées adjacentes
     }
+
+    public enum PositionalCondition { None, Corner, Edge, Center }
+
+    public enum PositionalEffect { None, PlusOneATK, MinusOneCD, DrawCard, PlusOnePoint }
 
     /// <summary>
     /// Directions d'attaque d'une unité sur la grille 3×3.

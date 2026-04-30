@@ -131,7 +131,7 @@ namespace RoguelikeTCG.Combat
                 SetHighlight(false, Color.clear);
 
                 if (_playedCard == null)
-                    _playedCard = PlayedCardUI.CreateProgrammatic(transform, Occupant, HasPlayerUnit);
+                    _playedCard = PlayedCardUI.Create(transform, Occupant);
                 else
                     _playedCard.Refresh(Occupant);
 

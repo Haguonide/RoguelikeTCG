@@ -11,6 +11,9 @@ namespace RoguelikeTCG.UI
 {
     public class HandView : MonoBehaviour
     {
+        [Header("Card Prefab")]
+        [SerializeField] public GameObject cardPrefab;
+
         [Header("Hand Fan")]
         [SerializeField] private float maxRotation = 12f;
         [SerializeField] private float arcDepth    = 20f;
@@ -46,7 +49,7 @@ namespace RoguelikeTCG.UI
         public RectTransform[] InsertCardsInvisible(
             List<CardInstance> newCards, int existingCount, int totalFinalCount)
         {
-            float cardW = 160f, cardH = 240f, spacing = cardSpacing;
+            float cardW = 160f, cardH = 160f, spacing = cardSpacing;
             float totalW = totalFinalCount * cardW + (totalFinalCount - 1) * spacing;
             float startX = -totalW / 2f + cardW / 2f;
 
@@ -85,7 +88,7 @@ namespace RoguelikeTCG.UI
             int count = hand?.Count ?? 0;
             if (count == 0) return;
 
-            float cardW = 160f, cardH = 240f, spacing = cardSpacing;
+            float cardW = 160f, cardH = 160f, spacing = cardSpacing;
             float totalW = count * cardW + (count - 1) * spacing;
             float startX = -totalW / 2f + cardW / 2f;
 
@@ -126,66 +129,17 @@ namespace RoguelikeTCG.UI
 
         private GameObject BuildCard(CardInstance card, int index)
         {
-            bool isUnit = card.IsUnit;
-            var cfg = Resources.Load<CardTemplateConfig>("CardTemplateConfig");
+            var prefab = cardPrefab != null
+                ? cardPrefab
+                : Resources.Load<GameObject>("Prefabs/Cards/CardPrefab");
 
-            var go = new GameObject("HandCard_" + index, typeof(RectTransform));
-            var bgImage = go.AddComponent<Image>();
-            bgImage.sprite = cfg != null ? (isUnit ? cfg.unitBackground : cfg.spellBackground) : null;
-            bgImage.color  = Color.white;
+            var go = prefab != null
+                ? Instantiate(prefab)
+                : new GameObject("HandCard_" + index, typeof(RectTransform));
 
-            var illuGO  = MakeChild("Illustration", go);
-            SetAnchors(illuGO, 0f, 0f, 1f, 1f);
-            var illuImg = illuGO.GetComponent<Image>();
-            illuImg.color         = Color.white;
-            illuImg.raycastTarget = false;
+            go.name = "HandCard_" + index;
 
-            var frontGO  = MakeChild("Front", go);
-            SetAnchors(frontGO, 0f, 0f, 1f, 1f);
-            var frontImg = frontGO.GetComponent<Image>();
-            frontImg.sprite        = cfg != null ? (isUnit ? cfg.unitFront : cfg.spellFront) : null;
-            frontImg.color         = Color.white;
-            frontImg.raycastTarget = false;
-
-            var textsGO = new GameObject("Texts", typeof(RectTransform));
-            textsGO.transform.SetParent(go.transform, false);
-            SetAnchors(textsGO, 0f, 0f, 1f, 1f);
-
-            var nameTMP = MakeTMP("Name", textsGO,
-                0.05f, 0.84f, 0.95f, 0.97f, 8f, FontStyles.Bold, TextAlignmentOptions.Center);
-            nameTMP.enableWordWrapping = true;
-
-            TextMeshProUGUI statsTMP = null;
-            TextMeshProUGUI manaTMP  = null;
-            TextMeshProUGUI descTMP  = null;
-
-            if (isUnit)
-            {
-                statsTMP = MakeTMP("Stats", textsGO,
-                    0.03f, 0.04f, 0.97f, 0.22f, 10f, FontStyles.Bold, TextAlignmentOptions.Center);
-                statsTMP.enableWordWrapping = false;
-                statsTMP.richText = true;
-            }
-            else
-            {
-                manaTMP = MakeTMP("Mana", textsGO,
-                    0.03f, 0.20f, 0.97f, 0.34f, 9f, FontStyles.Bold, TextAlignmentOptions.Center);
-
-                if (!string.IsNullOrEmpty(card.data.description))
-                {
-                    descTMP = MakeTMP("Desc", textsGO,
-                        0.04f, 0.04f, 0.96f, 0.19f, 6f, FontStyles.Normal, TextAlignmentOptions.Center);
-                    descTMP.enableWordWrapping = true;
-                    descTMP.overflowMode = TextOverflowModes.Ellipsis;
-                }
-            }
-
-            var cv = go.AddComponent<CardView>();
-            cv.cardNameText    = nameTMP;
-            cv.statsText       = statsTMP;
-            cv.manaCostText    = manaTMP;
-            cv.descriptionText = descTMP;
-            cv.artwork         = illuImg;
+            var cv = go.GetComponent<CardView>() ?? go.AddComponent<CardView>();
             cv.Setup(card);
             return go;
         }

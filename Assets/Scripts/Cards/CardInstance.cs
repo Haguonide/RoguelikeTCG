@@ -14,8 +14,14 @@ namespace RoguelikeTCG.Cards
         // Countdown (décrémenté chaque fin de tour, attaque à 0)
         public int currentCountdown;
 
-        // Bouclier : absorbe la première attaque reçue cette manche
-        public bool hasShield = false;
+        // HP actuels (initialisés depuis data.hp)
+        public int currentHP;
+
+        // Boost ATK du passif positionnel (0 ou 1)
+        public int currentATKBoost;
+
+        // Passif positionnel actif ?
+        public bool positionalPassiveActive;
 
         public int manaCost => data.manaCost;
 
@@ -24,6 +30,14 @@ namespace RoguelikeTCG.Cards
             this.data             = data;
             this.isPlayerCard     = isPlayerCard;
             this.currentCountdown = data.countdown;
+            this.currentHP        = data.hp;
+        }
+
+        /// <summary>Applique des dégâts. Retourne true si l'unité meurt (HP <= 0).</summary>
+        public bool TakeDamage(int amount)
+        {
+            currentHP -= amount;
+            return currentHP <= 0;
         }
 
         public bool IsUnit   => data.cardType == CardType.Unit;

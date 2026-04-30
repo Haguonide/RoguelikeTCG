@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
+  m_Name: Deplacement
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
+  cardName: "Carte D\xE9placement"
+  description: "D\xE9place une unit\xE9 alli\xE9e vers une case adjacente vide. Reset son compte \xE0 rebours."
+  artwork: {fileID: 0}
+  cardType: 2
+  rarity: 0
+  manaCost: 1
+  countdown: 1
+  attackDirections: 0
+  keyword: 0
+  keywordValue: 0
+  spellTarget: 2
+  effects: []
+  upgradedVersion: {fileID: 0}

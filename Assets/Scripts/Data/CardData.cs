@@ -17,6 +17,8 @@ namespace RoguelikeTCG.Data
         public int manaCost;
 
         [Header("Unit — Grille 3x3")]
+        [Range(1, 3)]
+        public int hp = 1;
         [Tooltip("Valeur initiale du countdown (1-3). À 0 l'unité attaque puis revient à cette valeur.")]
         [Range(1, 3)]
         public int countdown = 2;
@@ -25,8 +27,10 @@ namespace RoguelikeTCG.Data
         public AttackDirection attackDirections = AttackDirection.Right;
         [Tooltip("Keyword unique de l'unité")]
         public UnitKeyword keyword = UnitKeyword.Aucun;
-        [Tooltip("Valeur numérique du keyword (ex: Épine=1 signifie 1 dégât à la mort)")]
-        public int keywordValue = 0;
+
+        [Header("Passif positionnel")]
+        public PositionalCondition positionalCondition = PositionalCondition.None;
+        public PositionalEffect    positionalEffect    = PositionalEffect.None;
 
         [Header("Spell Targeting & Effects (Spell only)")]
         public SpellTarget spellTarget;
