@@ -1,0 +1,1430 @@
+fileFormatVersion: 2
+guid: 58965184674235d4191fa3d2dfd927cb
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 9045639251854881875
+    second: dashed_square_black_0
+  - first:
+      213: -4254336606244163646
+    second: dashed_square_black_1
+  - first:
+      213: 385005805994788261
+    second: dashed_square_black_2
+  - first:
+      213: -6408321391120841863
+    second: dashed_square_black_3
+  - first:
+      213: -652843782158627971
+    second: dashed_square_black_4
+  - first:
+      213: 6526966955267665744
+    second: dashed_square_black_5
+  - first:
+      213: -6841351452179786686
+    second: dashed_square_black_6
+  - first:
+      213: 3827249575867121988
+    second: dashed_square_black_7
+  - first:
+      213: 774978106598800214
+    second: dashed_square_black_8
+  - first:
+      213: 4214984809550636971
+    second: dashed_square_black_9
+  - first:
+      213: -163710702876289022
+    second: dashed_square_black_10
+  - first:
+      213: -4196539766453594698
+    second: dashed_square_black_11
+  - first:
+      213: -4027103428528879142
+    second: dashed_square_black_12
+  - first:
+      213: 7613936513172764076
+    second: dashed_square_black_13
+  - first:
+      213: -5646081900351844219
+    second: dashed_square_black_14
+  - first:
+      213: 6884876414518848814
+    second: dashed_square_black_15
+  - first:
+      213: 1314365171358905881
+    second: dashed_square_black_16
+  - first:
+      213: 1783511440738797763
+    second: dashed_square_black_17
+  - first:
+      213: 7056686722168816968
+    second: dashed_square_black_18
+  - first:
+      213: -3674317344040310692
+    second: dashed_square_black_19
+  - first:
+      213: 3793549475470781361
+    second: dashed_square_black_20
+  - first:
+      213: 6846938209275969341
+    second: dashed_square_black_21
+  - first:
+      213: 3852522820231727517
+    second: dashed_square_black_22
+  - first:
+      213: 8820216812981240676
+    second: dashed_square_black_23
+  - first:
+      213: -829269572153234883
+    second: dashed_square_black_24
+  - first:
+      213: -6625280236184960126
+    second: dashed_square_black_25
+  - first:
+      213: 939382805618298110
+    second: dashed_square_black_26
+  - first:
+      213: 8408746983017382189
+    second: dashed_square_black_27
+  - first:
+      213: 2161849625147912008
+    second: dashed_square_black_28
+  - first:
+      213: 2687142282261813272
+    second: dashed_square_black_29
+  - first:
+      213: -9143654019378105995
+    second: dashed_square_black_30
+  - first:
+      213: 6449348311633251747
+    second: dashed_square_black_31
+  - first:
+      213: 5860069304354919015
+    second: dashed_square_black_32
+  - first:
+      213: 7891923767795209675
+    second: dashed_square_black_33
+  - first:
+      213: -7303501985294525384
+    second: dashed_square_black_34
+  - first:
+      213: -2577568442939947070
+    second: dashed_square_black_35
+  - first:
+      213: 3060011308969405030
+    second: dashed_square_black_36
+  - first:
+      213: -7313646952838262182
+    second: dashed_square_black_37
+  - first:
+      213: 1612193764792393865
+    second: dashed_square_black_38
+  - first:
+      213: 7609393420233200513
+    second: dashed_square_black_39
+  - first:
+      213: -6218049734085143488
+    second: dashed_square_black_40
+  - first:
+      213: -9149058881620248378
+    second: dashed_square_black_41
+  - first:
+      213: 4412518288643767473
+    second: dashed_square_black_42
+  - first:
+      213: 1473934564926575961
+    second: dashed_square_black_43
+  - first:
+      213: -1457281500165236373
+    second: dashed_square_black_44
+  - first:
+      213: -5772698529069714089
+    second: dashed_square_black_45
+  - first:
+      213: 8716459352147800526
+    second: dashed_square_black_46
+  - first:
+      213: -4283092324824628370
+    second: dashed_square_black_47
+  - first:
+      213: 6904875309380037917
+    second: dashed_square_black_48
+  - first:
+      213: 8010433330560368692
+    second: dashed_square_black_49
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: dashed_square_black_0
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 263
+        width: 13
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 354f32549f0988d70800000000000000
+      internalID: 9045639251854881875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_1
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 276
+        width: 22
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cf20e5a56f85f4c0800000000000000
+      internalID: -4254336606244163646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_2
+      rect:
+        serializedVersion: 2
+        x: 58
+        y: 276
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a548ce9db0d75500800000000000000
+      internalID: 385005805994788261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_3
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 276
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97384b3c5a11117a0800000000000000
+      internalID: -6408321391120841863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_4
+      rect:
+        serializedVersion: 2
+        x: 98
+        y: 276
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7bcc9ef902a0f6f0800000000000000
+      internalID: -652843782158627971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_5
+      rect:
+        serializedVersion: 2
+        x: 118
+        y: 276
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05f217d4dd1749a50800000000000000
+      internalID: 6526966955267665744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_6
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 276
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 244983de913ae01a0800000000000000
+      internalID: -6841351452179786686
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_7
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 276
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 441035c263f1d1530800000000000000
+      internalID: 3827249575867121988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_8
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 276
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65bb6806b7641ca00800000000000000
+      internalID: 774978106598800214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_9
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 276
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba7eee23a52ae7a30800000000000000
+      internalID: 4214984809550636971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_10
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 276
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 208112dabf16abdf0800000000000000
+      internalID: -163710702876289022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_11
+      rect:
+        serializedVersion: 2
+        x: 238
+        y: 276
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b59bbe0155e2c5c0800000000000000
+      internalID: -4196539766453594698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_12
+      rect:
+        serializedVersion: 2
+        x: 258
+        y: 273
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad947cca4cadc18c0800000000000000
+      internalID: -4027103428528879142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_13
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 244
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca5f90a1be22aa960800000000000000
+      internalID: 7613936513172764076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_14
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 257
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58014c40d6615a1b0800000000000000
+      internalID: -5646081900351844219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_15
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 224
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2d6cd11f9efb8f50800000000000000
+      internalID: 6884876414518848814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_16
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 237
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9163ef7d8209d3210800000000000000
+      internalID: 1314365171358905881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_17
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 204
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c8c416b43e40c810800000000000000
+      internalID: 1783511440738797763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_18
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 217
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84586169f236ee160800000000000000
+      internalID: 7056686722168816968
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_19
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 184
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c58ab6cc7d3320dc0800000000000000
+      internalID: -3674317344040310692
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_20
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 197
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bb2e4b162565a430800000000000000
+      internalID: 3793549475470781361
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_21
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 164
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3f71f25606350f50800000000000000
+      internalID: 6846938209275969341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_22
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 177
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d998ffce719e67530800000000000000
+      internalID: 3852522820231727517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_23
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 144
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 463ccabb574b76a70800000000000000
+      internalID: 8820216812981240676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_24
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 157
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3a24c0c7b7dd74f0800000000000000
+      internalID: -829269572153234883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_25
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 124
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28387c83ab64e04a0800000000000000
+      internalID: -6625280236184960126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_26
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 137
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efc0df44fab590d00800000000000000
+      internalID: 939382805618298110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_27
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 104
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2183e064ded1b470800000000000000
+      internalID: 8408746983017382189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_28
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 117
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84fa0c4b7ce600e10800000000000000
+      internalID: 2161849625147912008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_29
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 84
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 818d52b2ba5aa4520800000000000000
+      internalID: 2687142282261813272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_30
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 97
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57135e15d173b1180800000000000000
+      internalID: -9143654019378105995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_31
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 64
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ad4aab8e10b08950800000000000000
+      internalID: 6449348311633251747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_32
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 77
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 762de3dfbf5235150800000000000000
+      internalID: 5860069304354919015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_33
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 44
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc555e58adeb58d60800000000000000
+      internalID: 7891923767795209675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_34
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 57
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83cd826d3afb4aa90800000000000000
+      internalID: -7303501985294525384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_35
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 24
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c7ce4e5823aa3cd0800000000000000
+      internalID: -2577568442939947070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_36
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 37
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66aacc7a218577a20800000000000000
+      internalID: 3060011308969405030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_37
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 16
+        width: 17
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a52157388d4b08a90800000000000000
+      internalID: -7313646952838262182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_38
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 980ec83ffa9af5610800000000000000
+      internalID: 1612193764792393865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_39
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 183d139dffef99960800000000000000
+      internalID: 7609393420233200513
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_40
+      rect:
+        serializedVersion: 2
+        x: 89
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 044942426bc05b9a0800000000000000
+      internalID: -6218049734085143488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_41
+      rect:
+        serializedVersion: 2
+        x: 109
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c874e3cb63080180800000000000000
+      internalID: -9149058881620248378
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_42
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bcb687410a6c3d30800000000000000
+      internalID: 4412518288643767473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_43
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9555e947da7747410800000000000000
+      internalID: 1473934564926575961
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_44
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6917e45232b6cbe0800000000000000
+      internalID: -1457281500165236373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_45
+      rect:
+        serializedVersion: 2
+        x: 189
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 755316bd54143efa0800000000000000
+      internalID: -5772698529069714089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_46
+      rect:
+        serializedVersion: 2
+        x: 209
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec1b6e7599517f870800000000000000
+      internalID: 8716459352147800526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_47
+      rect:
+        serializedVersion: 2
+        x: 229
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6340ae29366f84c0800000000000000
+      internalID: -4283092324824628370
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_48
+      rect:
+        serializedVersion: 2
+        x: 249
+        y: 16
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d1d66f1a28b03df50800000000000000
+      internalID: 6904875309380037917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dashed_square_black_49
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 19
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 430000d4ca6ca2f60800000000000000
+      internalID: 8010433330560368692
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      dashed_square_black_0: 9045639251854881875
+      dashed_square_black_1: -4254336606244163646
+      dashed_square_black_10: -163710702876289022
+      dashed_square_black_11: -4196539766453594698
+      dashed_square_black_12: -4027103428528879142
+      dashed_square_black_13: 7613936513172764076
+      dashed_square_black_14: -5646081900351844219
+      dashed_square_black_15: 6884876414518848814
+      dashed_square_black_16: 1314365171358905881
+      dashed_square_black_17: 1783511440738797763
+      dashed_square_black_18: 7056686722168816968
+      dashed_square_black_19: -3674317344040310692
+      dashed_square_black_2: 385005805994788261
+      dashed_square_black_20: 3793549475470781361
+      dashed_square_black_21: 6846938209275969341
+      dashed_square_black_22: 3852522820231727517
+      dashed_square_black_23: 8820216812981240676
+      dashed_square_black_24: -829269572153234883
+      dashed_square_black_25: -6625280236184960126
+      dashed_square_black_26: 939382805618298110
+      dashed_square_black_27: 8408746983017382189
+      dashed_square_black_28: 2161849625147912008
+      dashed_square_black_29: 2687142282261813272
+      dashed_square_black_3: -6408321391120841863
+      dashed_square_black_30: -9143654019378105995
+      dashed_square_black_31: 6449348311633251747
+      dashed_square_black_32: 5860069304354919015
+      dashed_square_black_33: 7891923767795209675
+      dashed_square_black_34: -7303501985294525384
+      dashed_square_black_35: -2577568442939947070
+      dashed_square_black_36: 3060011308969405030
+      dashed_square_black_37: -7313646952838262182
+      dashed_square_black_38: 1612193764792393865
+      dashed_square_black_39: 7609393420233200513
+      dashed_square_black_4: -652843782158627971
+      dashed_square_black_40: -6218049734085143488
+      dashed_square_black_41: -9149058881620248378
+      dashed_square_black_42: 4412518288643767473
+      dashed_square_black_43: 1473934564926575961
+      dashed_square_black_44: -1457281500165236373
+      dashed_square_black_45: -5772698529069714089
+      dashed_square_black_46: 8716459352147800526
+      dashed_square_black_47: -4283092324824628370
+      dashed_square_black_48: 6904875309380037917
+      dashed_square_black_49: 8010433330560368692
+      dashed_square_black_5: 6526966955267665744
+      dashed_square_black_6: -6841351452179786686
+      dashed_square_black_7: 3827249575867121988
+      dashed_square_black_8: 774978106598800214
+      dashed_square_black_9: 4214984809550636971
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
