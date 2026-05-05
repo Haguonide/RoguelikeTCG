@@ -33,6 +33,7 @@ namespace RoguelikeTCG.Combat
         public RelicBarUI      relicBar;
         public RectTransform   endTurnButtonRT;
         public CombatAnimator  combatAnimator;
+        public PatternDisplayUI patternDisplayUI;
 
         [Header("Personnages")]
         public CharacterData   playerCharacter;
@@ -909,6 +910,11 @@ namespace RoguelikeTCG.Combat
                 combatUI.RefreshScores(gridManager.PlayerRoundScore, gridManager.EnemyRoundScore);
                 combatUI.RefreshRoundInfo(turnManager.CurrentRound, turnManager.PlayerTurnsLeft);
             }
+
+            if (patternDisplayUI != null && gridManager?.patternManager != null)
+                patternDisplayUI.Refresh(
+                    gridManager.patternManager.ActivePatterns,
+                    gridManager.patternManager.ClosedBySnapshot);
 
             if (handView != null)
                 handView.RefreshHand(playerDeck.Hand);

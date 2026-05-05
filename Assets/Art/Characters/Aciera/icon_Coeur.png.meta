@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 7a4d868cd1fdca14189ba9deb58dd223
+guid: a6d34e9b0a4f946459cecd95cbffe7a4
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6159824293310954279
-    second: CadreCarteTestEnnemi_0
+      213: -4994312926990934158
+    second: icon_Coeur_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -51,8 +51,8 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 800
-  spriteBorder: {x: 180, y: 180, z: 180, w: 180}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -113,23 +113,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CadreCarteTestEnnemi_0
+      name: icon_Coeur_0
       rect:
         serializedVersion: 2
-        x: 32
-        y: 22
-        width: 336
-        height: 355
+        x: 38
+        y: 63
+        width: 314
+        height: 265
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 72bfe910f871c7550800000000000000
-      internalID: 6159824293310954279
+      spriteID: 27f50999ad2a0bab0800000000000000
+      internalID: -4994312926990934158
       vertices: []
       indices: 
       edges: []
@@ -139,7 +139,7 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    internalID: 0
     vertices: []
     indices: 
     edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      CadreCarteTestEnnemi_0: 6159824293310954279
+      icon_Coeur_0: -4994312926990934158
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

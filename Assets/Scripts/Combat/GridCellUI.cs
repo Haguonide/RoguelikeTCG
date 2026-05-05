@@ -13,7 +13,7 @@ namespace RoguelikeTCG.Combat
     /// Forwarde les clics au CardSelector.
     /// Affiche l'unité présente, son CD, et les flèches d'attaque.
     /// </summary>
-    public class GridCellUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+    public class GridCellUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IDropHandler
     {
         [Header("Position dans la grille")]
         public int row;
@@ -123,6 +123,24 @@ namespace RoguelikeTCG.Combat
             if (bgImage == null) return;
             bgImage.enabled = color.a > 0f;
             bgImage.color = color;
+        }
+
+        // ── Drop target (drag & drop depuis la main) ──────────────────────────
+
+        public void OnDrop(PointerEventData eventData)
+        {
+            var cv = eventData.pointerDrag?.GetComponent<CardView>();
+            if (cv == null || !cv.IsDragging) return;
+
+            var card = cv.CardInstance;
+            if (card == null || !card.IsUnit) return;
+            if (IsOccupied) return;
+
+            if (CombatManager.Instance.TryPlayUnit(card, row, col))
+            {
+                cv.NotifyDragSuccess();
+                Refresh(CombatManager.Instance.gridManager.GetUnit(row, col));
+            }
         }
 
         private void SetCardVisuals(bool visible, Sprite artwork,

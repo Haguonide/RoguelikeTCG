@@ -1,19 +1,40 @@
 fileFormatVersion: 2
-guid: 1e9300db85f72164ba0f9ae7fa515720
+guid: 6f8674fe5a92d07419585e04dfb33894
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1389407233851206520
-    second: haguonide_elderly_female_superhero_Aciera_short_silver_hair_b_18d07046-b080-4239-a668-0a38b17384ff_2
-      (1)_0
+      213: -84543378275993416
+    second: Aciera_0
   - first:
-      213: -8638272064427566470
-    second: haguonide_elderly_female_superhero_Aciera_short_silver_hair_b_18d07046-b080-4239-a668-0a38b17384ff_2
-      (1)_1
+      213: 4821767100120541398
+    second: Aciera_1
   - first:
-      213: 2457320320294852032
-    second: haguonide_elderly_female_superhero_Aciera_short_silver_hair_b_18d07046-b080-4239-a668-0a38b17384ff_2
-      (1)_2
+      213: 1006778915613658861
+    second: Aciera_2
+  - first:
+      213: 5893424418902973697
+    second: Aciera_3
+  - first:
+      213: 8723201470597740716
+    second: Aciera_4
+  - first:
+      213: -1986805004492625042
+    second: Aciera_5
+  - first:
+      213: 4403446392594494855
+    second: Aciera_6
+  - first:
+      213: 3673633449879727920
+    second: Aciera_7
+  - first:
+      213: 6389159540361441738
+    second: Aciera_8
+  - first:
+      213: -138654576708224738
+    second: Aciera_9
+  - first:
+      213: 6928925821378021617
+    second: Aciera_10
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -122,14 +143,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: haguonide_elderly_female_superhero_Aciera_short_silver_hair_b_18d07046-b080-4239-a668-0a38b17384ff_2
-        (1)_0
+      name: Aciera_0
       rect:
         serializedVersion: 2
-        x: 139
-        y: 1255
-        width: 170
-        height: 190
+        x: 165
+        y: 32
+        width: 753
+        height: 960
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -138,21 +158,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 87b2f0e848a284310800000000000000
-      internalID: 1389407233851206520
+      spriteID: 8b87fb1de34a3def0800000000000000
+      internalID: -84543378275993416
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: haguonide_elderly_female_superhero_Aciera_short_silver_hair_b_18d07046-b080-4239-a668-0a38b17384ff_2
-        (1)_1
+      name: Aciera_1
       rect:
         serializedVersion: 2
-        x: 162
-        y: 53
-        width: 1760
-        height: 1958
+        x: 874
+        y: 832
+        width: 65
+        height: 67
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -161,21 +180,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a7a5d9e2351be1880800000000000000
-      internalID: -8638272064427566470
+      spriteID: 6d8a95871ab5ae240800000000000000
+      internalID: 4821767100120541398
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: haguonide_elderly_female_superhero_Aciera_short_silver_hair_b_18d07046-b080-4239-a668-0a38b17384ff_2
-        (1)_2
+      name: Aciera_2
       rect:
         serializedVersion: 2
-        x: 104
-        y: 727
-        width: 177
-        height: 255
+        x: 93
+        y: 661
+        width: 90
+        height: 104
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -184,8 +202,184 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0c51686dfc72a1220800000000000000
-      internalID: 2457320320294852032
+      spriteID: dee4180f61cc8fd00800000000000000
+      internalID: 1006778915613658861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aciera_3
+      rect:
+        serializedVersion: 2
+        x: 846
+        y: 693
+        width: 136
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10d1357c846a9c150800000000000000
+      internalID: 5893424418902973697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aciera_4
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 594
+        width: 88
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca8b42f15890f0970800000000000000
+      internalID: 8723201470597740716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aciera_5
+      rect:
+        serializedVersion: 2
+        x: 910
+        y: 650
+        width: 42
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6baf3dff537d64e0800000000000000
+      internalID: -1986805004492625042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aciera_6
+      rect:
+        serializedVersion: 2
+        x: 881
+        y: 533
+        width: 85
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 785f112e92f2c1d30800000000000000
+      internalID: 4403446392594494855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aciera_7
+      rect:
+        serializedVersion: 2
+        x: 955
+        y: 622
+        width: 12
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03fe21fa82e5bf230800000000000000
+      internalID: 3673633449879727920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aciera_8
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 533
+        width: 69
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac1ba8030cadaa850800000000000000
+      internalID: 6389159540361441738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aciera_9
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 343
+        width: 114
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e19f2d8a566631ef0800000000000000
+      internalID: -138654576708224738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aciera_10
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 286
+        width: 32
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f8c442d25d782060800000000000000
+      internalID: 6928925821378021617
       vertices: []
       indices: 
       edges: []
@@ -204,9 +398,17 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      haguonide_elderly_female_superhero_Aciera_short_silver_hair_b_18d07046-b080-4239-a668-0a38b17384ff_2 (1)_0: 1389407233851206520
-      haguonide_elderly_female_superhero_Aciera_short_silver_hair_b_18d07046-b080-4239-a668-0a38b17384ff_2 (1)_1: -8638272064427566470
-      haguonide_elderly_female_superhero_Aciera_short_silver_hair_b_18d07046-b080-4239-a668-0a38b17384ff_2 (1)_2: 2457320320294852032
+      Aciera_0: -84543378275993416
+      Aciera_1: 4821767100120541398
+      Aciera_10: 6928925821378021617
+      Aciera_2: 1006778915613658861
+      Aciera_3: 5893424418902973697
+      Aciera_4: 8723201470597740716
+      Aciera_5: -1986805004492625042
+      Aciera_6: 4403446392594494855
+      Aciera_7: 3673633449879727920
+      Aciera_8: 6389159540361441738
+      Aciera_9: -138654576708224738
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -29,6 +29,9 @@ namespace RoguelikeTCG.Combat
         /// <summary>Les 3 motifs actifs pour ce combat (lecture seule).</summary>
         public PatternData[] ActivePatterns => _activePatterns;
 
+        /// <summary>Snapshot des états de fermeture : -1=ouvert, 0=joueur, 1=ennemi.</summary>
+        public int[] ClosedBySnapshot => new[] { _closedBy[0], _closedBy[1], _closedBy[2] };
+
         /// <summary>
         /// Retourne l'état d'un motif : -1=ouvert, 0=fermé joueur, 1=fermé ennemi.
         /// </summary>

@@ -3,13 +3,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
+using DG.Tweening;
 using RoguelikeTCG.Core;
 using RoguelikeTCG.Data;
 using RoguelikeTCG.Combat;
 
 namespace RoguelikeTCG.Cards
 {
-    public class CardView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+    public class CardView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler,
+        IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         [Header("UI References")]
         public TextMeshProUGUI manaCostText;
@@ -32,6 +34,13 @@ namespace RoguelikeTCG.Cards
         private CardInstance cardInstance;
         private bool isZoomed;
 
+        // ── Drag state ────────────────────────────────────────────────────────
+        private Transform _dragOriginalParent;
+        private int       _dragOriginalSiblingIndex;
+        private bool      _dragSucceeded;
+        private Canvas    _rootCanvas;
+        public bool IsDragging { get; private set; }
+
         private RectTransform _rt;
         private Coroutine     _hoverCo;
         private Vector2       _basePos;
@@ -43,6 +52,10 @@ namespace RoguelikeTCG.Cards
         private void Awake()
         {
             _rt = GetComponent<RectTransform>();
+            var c = GetComponentInParent<Canvas>();
+            while (c != null && !c.isRootCanvas)
+                c = c.transform.parent?.GetComponentInParent<Canvas>();
+            _rootCanvas = c;
         }
 
         public void Setup(CardInstance instance)
@@ -159,5 +172,60 @@ namespace RoguelikeTCG.Cards
             if (angle > 180f) angle -= 360f;
             return angle;
         }
+
+        // ── Drag & Drop ───────────────────────────────────────────────────────
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (cardInstance == null) return;
+
+            _dragOriginalParent       = transform.parent;
+            _dragOriginalSiblingIndex = transform.GetSiblingIndex();
+            _dragSucceeded            = false;
+            IsDragging                = true;
+
+            // Sélectionner la carte pour que GridCellUI.OnDrop sache laquelle jouer
+            CardSelector.Instance?.SelectCard(this);
+
+            // Reparenter au canvas root pour z-order correct
+            if (_rootCanvas != null)
+                transform.SetParent(_rootCanvas.transform, true);
+            transform.SetAsLastSibling();
+
+            // Visual upright
+            if (_hoverCo != null) StopCoroutine(_hoverCo);
+            _rt.DOScale(new Vector3(1.1f, 1.1f, 1f), 0.08f);
+            _rt.DOLocalRotate(Vector3.zero, 0.08f);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (!IsDragging) return;
+            var canvasRT = (_rootCanvas ?? GetComponentInParent<Canvas>())?.GetComponent<RectTransform>();
+            if (canvasRT == null) return;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRT, eventData.position, eventData.pressEventCamera, out Vector2 local);
+            _rt.anchoredPosition = local;
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (!IsDragging) return;
+            IsDragging = false;
+
+            if (_dragSucceeded) return; // HandView.RefreshHand va reconstruire la main
+
+            // Retour à la main
+            transform.SetParent(_dragOriginalParent, true);
+            transform.SetSiblingIndex(_dragOriginalSiblingIndex);
+            _rt.DOAnchorPos(_baseCaptured ? _basePos : Vector2.zero, 0.2f).SetEase(Ease.OutBack);
+            _rt.DOLocalRotate(new Vector3(0f, 0f, _baseCaptured ? _baseRot : 0f), 0.15f);
+            _rt.DOScale(Vector3.one, 0.15f);
+
+            CardSelector.Instance?.Deselect();
+        }
+
+        /// <summary>Appelé par GridCellUI.OnDrop quand la carte est posée avec succès.</summary>
+        public void NotifyDragSuccess() => _dragSucceeded = true;
     }
 }
