@@ -15,6 +15,9 @@ namespace RoguelikeTCG.UI
 
         [Header("Ennemi — portrait droit")]
         public TextMeshProUGUI enemySingleHPText;
+        public TextMeshProUGUI enemyManaText;
+        public TextMeshProUGUI enemyDeckCountText;
+        public TextMeshProUGUI enemyDiscardCountText;
 
         [Header("Score — nouveau système grille")]
         public TextMeshProUGUI playerScoreText;
@@ -33,10 +36,10 @@ namespace RoguelikeTCG.UI
 
         public void RefreshPlayerInfo(int hp, int maxHP, int mana, int maxMana, int deckCount, int handCount, int shield = 0)
         {
-            if (playerHPText)        playerHPText.text        = shield > 0 ? $"HP: {hp}/{maxHP} ({shield})" : $"HP: {hp}/{maxHP}";
-            if (playerManaText)      playerManaText.text      = $"Mana: {mana}/{maxMana}";
-            if (playerDeckCountText) playerDeckCountText.text = $"Deck: {deckCount}";
-            if (playerHandCountText) playerHandCountText.text = $"Main: {handCount}";
+            if (playerHPText)        playerHPText.text        = $"{hp}";
+            if (playerManaText)      playerManaText.text      = $"{mana}/{maxMana}";
+            if (playerDeckCountText) playerDeckCountText.text = $"{deckCount}";
+            if (playerHandCountText) playerHandCountText.text = $"{handCount}";
         }
 
         public void RefreshGold(int gold)
@@ -46,13 +49,20 @@ namespace RoguelikeTCG.UI
 
         public void RefreshEnemyHP(int current, int max)
         {
-            if (enemySingleHPText) enemySingleHPText.text = $"Ennemi : {current}/{max} HP";
+            if (enemySingleHPText) enemySingleHPText.text = $"{current}";
+        }
+
+        public void RefreshEnemyInfo(int deckCount, int discardCount, int mana, int maxMana)
+        {
+            if (enemyDeckCountText)    enemyDeckCountText.text    = $"{deckCount}";
+            if (enemyDiscardCountText) enemyDiscardCountText.text = $"{discardCount}";
+            if (enemyManaText)         enemyManaText.text         = $"{mana}/{maxMana}";
         }
 
         public void RefreshCemetery(int cemCount, int discardCount)
         {
-            if (cemeteryCountText) cemeteryCountText.text = "";            // plus de cimetière
-            if (discardCountText)  discardCountText.text  = $"Def: {discardCount}";
+            if (cemeteryCountText) cemeteryCountText.text = "";
+            if (discardCountText)  discardCountText.text  = $"{discardCount}";
         }
 
         public void RefreshScores(int playerScore, int enemyScore)

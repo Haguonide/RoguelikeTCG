@@ -32,6 +32,7 @@ namespace RoguelikeTCG.Combat
         public HeroPortraitUI  enemyPortrait;
         public RelicBarUI      relicBar;
         public RectTransform   endTurnButtonRT;
+        public RectTransform   deckZoneRT;
         public CombatAnimator  combatAnimator;
         public PatternDisplayUI patternDisplayUI;
 
@@ -57,6 +58,7 @@ namespace RoguelikeTCG.Combat
         private int  _lastGoldEarned;
         private GridCellUI[] _allCells;
         private bool _playerPlayedUnitThisTurn;
+        private bool _isFirstPlayerTurn = true;
 
         // ─────────────────────────────────────────────────────────────────────
         // LIFECYCLE
@@ -71,6 +73,14 @@ namespace RoguelikeTCG.Combat
         private void Start()
         {
             _allCells = FindObjectsOfType<GridCellUI>(true);
+
+            // Trouve CadreDeckAllié automatiquement si deckZoneRT n'est pas câblé
+            if (deckZoneRT == null)
+            {
+                var go = GameObject.Find("CadreDeckAllié");
+                if (go != null) deckZoneRT = go.GetComponent<RectTransform>();
+            }
+
             ConfigureFromNodeType();
             InitializeCombat();
         }
@@ -92,6 +102,7 @@ namespace RoguelikeTCG.Combat
             SessionLogger.Instance?.StartSession();
             _gameOver = false;
             _playerPlayedUnitThisTurn = false;
+            _isFirstPlayerTurn = true;
 
             var persistence = RunPersistence.Instance;
             if (persistence?.SelectedCharacter != null)
@@ -188,19 +199,28 @@ namespace RoguelikeTCG.Combat
             _playerPlayedUnitThisTurn = false;
 
             int extraDraw = RelicManager.Instance?.GetExtraDrawPerTurn() ?? 0;
+            int drawCount = _isFirstPlayerTurn ? playerDeck.initialDraw : playerDeck.drawPerTurn;
+            _isFirstPlayerTurn = false;
             int prevCount = playerDeck.Hand.Count;
-            playerDeck.DrawCards(playerDeck.drawPerTurn + extraDraw);
+            playerDeck.DrawCards(drawCount + extraDraw);
             int drawn = playerDeck.Hand.Count - prevCount;
 
             AudioManager.Instance.PlaySFX("sfx_card_draw");
-            if (drawn > 0 && combatAnimator != null && endTurnButtonRT != null && handView != null)
+            var drawFrom = deckZoneRT != null ? deckZoneRT : endTurnButtonRT;
+            bool playingDrawAnim = drawn > 0 && combatAnimator != null && drawFrom != null && handView != null;
+            if (playingDrawAnim)
                 StartCoroutine(combatAnimator.PlayDrawCardsAnim(
                     playerDeck.Hand, drawn,
                     playerDeck.Hand.Count,
-                    endTurnButtonRT, handView));
+                    drawFrom, handView));
 
             Log($"--- Votre tour ({TurnManager.TURNS_PER_ROUND - turnManager.PlayerTurnsLeft + 1}/{TurnManager.TURNS_PER_ROUND}) ---");
-            RefreshAllUI();
+            // Si l'animation de pioche est en cours, on ne refresh pas la main
+            // (RefreshHand détruirait les cartes invisibles créées par InsertCardsInvisible)
+            if (playingDrawAnim)
+                RefreshAllUIExceptHand();
+            else
+                RefreshAllUI();
         }
 
         /// <summary>Appelé par le bouton Fin de Tour.</summary>
@@ -409,7 +429,7 @@ namespace RoguelikeTCG.Combat
         // POSE DE CARTE — JOUEUR
         // ─────────────────────────────────────────────────────────────────────
 
-        public bool TryPlayUnit(CardInstance card, int row, int col)
+        public bool TryPlayUnit(CardInstance card, int row, int col, bool skipRefresh = false)
         {
             if (!CanPlay()) return false;
             if (!card.IsUnit) return false;
@@ -439,7 +459,7 @@ namespace RoguelikeTCG.Combat
             }
 
             AudioManager.Instance.PlaySFX("sfx_card_place");
-            RefreshAllUI();
+            if (!skipRefresh) RefreshAllUI();
             return true;
         }
 
@@ -480,6 +500,44 @@ namespace RoguelikeTCG.Combat
             ApplyAllEffects(card, -1, -1, false);
             playerDeck.PlayCard(card);
             AudioManager.Instance.PlaySFX("sfx_spell_cast");
+            RefreshAllUI();
+            return true;
+        }
+
+        /// <summary>
+        /// Joue une carte Utilitaire de type Déplacement.
+        /// Déplace l'unité alliée en (fromR,fromC) vers (toR,toC), reset son CD,
+        /// réévalue le passif positionnel, puis défausse la carte.
+        /// </summary>
+        public bool TryPlayUtility(CardInstance card, int fromR, int fromC, int toR, int toC)
+        {
+            if (!CanPlay()) return false;
+            if (card.data.cardType != CardType.Utility) return false;
+            if (!manaManager.CanAfford(card.data.manaCost)) return false;
+
+            var unit = gridManager.GetUnit(fromR, fromC);
+            if (unit == null || !unit.isPlayerCard) return false;
+            if (!gridManager.IsEmpty(toR, toC)) return false;
+
+            // Désactiver le passif positionnel sur la case source avant le déplacement
+            if (unit.positionalPassiveActive)
+            {
+                unit.positionalPassiveActive = false;
+                ApplyPositionalEffect(unit, isPlayerUnit: true, activate: false);
+                Log($"  [Passif] {unit.data.cardName} : passif désactivé (déplacement)");
+            }
+
+            manaManager.Spend(card.data.manaCost);
+            bool moved = gridManager.MoveUnit(fromR, fromC, toR, toC);
+            if (!moved) { manaManager.AddBonus(card.data.manaCost); return false; } // remboursement en cas d'échec
+
+            Log($"> Carte Déplacement : {unit.data.cardName} ({fromR},{fromC}) → ({toR},{toC}), CD reset à {unit.currentCountdown}");
+
+            // Réévaluer le passif positionnel sur la case destination
+            CheckPositionalPassive(unit, GridManager.ToIndex(toR, toC), isPlayerUnit: true);
+
+            playerDeck.PlayCard(card);
+            AudioManager.Instance.PlaySFX("sfx_card_place");
             RefreshAllUI();
             return true;
         }
@@ -897,6 +955,33 @@ namespace RoguelikeTCG.Combat
         // UI REFRESH
         // ─────────────────────────────────────────────────────────────────────
 
+        private void RefreshAllUIExceptHand()
+        {
+            if (combatUI != null)
+            {
+                combatUI.RefreshPlayerInfo(playerHP, playerMaxHP,
+                    manaManager.CurrentMana, manaManager.MaxMana,
+                    playerDeck.DeckCount, playerDeck.Hand.Count);
+                combatUI.RefreshEnemyHP(enemyCurrentHP, enemyMaxHP);
+                combatUI.RefreshEnemyInfo(enemyDeck.DeckCount, enemyDeck.DiscardCount,
+                    manaManager.CurrentMana, manaManager.MaxMana);
+                combatUI.RefreshGold(RunPersistence.Instance?.PlayerGold ?? 0);
+                combatUI.RefreshCemetery(0, playerDeck.DiscardCount);
+                combatUI.RefreshScores(gridManager.PlayerRoundScore, gridManager.EnemyRoundScore);
+                combatUI.RefreshRoundInfo(turnManager.CurrentRound, turnManager.PlayerTurnsLeft);
+            }
+
+            if (patternDisplayUI != null && gridManager?.patternManager != null)
+                patternDisplayUI.Refresh(
+                    gridManager.patternManager.ActivePatterns,
+                    gridManager.patternManager.ClosedBySnapshot);
+
+            if (_allCells != null)
+                foreach (var cell in _allCells)
+                    if (cell != null)
+                        cell.Refresh(gridManager.GetUnit(cell.row, cell.col));
+        }
+
         public void RefreshAllUI()
         {
             if (combatUI != null)
@@ -905,6 +990,8 @@ namespace RoguelikeTCG.Combat
                     manaManager.CurrentMana, manaManager.MaxMana,
                     playerDeck.DeckCount, playerDeck.Hand.Count);
                 combatUI.RefreshEnemyHP(enemyCurrentHP, enemyMaxHP);
+                combatUI.RefreshEnemyInfo(enemyDeck.DeckCount, enemyDeck.DiscardCount,
+                    manaManager.CurrentMana, manaManager.MaxMana);
                 combatUI.RefreshGold(RunPersistence.Instance?.PlayerGold ?? 0);
                 combatUI.RefreshCemetery(0, playerDeck.DiscardCount);
                 combatUI.RefreshScores(gridManager.PlayerRoundScore, gridManager.EnemyRoundScore);

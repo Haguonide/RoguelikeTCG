@@ -92,6 +92,8 @@ namespace RoguelikeTCG.UI
         {
             _originRT = origin;
             gameObject.SetActive(true);
+            // Pre-position before activating to avoid one-frame flash at center
+            UpdateArrow(Input.mousePosition);
             for (int i = 0; i < dotCount; i++)
                 _segments[i].gameObject.SetActive(true);
             _arrowheadRT.gameObject.SetActive(true);

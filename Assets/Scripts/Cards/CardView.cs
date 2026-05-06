@@ -10,8 +10,7 @@ using RoguelikeTCG.Combat;
 
 namespace RoguelikeTCG.Cards
 {
-    public class CardView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler,
-        IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class CardView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("UI References")]
         public TextMeshProUGUI manaCostText;
@@ -21,6 +20,12 @@ namespace RoguelikeTCG.Cards
 
         [Header("HP Hearts (3 slots, index 0-2)")]
         public Image[] heartImages;
+
+        [Header("Zones (CardPrefab)")]
+        public TextMeshProUGUI hpText;    // HPZone/HPText — "2/3"
+        public GameObject      manaZone;  // caché quand la carte est posée sur la grille
+        public GameObject      cdZone;    // caché pour les sorts/utilitaires
+        public GameObject      hpZone;    // caché pour les sorts/utilitaires
 
         [Header("Legacy — unused on CardPrefab, kept pour compatibilité")]
         public TextMeshProUGUI cardNameText;
@@ -33,13 +38,7 @@ namespace RoguelikeTCG.Cards
 
         private CardInstance cardInstance;
         private bool isZoomed;
-
-        // ── Drag state ────────────────────────────────────────────────────────
-        private Transform _dragOriginalParent;
-        private int       _dragOriginalSiblingIndex;
-        private bool      _dragSucceeded;
-        private Canvas    _rootCanvas;
-        public bool IsDragging { get; private set; }
+        private bool _onGrid; // true quand posée sur la grille — bloque hover/select
 
         private RectTransform _rt;
         private Coroutine     _hoverCo;
@@ -49,13 +48,16 @@ namespace RoguelikeTCG.Cards
 
         public CardInstance CardInstance => cardInstance;
 
+        /// <summary>Appelé par GridCellUI quand la carte est posée sur la grille.</summary>
+        public void SetOnGrid(bool onGrid)
+        {
+            _onGrid = onGrid;
+            Refresh(); // manaZone se cache (IsOnGrid devient true)
+        }
+
         private void Awake()
         {
             _rt = GetComponent<RectTransform>();
-            var c = GetComponentInParent<Canvas>();
-            while (c != null && !c.isRootCanvas)
-                c = c.transform.parent?.GetComponentInParent<Canvas>();
-            _rootCanvas = c;
         }
 
         public void Setup(CardInstance instance)
@@ -68,17 +70,29 @@ namespace RoguelikeTCG.Cards
         {
             if (cardInstance == null) return;
             var data = cardInstance.data;
+            bool isUnit = data.cardType == CardType.Unit;
 
             if (artwork && data.artwork) artwork.sprite = data.artwork;
             if (manaCostText) manaCostText.text = $"{data.manaCost}";
-            if (cdText) cdText.text = $"{cardInstance.currentCountdown}";
 
+            // ManaZone : visible uniquement en main (pas encore posée sur la grille)
+            if (manaZone) manaZone.SetActive(!cardInstance.IsOnGrid);
+
+            // CDZone + CDText : uniquement pour les unités
+            if (cdZone) cdZone.SetActive(isUnit);
+            if (cdText) cdText.text = isUnit ? $"{cardInstance.currentCountdown}" : "";
+
+            // HPZone + HPText : "currentHP/maxHP" pour les unités
+            if (hpZone) hpZone.SetActive(isUnit);
+            if (hpText) hpText.text = isUnit ? $"{cardInstance.currentHP}/{data.hp}" : "";
+
+            // Icônes cœurs (ancien affichage HP, coexiste avec hpText)
             if (heartImages != null)
             {
                 for (int i = 0; i < heartImages.Length; i++)
                 {
                     if (heartImages[i] == null) continue;
-                    bool withinMax = data.cardType == CardType.Unit && i < data.hp;
+                    bool withinMax = isUnit && i < data.hp;
                     heartImages[i].gameObject.SetActive(withinMax);
                     if (withinMax)
                         heartImages[i].color = i < cardInstance.currentHP
@@ -90,10 +104,10 @@ namespace RoguelikeTCG.Cards
             // Legacy fields — null-safe, ignorés si non assignés dans le prefab
             if (cardNameText)    cardNameText.text    = data.cardName;
             if (descriptionText) descriptionText.text = data.description;
-            if (statsText)       statsText.text       = data.cardType == CardType.Unit
+            if (statsText)       statsText.text       = isUnit
                 ? $"HP {cardInstance.currentHP}/{data.hp}  CD {cardInstance.currentCountdown}"
                 : "";
-            if (keywordText)     keywordText.text     = (data.cardType == CardType.Unit && data.keyword != UnitKeyword.Aucun)
+            if (keywordText)     keywordText.text     = (isUnit && data.keyword != UnitKeyword.Aucun)
                 ? data.keyword.ToString()
                 : "";
         }
@@ -106,8 +120,20 @@ namespace RoguelikeTCG.Cards
             _baseCaptured = true;
         }
 
+        public void CancelHover()
+        {
+            if (_hoverCo != null) { StopCoroutine(_hoverCo); _hoverCo = null; }
+            if (_baseCaptured && _rt != null)
+            {
+                _rt.anchoredPosition = _basePos;
+                _rt.localEulerAngles = new Vector3(0f, 0f, _baseRot);
+                _rt.localScale       = Vector3.one;
+            }
+        }
+
         public void OnPointerClick(PointerEventData eventData)
         {
+            if (_onGrid) return;
             if (eventData.button == PointerEventData.InputButton.Left)
                 CardSelector.Instance?.SelectCard(this);
             else if (eventData.button == PointerEventData.InputButton.Right)
@@ -129,7 +155,7 @@ namespace RoguelikeTCG.Cards
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (_rt == null) return;
+            if (_onGrid || _rt == null) return;
             if (!_baseCaptured)
             {
                 _basePos = _rt.anchoredPosition;
@@ -144,7 +170,7 @@ namespace RoguelikeTCG.Cards
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            if (_rt == null || !_baseCaptured) return;
+            if (_onGrid || _rt == null || !_baseCaptured) return;
             if (_hoverCo != null) StopCoroutine(_hoverCo);
             _hoverCo = StartCoroutine(HoverLerp(_basePos, _baseRot, 1f));
         }
@@ -173,59 +199,5 @@ namespace RoguelikeTCG.Cards
             return angle;
         }
 
-        // ── Drag & Drop ───────────────────────────────────────────────────────
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            if (cardInstance == null) return;
-
-            _dragOriginalParent       = transform.parent;
-            _dragOriginalSiblingIndex = transform.GetSiblingIndex();
-            _dragSucceeded            = false;
-            IsDragging                = true;
-
-            // Sélectionner la carte pour que GridCellUI.OnDrop sache laquelle jouer
-            CardSelector.Instance?.SelectCard(this);
-
-            // Reparenter au canvas root pour z-order correct
-            if (_rootCanvas != null)
-                transform.SetParent(_rootCanvas.transform, true);
-            transform.SetAsLastSibling();
-
-            // Visual upright
-            if (_hoverCo != null) StopCoroutine(_hoverCo);
-            _rt.DOScale(new Vector3(1.1f, 1.1f, 1f), 0.08f);
-            _rt.DOLocalRotate(Vector3.zero, 0.08f);
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (!IsDragging) return;
-            var canvasRT = (_rootCanvas ?? GetComponentInParent<Canvas>())?.GetComponent<RectTransform>();
-            if (canvasRT == null) return;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvasRT, eventData.position, eventData.pressEventCamera, out Vector2 local);
-            _rt.anchoredPosition = local;
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            if (!IsDragging) return;
-            IsDragging = false;
-
-            if (_dragSucceeded) return; // HandView.RefreshHand va reconstruire la main
-
-            // Retour à la main
-            transform.SetParent(_dragOriginalParent, true);
-            transform.SetSiblingIndex(_dragOriginalSiblingIndex);
-            _rt.DOAnchorPos(_baseCaptured ? _basePos : Vector2.zero, 0.2f).SetEase(Ease.OutBack);
-            _rt.DOLocalRotate(new Vector3(0f, 0f, _baseCaptured ? _baseRot : 0f), 0.15f);
-            _rt.DOScale(Vector3.one, 0.15f);
-
-            CardSelector.Instance?.Deselect();
-        }
-
-        /// <summary>Appelé par GridCellUI.OnDrop quand la carte est posée avec succès.</summary>
-        public void NotifyDragSuccess() => _dragSucceeded = true;
     }
 }

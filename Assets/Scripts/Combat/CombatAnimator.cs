@@ -430,53 +430,69 @@ namespace RoguelikeTCG.Combat
             int existingCount = fullHand.Count - drawnCount;
             var newCards      = fullHand.GetRange(existingCount, drawnCount);
 
-            // Slide existing hand cards sideways to make room (fire-and-forget)
+            // Slide des cartes existantes pour faire de la place (fire-and-forget)
             handView.SlideExistingCards(totalLayoutCount);
 
-            // Create real card GOs at their final positions, invisible (scale=0)
+            // Créer les vrais GOs de cartes à leur position finale, invisibles (scale=0)
             var targetRTs = handView.InsertCardsInvisible(newCards, existingCount, totalLayoutCount);
 
-            // Fly each card from deck, staggered
-            const float stagger = 0.07f;
+            // Voler chaque carte depuis le deck, une par une (séquentiel)
             Vector3 deckPos = deckRT.position;
             for (int n = 0; n < drawnCount; n++)
-                StartCoroutine(FlyCardIn(newCards[n], deckPos, targetRTs[n], n * stagger));
+                yield return StartCoroutine(FlyCardIn(newCards[n], deckPos, targetRTs[n]));
 
-            yield return new WaitForSeconds((drawnCount - 1) * stagger + 0.38f + 0.27f);
             _animCount--;
         }
 
-        private IEnumerator FlyCardIn(CardInstance card, Vector3 fromPos,
-            RectTransform targetRT, float delay)
+        private IEnumerator FlyCardIn(CardInstance card, Vector3 fromPos, RectTransform targetRT)
         {
-            if (delay > 0f) yield return new WaitForSeconds(delay);
-            if (_canvas == null) yield break;
+            if (_canvas == null || targetRT == null) yield break;
 
-            // Ghost spawned at deck position, slightly smaller than final card
-            var ghost = BuildGhostCard(_canvas.transform, card, new Vector2(160f, 240f));
+            // Instancier le vrai CardPrefab comme ghost volant
+            var prefab = Resources.Load<GameObject>("Prefabs/Cards/CardPrefab");
+            if (prefab == null) yield break;
+
+            var ghost = Object.Instantiate(prefab, _canvas.transform);
+            ghost.transform.SetAsLastSibling();
+            ghost.name = "FlyingCard";
+
+            var ghostCV = ghost.GetComponent<RoguelikeTCG.Cards.CardView>();
+            if (ghostCV != null)
+            {
+                ghostCV.Setup(card);
+                ghostCV.enabled = false; // désactive les event handlers pendant le vol
+            }
+
+            // Ajoute un CanvasGroup pour bloquer les raycasts sur le ghost
+            var cg = ghost.AddComponent<CanvasGroup>();
+            cg.blocksRaycasts = false;
+
+            var ghostRT = ghost.GetComponent<RectTransform>();
+            ghostRT.sizeDelta = new Vector2(160f, 160f);
+            ghostRT.anchorMin = ghostRT.anchorMax = new Vector2(0.5f, 0.5f);
+            ghostRT.pivot     = new Vector2(0.5f, 0.5f);
+
             ghost.transform.position   = fromPos;
-            ghost.transform.localScale = Vector3.one * 0.72f;
+            ghost.transform.localScale = Vector3.one * 0.75f;
 
-            Vector3 endPos = targetRT.position;
-            float   dist   = Vector3.Distance(fromPos, endPos);
-            float   arc    = Mathf.Max(55f, dist * 0.30f);
-            Vector3 midPos = Vector3.Lerp(fromPos, endPos, 0.5f) + new Vector3(0f, arc, 0f);
+            Vector3 endPos  = targetRT.position;
+            float   dist    = Vector3.Distance(fromPos, endPos);
+            float   arc     = Mathf.Max(70f, dist * 0.35f);
+            Vector3 midPos  = Vector3.Lerp(fromPos, endPos, 0.5f) + new Vector3(0f, arc, 0f);
 
-            const float flyDur = 0.38f;
+            const float flyDur = 0.50f;
 
-            // Slight Z-tilt during flight
-            DOTween.Sequence().SetTarget(ghost)
-                .Append(ghost.transform.DORotate(new Vector3(0f, 0f, -9f), flyDur * 0.45f)
-                    .SetEase(Ease.OutQuad))
-                .Append(ghost.transform.DORotate(Vector3.zero, flyDur * 0.55f)
-                    .SetEase(Ease.InSine));
+            // Légère rotation pendant le vol
+            DOTween.Sequence().SetTarget(ghost).SetLink(ghost)
+                .Append(ghost.transform.DORotate(new Vector3(0f, 0f, -8f), flyDur * 0.45f).SetEase(Ease.OutQuad))
+                .Append(ghost.transform.DORotate(Vector3.zero, flyDur * 0.55f).SetEase(Ease.InSine));
 
-            // Scale: launch small → grow → compress on impact
-            DOTween.Sequence().SetTarget(ghost)
-                .Append(ghost.transform.DOScale(1.08f, flyDur * 0.40f).SetEase(Ease.OutCubic))
-                .Append(ghost.transform.DOScale(0.88f, flyDur * 0.60f).SetEase(Ease.InCubic));
+            // Scale : petit au départ → grandit → se compresse à l'arrivée
+            DOTween.Sequence().SetTarget(ghost).SetLink(ghost)
+                .Append(ghost.transform.DOScale(1.10f, flyDur * 0.45f).SetEase(Ease.OutCubic))
+                .Append(ghost.transform.DOScale(0.90f, flyDur * 0.55f).SetEase(Ease.InCubic));
 
-            // Quadratic Bezier arc
+            // Arc de Bézier quadratique
             float t = 0f;
             yield return DOTween.To(() => t, v => {
                 t = v;
@@ -488,12 +504,13 @@ namespace RoguelikeTCG.Combat
             Object.Destroy(ghost);
             AudioManager.Instance.PlaySFX("sfx_card_place");
 
-            // Squash-stretch landing on the real card
-            var land = DOTween.Sequence().SetTarget(targetRT);
-            land.Append(targetRT.DOScale(new Vector3(1.14f, 0.80f, 1f), 0.07f).SetEase(Ease.OutQuint));
-            land.Append(targetRT.DOScale(new Vector3(0.88f, 1.18f, 1f), 0.07f).SetEase(Ease.OutSine));
-            land.Append(targetRT.DOScale(new Vector3(1.05f, 0.95f, 1f), 0.05f).SetEase(Ease.OutSine));
-            land.Append(targetRT.DOScale(Vector3.one,                   0.08f).SetEase(Ease.OutBack, 1.4f));
+            // Squash-stretch d'atterrissage sur la vraie carte
+            if (targetRT == null) yield break;
+            var land = DOTween.Sequence().SetTarget(targetRT).SetLink(targetRT.gameObject);
+            land.Append(targetRT.DOScale(new Vector3(1.16f, 0.78f, 1f), 0.08f).SetEase(Ease.OutQuint));
+            land.Append(targetRT.DOScale(new Vector3(0.86f, 1.20f, 1f), 0.08f).SetEase(Ease.OutSine));
+            land.Append(targetRT.DOScale(new Vector3(1.06f, 0.94f, 1f), 0.06f).SetEase(Ease.OutSine));
+            land.Append(targetRT.DOScale(Vector3.one,                   0.09f).SetEase(Ease.OutBack, 1.4f));
             yield return land.WaitForCompletion();
         }
 
@@ -613,26 +630,49 @@ namespace RoguelikeTCG.Combat
             _animCount++;
             Vector2 origin = rt.anchoredPosition;
 
-            // Direction approximative : droite si défenseur à droite, gauche sinon
-            float lungeX = defenderCell != null ? (defenderCell.col > attackerCell.col ? 22f : -22f) : 22f;
-            float lungeY = defenderCell != null ? (defenderCell.row > attackerCell.row ? -16f : 16f) : 0f;
-            if (defenderCell != null && Mathf.Abs(defenderCell.row - attackerCell.row) > Mathf.Abs(defenderCell.col - attackerCell.col))
-                lungeX = 0f; // attaque verticale
+            // Calcul direction du lunge (horizontal ou vertical)
+            Vector2 lungeDir = new Vector2(38f, 0f); // défaut : droite
+            if (defenderCell != null)
+            {
+                int dr = defenderCell.row - attackerCell.row;
+                int dc = defenderCell.col - attackerCell.col;
+                if (Mathf.Abs(dc) >= Mathf.Abs(dr))
+                    lungeDir = new Vector2(dc > 0 ? 38f : -38f, 0f);
+                else
+                    lungeDir = new Vector2(0f, dr > 0 ? -28f : 28f);
+            }
+            Vector2 pullBack = -lungeDir * 0.40f;
 
             AudioManager.Instance.PlaySFX("sfx_attack");
-            var seq = DOTween.Sequence().SetTarget(rt);
-            seq.Append(rt.DOAnchorPos(origin + new Vector2(lungeX, lungeY), 0.10f).SetEase(Ease.OutExpo));
-            seq.Join(rt.DOScale(new Vector3(1.22f, 0.82f, 1f), 0.10f).SetEase(Ease.OutExpo));
-            seq.Append(rt.DOAnchorPos(origin, 0.15f).SetEase(Ease.OutBack, 1.6f));
-            seq.Join(rt.DOScale(Vector3.one, 0.15f).SetEase(Ease.OutBack, 1.6f));
+
+            // ── Phase 1 — Anticipation : recul (0.13s) ───────────────────────────
+            var anticipate = DOTween.Sequence().SetTarget(rt);
+            anticipate.Append(rt.DOAnchorPos(origin + pullBack, 0.13f).SetEase(Ease.OutCubic));
+            anticipate.Join(rt.DOScale(new Vector3(0.82f, 1.18f, 1f), 0.13f).SetEase(Ease.OutCubic));
+            yield return anticipate.WaitForCompletion();
+
+            // ── Phase 2 — Lunge : burst vers la cible (0.13s) ────────────────────
+            var lunge = DOTween.Sequence().SetTarget(rt);
+            lunge.Append(rt.DOAnchorPos(origin + lungeDir, 0.13f).SetEase(Ease.OutExpo));
+            lunge.Join(rt.DOScale(new Vector3(1.28f, 0.76f, 1f), 0.13f).SetEase(Ease.OutExpo));
+            yield return lunge.WaitForCompletion();
+
+            // ── Phase 3 — Impact : screen shake + damage popup + punch (0.18s) ───
+            if (shakeTarget != null)
+                shakeTarget.DOShakeAnchorPos(0.22f, 9f, 14, 60f, false, true).SetTarget(shakeTarget);
 
             if (defenderCell != null && dmg > 0)
                 DamagePopup.ShowDamage(defenderCell.GetComponent<RectTransform>(), dmg);
 
-            if (shakeTarget != null)
-                shakeTarget.DOShakeAnchorPos(0.14f, 6f, 10, 60f, false, true).SetTarget(shakeTarget);
+            yield return rt.DOPunchScale(new Vector3(0.28f, 0.28f, 0f), 0.18f, 5, 0.40f).SetTarget(rt)
+                           .WaitForCompletion();
 
-            yield return seq.WaitForCompletion();
+            // ── Phase 4 — Retour : élastique (0.26s) ─────────────────────────────
+            var ret = DOTween.Sequence().SetTarget(rt);
+            ret.Append(rt.DOAnchorPos(origin, 0.26f).SetEase(Ease.OutBack, 1.8f));
+            ret.Join(rt.DOScale(Vector3.one, 0.26f).SetEase(Ease.OutBack, 1.8f));
+            yield return ret.WaitForCompletion();
+
             rt.anchoredPosition = origin;
             rt.localScale       = Vector3.one;
             _animCount--;

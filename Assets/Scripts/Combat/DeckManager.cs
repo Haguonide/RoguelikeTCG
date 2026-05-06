@@ -13,7 +13,7 @@ namespace RoguelikeTCG.Combat
     {
         public int maxHandSize = 10;
         public int drawPerTurn = 1;    // 1 carte par tour joueur dans le nouveau système
-        public int initialDraw = 5;
+        public int initialDraw = 4;
 
         private List<CardInstance> deck    = new();
         private List<CardInstance> hand    = new();
