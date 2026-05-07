@@ -55,7 +55,7 @@ namespace RoguelikeTCG.UI
 
             var nameTMP = MakeTMP("Name", textsGO,
                 0.05f, 0.84f, 0.95f, 0.97f, 9f, FontStyles.Bold, TextAlignmentOptions.Center);
-            nameTMP.enableWordWrapping = true;
+            nameTMP.textWrappingMode = TextWrappingModes.Normal;
             nameTMP.text = card.cardName;
 
             if (isUnit)
@@ -76,7 +76,7 @@ namespace RoguelikeTCG.UI
                 {
                     var descTMP = MakeTMP("Desc", textsGO,
                         0.04f, 0.04f, 0.96f, 0.19f, 6f, FontStyles.Normal, TextAlignmentOptions.Center);
-                    descTMP.enableWordWrapping = true;
+                    descTMP.textWrappingMode = TextWrappingModes.Normal;
                     descTMP.overflowMode       = TextOverflowModes.Ellipsis;
                     descTMP.text               = card.description;
                 }

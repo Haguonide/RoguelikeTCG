@@ -98,7 +98,7 @@ namespace RoguelikeTCG.UI
 
             var nameTMP = MakeTMP("Name", textsGO,
                 0.05f, 0.85f, 0.95f, 0.98f, 22f, FontStyles.Bold, TextAlignmentOptions.Center);
-            nameTMP.enableWordWrapping = true;
+            nameTMP.textWrappingMode = TextWrappingModes.Normal;
             nameTMP.text = card.data.cardName;
 
             if (isUnit)
@@ -122,7 +122,7 @@ namespace RoguelikeTCG.UI
                 float yMax = isUnit ? 0.27f : 0.31f;
                 var descTMP = MakeTMP("Desc", textsGO,
                     0.05f, yMin, 0.95f, yMax, 14f, FontStyles.Normal, TextAlignmentOptions.Center);
-                descTMP.enableWordWrapping = true;
+                descTMP.textWrappingMode = TextWrappingModes.Normal;
                 descTMP.overflowMode = TextOverflowModes.Ellipsis;
                 descTMP.text = card.data.description;
             }

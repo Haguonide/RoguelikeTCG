@@ -81,7 +81,9 @@ namespace RoguelikeTCG.Combat
             }
 
             ResetRound();
-            Debug.Log($"[PatternManager] Motifs tirés : {_activePatterns[0]?.patternName} | {_activePatterns[1]?.patternName} | {_activePatterns[2]?.patternName}");
+            string drawn = $"{_activePatterns[0]?.patternName} | {_activePatterns[1]?.patternName} | {_activePatterns[2]?.patternName}";
+            Debug.Log($"[PatternManager] Motifs tirés : {drawn}");
+            Core.SessionLogger.Instance?.Write($"[Motifs] {drawn}");
         }
 
         // ── Par manche ────────────────────────────────────────────────────────
@@ -134,7 +136,9 @@ namespace RoguelikeTCG.Combat
                 {
                     points += pattern.Points;
                     _closedBy[i] = camp;
-                    Debug.Log($"[PatternManager] Motif '{pattern.patternName}' complété par {(isPlayer ? "joueur" : "ennemi")} (+{pattern.Points} pts)");
+                    string msg = $"[PatternManager] Motif '{pattern.patternName}' complété par {(isPlayer ? "joueur" : "ennemi")} (+{pattern.Points} pts)";
+                    Debug.Log(msg);
+                    Core.SessionLogger.Instance?.Write(msg);
                 }
             }
 

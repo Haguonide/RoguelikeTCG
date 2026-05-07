@@ -611,7 +611,7 @@ namespace RoguelikeTCG.RunMap
 
         private GameObject MakeOverlay(string name)
         {
-            var canvas = FindObjectOfType<Canvas>();
+            var canvas = FindAnyObjectByType<Canvas>();
             var go     = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(canvas.transform, false);
             SetAnchors(go, 0, 0, 1, 1);

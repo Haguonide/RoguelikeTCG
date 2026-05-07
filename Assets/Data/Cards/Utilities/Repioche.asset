@@ -18,10 +18,12 @@ MonoBehaviour:
   cardType: 2
   rarity: 0
   manaCost: 0
+  hp: 1
   countdown: 1
   attackDirections: 0
   keyword: 0
-  keywordValue: 0
+  positionalCondition: 0
+  positionalEffect: 0
   spellTarget: 0
   effects: []
   upgradedVersion: {fileID: 0}

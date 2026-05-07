@@ -7,9 +7,12 @@ using RoguelikeTCG.Data;
 namespace RoguelikeTCG.AI
 {
     /// <summary>
-    /// IA ennemie pour la grille 4×4.
+    /// IA ennemie pour la grille 3×3.
     /// Joue 1 unité par tour (si possible) + sorts si mana disponible.
-    /// Priorité : clusters Légion en early, complète ses propres lignes/diagonales en mid.
+    /// Priorité 1 : compléter un motif actif non fermé par l'ennemi (+8f).
+    /// Priorité 2 : bloquer un motif en cours de construction par le joueur (+5f).
+    /// Priorité 3 : contribuer à un motif ennemi ouvert (+3f).
+    /// Secondaire : clusters Légion, éviter les cases couvertes par le joueur.
     /// </summary>
     public class EnemyAI : MonoBehaviour
     {
@@ -35,13 +38,11 @@ namespace RoguelikeTCG.AI
             int actions = 0;
 
             // 1. Poser 1 unité
-            for (int i = 0; i < safetyLimit; i++)
+            var unitAction = FindBestUnitAction();
+            if (unitAction != null)
             {
-                var unitAction = FindBestUnitAction();
-                if (unitAction == null) break;
                 ExecuteUnit(unitAction);
                 actions++;
-                break; // 1 unité max par tour
             }
 
             // 2. Jouer des sorts tant que mana disponible
@@ -96,11 +97,65 @@ namespace RoguelikeTCG.AI
         private float ScorePlacement(CardInstance unit, int r, int c)
         {
             float score = 1f;
+            int cellIndex = GridManager.ToIndex(r, c);
 
-            // Favoriser les cases qui complètent une ligne/diagonale ennemie
-            score += CountAlignedEnemies(r, c) * 3f;
+            // ── Motifs actifs ──────────────────────────────────────────────────
+            var pm = GetPatternManager();
+            if (pm != null)
+            {
+                var patterns   = pm.ActivePatterns;
+                var closedSnap = pm.ClosedBySnapshot;
 
-            // Légion : bonus si unité alliée adjacente
+                for (int i = 0; i < 3; i++)
+                {
+                    var pattern = patterns[i];
+                    if (pattern == null) continue;
+
+                    // Case doit être dans le motif
+                    bool inPattern = false;
+                    foreach (int idx in pattern.cellIndices)
+                        if (idx == cellIndex) { inPattern = true; break; }
+                    if (!inPattern) continue;
+
+                    // ── Complétion côté ennemi (+8) ──────────────────────────
+                    if (closedSnap[i] != 1) // motif pas encore fermé par l'ennemi
+                    {
+                        bool completesEnemy = true;
+                        foreach (int idx in pattern.cellIndices)
+                        {
+                            if (idx == cellIndex) continue; // la case qu'on va poser
+                            var existing = _grid.GetUnit(GridManager.ToRowCol(idx).r, GridManager.ToRowCol(idx).c);
+                            if (existing == null || existing.isPlayerCard)
+                            { completesEnemy = false; break; }
+                        }
+                        if (completesEnemy)
+                        {
+                            score += 8f;
+                            continue; // pas besoin de vérifier la contribution ou le blocage
+                        }
+
+                        // ── Contribution au motif ennemi ouvert (+3) ─────────
+                        score += 3f;
+                    }
+
+                    // ── Blocage d'un motif joueur en cours (+5) ──────────────
+                    if (closedSnap[i] != 0) // motif pas encore fermé par le joueur
+                    {
+                        bool blocksPlayer = true;
+                        foreach (int idx in pattern.cellIndices)
+                        {
+                            if (idx == cellIndex) continue;
+                            var existing = _grid.GetUnit(GridManager.ToRowCol(idx).r, GridManager.ToRowCol(idx).c);
+                            if (existing == null || !existing.isPlayerCard)
+                            { blocksPlayer = false; break; }
+                        }
+                        if (blocksPlayer)
+                            score += 5f;
+                    }
+                }
+            }
+
+            // ── Légion : bonus si unité alliée adjacente ───────────────────────
             if (unit.data.keyword == UnitKeyword.Légion)
             {
                 var neighbors = ScoringSystem.GetOrthogonalNeighbors(r, c);
@@ -111,15 +166,17 @@ namespace RoguelikeTCG.AI
                 }
             }
 
-            // Éviter les cases déjà couvertes par des unités joueur (risque de mort rapide)
+            // ── Éviter les cases couvertes par le joueur ───────────────────────
             score -= CountAdjacentPlayerUnits(r, c) * 1.5f;
 
             return score;
         }
 
+        private PatternManager GetPatternManager() => _grid?.patternManager;
+
         private int CountAlignedEnemies(int r, int c)
         {
-            // Compte les unités ennemies déjà alignées sur la ligne H, V, ou diagonale de cette case
+            // Conservé pour compatibilité — remplacé par la logique de motifs dans ScorePlacement
             int max = 0;
             max = Mathf.Max(max, CountInRow(r, isPlayer: false));
             max = Mathf.Max(max, CountInCol(c, isPlayer: false));
@@ -151,8 +208,7 @@ namespace RoguelikeTCG.AI
         private int CountAdjacentPlayerUnits(int r, int c)
         {
             int count = 0;
-            var targets = _grid.GetAttackTargets(r, c, AttackDirection.Up | AttackDirection.Down | AttackDirection.Left | AttackDirection.Right);
-            foreach (var (nr, nc) in targets)
+            foreach (var (nr, nc) in ScoringSystem.GetOrthogonalNeighbors(r, c))
             {
                 var u = _grid.GetUnit(nr, nc);
                 if (u != null && u.isPlayerCard) count++;

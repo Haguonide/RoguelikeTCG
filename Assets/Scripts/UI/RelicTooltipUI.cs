@@ -95,7 +95,7 @@ namespace RoguelikeTCG.UI
             title.color         = new Color(0.95f, 0.82f, 0.35f); // doré
             title.alignment     = TextAlignmentOptions.TopLeft;
             title.raycastTarget = false;
-            title.enableWordWrapping = true;
+            title.textWrappingMode = TextWrappingModes.Normal;
 
             // ── Description ───────────────────────────────────────────────────
             var descGO = new GameObject("TooltipDesc", typeof(RectTransform));
@@ -113,7 +113,7 @@ namespace RoguelikeTCG.UI
             desc.color         = new Color(0.88f, 0.88f, 0.88f);
             desc.alignment     = TextAlignmentOptions.TopLeft;
             desc.raycastTarget = false;
-            desc.enableWordWrapping = true;
+            desc.textWrappingMode = TextWrappingModes.Normal;
         }
 
         public void Hide()

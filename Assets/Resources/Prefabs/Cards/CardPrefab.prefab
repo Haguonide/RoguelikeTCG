@@ -766,13 +766,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Cards.CardView
   manaCostText: {fileID: 185745836132477384}
-  cdText: {fileID: 0}
+  cdText: {fileID: 3607554557942292394}
   artwork: {fileID: 5238756152234641087}
   rarityBorder: {fileID: 0}
   heartImages:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  hpText: {fileID: 5366275332526705323}
+  manaZone: {fileID: 6256832601205968863}
+  cdZone: {fileID: 5175790745023358206}
+  hpZone: {fileID: 8755453291021824186}
   cardNameText: {fileID: 0}
   descriptionText: {fileID: 0}
   statsText: {fileID: 0}

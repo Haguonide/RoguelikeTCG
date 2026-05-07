@@ -15,8 +15,6 @@ namespace RoguelikeTCG.Combat
     {
         public static CombatAnimator Instance { get; private set; }
 
-        [Header("Board Slide (legacy — no longer used)")]
-        public BoardNavigator boardNavigator;
 
         [Header("Screen Shake")]
         public RectTransform shakeTarget;
@@ -133,42 +131,8 @@ namespace RoguelikeTCG.Combat
 
         // ── Board slide transition ────────────────────────────────────────────
 
-        public IEnumerator PlayBoardSlide(int fromIndex, int toIndex)
-        {
-            if (boardNavigator == null || _canvas == null) yield break;
-            var views = boardNavigator.boardViews;
-            if (views == null || fromIndex == toIndex) yield break;
-            if (fromIndex < 0 || fromIndex >= views.Length) yield break;
-            if (toIndex   < 0 || toIndex   >= views.Length) yield break;
-
-            var fromView = views[fromIndex];
-            var toView   = views[toIndex];
-            if (fromView == null || toView == null) yield break;
-
-            _animCount++;
-            var fromRT = fromView.GetComponent<RectTransform>();
-            var toRT   = toView.GetComponent<RectTransform>();
-
-            float slideW = _canvas.GetComponent<RectTransform>().rect.width;
-            float dir    = toIndex > fromIndex ? 1f : -1f;
-
-            Vector2 fromOrigin = fromRT.anchoredPosition;
-            Vector2 toOrigin   = toRT.anchoredPosition;
-
-            toRT.anchoredPosition = new Vector2(dir * slideW, toOrigin.y);
-            toView.SetActive(true);
-
-            const float duration = 0.45f;
-            var seq = DOTween.Sequence();
-            seq.Append(fromRT.DOAnchorPos(new Vector2(-dir * slideW, fromOrigin.y), duration)
-                             .SetEase(Ease.InOutCubic));
-            seq.Join(toRT.DOAnchorPos(toOrigin, duration).SetEase(Ease.InOutCubic));
-            yield return seq.WaitForCompletion();
-
-            fromRT.anchoredPosition = fromOrigin;
-            toRT.anchoredPosition   = toOrigin;
-            _animCount--;
-        }
+        // Legacy — multi-board system removed
+        public IEnumerator PlayBoardSlide(int fromIndex, int toIndex) { yield break; }
 
         // ── Hit Flash (survives damage — short recoil only) ──────────────────
 
@@ -553,14 +517,14 @@ namespace RoguelikeTCG.Combat
 
             var nameTMP = GhostMakeTMP("Name", textsGO,
                 0.05f, 0.84f, 0.95f, 0.97f, 8f, FontStyles.Bold, TextAlignmentOptions.Center);
-            nameTMP.enableWordWrapping = true;
+            nameTMP.textWrappingMode = TextWrappingModes.Normal;
             nameTMP.text = card.data.cardName;
 
             if (isUnit)
             {
                 var statsTMP = GhostMakeTMP("Stats", textsGO,
                     0.03f, 0.04f, 0.97f, 0.22f, 10f, FontStyles.Bold, TextAlignmentOptions.Center);
-                statsTMP.enableWordWrapping = false;
+                statsTMP.textWrappingMode = TextWrappingModes.NoWrap;
                 statsTMP.richText = true;
                 string kwLabel = card.data.keyword != UnitKeyword.Aucun ? $"  [{card.data.keyword}]" : "";
                 statsTMP.text = $"CD {card.currentCountdown}{kwLabel}";
@@ -575,7 +539,7 @@ namespace RoguelikeTCG.Combat
                 {
                     var descTMP = GhostMakeTMP("Desc", textsGO,
                         0.04f, 0.04f, 0.96f, 0.19f, 6f, FontStyles.Normal, TextAlignmentOptions.Center);
-                    descTMP.enableWordWrapping = true;
+                    descTMP.textWrappingMode = TextWrappingModes.Normal;
                     descTMP.overflowMode = TextOverflowModes.Ellipsis;
                     descTMP.text = card.data.description;
                 }

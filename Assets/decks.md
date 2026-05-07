@@ -61,6 +61,16 @@
 **Surcharge :** cible EnemyUnit. effects = [{effectType: Damage, value: 1}]. Inflige 1 dégât.  
 **Court-Circuit :** cible AllyUnit. effects = [{effectType: ReduceCountdown, value: 1}]. -1 CD.
 
+#### Versions + Voltaire
+
+| Carte+ | Fichier asset | Différence avec la version de base |
+|---|---|---|
+| Voltaire+ | `VoltaireHerosPlus` | CD 3 → 2 |
+| Éclair Conduit+ | `EclairConduitPlus` | HP 1 → 2 |
+| Parafoudre+ | `ParafoudrePlus` | Ajoute keyword Combo (+1 pt si complète un motif) |
+| Surcharge+ | `SurchargePlus` | Damage 1 → 2 |
+| Court-Circuit+ | `CourtCircuitPlus` | ReduceCountdown 1 → 2 |
+
 ---
 
 ### CENDRES — Feu / Explosion
@@ -77,6 +87,16 @@
 **Flammèche :** En coin (cases 0,2,6,8) → attaque à 2 dégâts. Sinon : 1 dégât.  
 **Embrasement :** cible AllEnemyUnits. effects = [{effectType: Damage, value: 1}].  
 **Fumée Noire :** cible AllyUnit. effects = [{effectType: ReduceCountdown, value: 2}]. -2 CD.
+
+#### Versions + Cendres
+
+| Carte+ | Fichier asset | Différence avec la version de base |
+|---|---|---|
+| Cendres+ | `CendresHerosPlus` | CD 3 → 2 |
+| Bombe à Retardement+ | `BombeARetardementPlus` | Mana 2 → 1 |
+| Flammèche+ | `FlammechePlus` | Flèches : Up → Up + Right (2 directions) |
+| Embrasement+ | `EmbrasementPlus` | Mana 2 → 1 |
+| Fumée Noire+ | `FumeeNoirePlus` | ReduceCountdown 2 → 3 |
 
 ---
 
@@ -96,6 +116,16 @@
 **Ordre Simple :** cible AllyUnit. effects = [{effectType: ReduceCountdown, value: 1}].  
 **En Formation :** cible AllAllyUnits. effects = [{effectType: ReduceCountdown, value: 1}].
 
+#### Versions + Le Bloc
+
+| Carte+ | Fichier asset | Différence avec la version de base |
+|---|---|---|
+| Le Bloc+ | `LeBlocHerosPlus` | CD 4 → 3 |
+| Mur de Chair+ | `MurDeChairPlus` | CD 3 → 2 |
+| Sbire Musclé+ | `SbireMusclePlus` | CD 2 → 1 |
+| Ordre Simple+ | `OrdreSimplePlus` | ReduceCountdown 1 → 2 |
+| En Formation+ | `EnFormationPlus` | Mana 2 → 1 |
+
 ---
 
 ### TRACE — Super-vitesse / Hâte
@@ -112,6 +142,27 @@
 **Faux Départ :** Combo — si ce placement complète un motif actif, +1 pt bonus.  
 **Vitesse Relative :** cible AllyUnit. effects = [{effectType: ReduceCountdown, value: 2}].  
 **En Retard Comme d'hab :** cible PlayerHero. effects = [{effectType: DrawCard, value: 1}]. Pioche 1 carte.
+
+#### Versions + Trace
+
+| Carte+ | Fichier asset | Différence avec la version de base |
+|---|---|---|
+| Trace+ | `TraceHerosPlus` | Flèches : Left+Right → Left+Right+Up (3 directions) |
+| Ligne Directe+ | `LigneDroitePlus` | Ajoute keyword Percée (si kill → attaque aussi case derrière) |
+| Faux Départ+ | `FauxDepartPlus` | CD 2 → 1 |
+| Vitesse Relative+ | `VitesseRelativePlus` | cible AllAllyUnits (au lieu de AllyUnit) — même valeur 2 |
+| En Retard Comme d'hab+ | `EnRetardComeDabPlus` | DrawCard 1 → 2 |
+
+---
+
+### Comment créer une version +
+
+1. Créer un nouveau CardData avec le nom `[Carte]Plus` (ex: `VoltaireHerosPlus`)
+2. Copier tous les champs de la version de base
+3. Appliquer uniquement la différence indiquée dans le tableau
+4. Sur la version de **base**, assigner ce nouvel asset dans le champ `upgradedVersion`
+5. Les versions + ne peuvent pas elles-mêmes être upgradées (laisser `upgradedVersion` vide)
+6. Pas de version + pour les Utilitaires (Repioche, Déplacement)
 
 ---
 

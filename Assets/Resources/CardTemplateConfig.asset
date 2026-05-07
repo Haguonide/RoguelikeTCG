@@ -16,3 +16,5 @@ MonoBehaviour:
   unitFront: {fileID: 21300000, guid: 088e0065e17d194488bea57cb3890c19, type: 3}
   spellBackground: {fileID: 21300000, guid: d2bb803ee34ce7f4dbfa6ecda47c2a0a, type: 3}
   spellFront: {fileID: 21300000, guid: 088e0065e17d194488bea57cb3890c19, type: 3}
+  playerFallbackArt: {fileID: 21300000, guid: ccee4ce8f91a2b44fa785f15fb5d8b75, type: 3}
+  enemyFallbackArt: {fileID: 21300000, guid: 549781338642b254ba8df5bcaeba51a6, type: 3}

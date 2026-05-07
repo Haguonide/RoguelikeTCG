@@ -40,8 +40,8 @@ namespace RoguelikeTCG.UI
                 if (cv == null) continue;
                 var (pos, rot) = ArcTransform(i, totalFinalCount, startX, cardW, spacing);
                 cv.GetComponent<RectTransform>()
-                    .DOAnchorPos(pos, 0.18f).SetEase(Ease.OutCubic);
-                cv.transform.DOLocalRotate(new Vector3(0f, 0f, rot), 0.18f).SetEase(Ease.OutCubic);
+                    .DOAnchorPos(pos, 0.18f).SetEase(Ease.OutCubic).SetLink(cv.gameObject);
+                cv.transform.DOLocalRotate(new Vector3(0f, 0f, rot), 0.18f).SetEase(Ease.OutCubic).SetLink(cv.gameObject);
                 cv.SetHandBase(pos, rot);
             }
         }
@@ -180,7 +180,7 @@ namespace RoguelikeTCG.UI
                 0.05f, 0.84f, 0.95f, 0.97f, 8f, FontStyles.Bold, TextAlignmentOptions.Center);
             nameTMP.text              = data?.cardName ?? "Bricolage";
             nameTMP.color             = active ? Color.white : new Color(0.7f, 0.7f, 0.7f);
-            nameTMP.enableWordWrapping = true;
+            nameTMP.textWrappingMode = TextWrappingModes.Normal;
             nameTMP.raycastTarget      = false;
 
             var gearTMP = MakeTMP("Gears", textsGO,
@@ -196,7 +196,7 @@ namespace RoguelikeTCG.UI
                 0.03f, 0.04f, 0.97f, 0.22f, 10f, FontStyles.Bold, TextAlignmentOptions.Center);
             statsTMP.text             = active ? $"{cappedATK}/{cappedHP}" : "?/?";
             statsTMP.color            = active ? Color.white : new Color(0.55f, 0.55f, 0.55f);
-            statsTMP.enableWordWrapping = false;
+            statsTMP.textWrappingMode = TextWrappingModes.NoWrap;
             statsTMP.richText           = true;
             statsTMP.raycastTarget      = false;
 
@@ -205,7 +205,7 @@ namespace RoguelikeTCG.UI
                 var descTMP = MakeTMP("Desc", textsGO,
                     0.04f, 0.22f, 0.96f, 0.59f, 5.5f, FontStyles.Normal, TextAlignmentOptions.Center);
                 descTMP.text              = data.description;
-                descTMP.enableWordWrapping = true;
+                descTMP.textWrappingMode = TextWrappingModes.Normal;
                 descTMP.overflowMode       = TextOverflowModes.Ellipsis;
                 descTMP.color              = active ? new Color(0.88f, 0.88f, 0.88f) : new Color(0.55f, 0.55f, 0.55f);
                 descTMP.raycastTarget      = false;

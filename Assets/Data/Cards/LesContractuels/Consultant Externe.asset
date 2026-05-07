@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
+  m_Name: Consultant Externe
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
+  cardName: Consultant Externe
+  description: 
+  artwork: {fileID: 0}
+  cardType: 0
+  rarity: 0
+  manaCost: 2
+  hp: 2
+  countdown: 2
+  attackDirections: 10
+  keyword: 5
+  positionalCondition: 0
+  positionalEffect: 0
+  spellTarget: 0
+  effects: []
+  upgradedVersion: {fileID: 0}

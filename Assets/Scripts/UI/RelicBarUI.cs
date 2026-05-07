@@ -60,7 +60,7 @@ namespace RoguelikeTCG.UI
             hpRT.anchoredPosition = new Vector2(-12f, -12f);
             hpRT.sizeDelta        = new Vector2(220f, 60f);
             var hpTMP = _hpPanel.AddComponent<TextMeshProUGUI>();
-            hpTMP.text          = $"❤ {hp} / {maxHP}";
+            hpTMP.text          = $"HP {hp} / {maxHP}";
             hpTMP.fontSize      = 36f;
             hpTMP.fontStyle     = FontStyles.Bold;
             hpTMP.color         = new Color(0.95f, 0.25f, 0.25f);
@@ -71,7 +71,7 @@ namespace RoguelikeTCG.UI
             const float rowGap   = 14f;
             const float padX     = 12f;
             const float padY     = 12f;
-            const float goldTextH = 40f;  // hauteur du label or (sous l'icône or)
+
             const float goldFontSz = 36f;
 
             // Rangée or : icône + texte côte à côte sur une seule ligne plus haute

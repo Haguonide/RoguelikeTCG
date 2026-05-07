@@ -12,5 +12,9 @@ namespace RoguelikeTCG.Data
         [Header("Templates Sorts")]
         public Sprite spellBackground;
         public Sprite spellFront;
+
+        [Header("Illustrations placeholder (en attendant les vrais arts)")]
+        public Sprite playerFallbackArt;
+        public Sprite enemyFallbackArt;
     }
 }

@@ -33,12 +33,19 @@ namespace RoguelikeTCG.Cards
         public TextMeshProUGUI statsText;
         public TextMeshProUGUI keywordText;
 
+        [Header("Flèches d'attaque (auto-trouvées si null)")]
+        public GameObject arrowUp;
+        public GameObject arrowDown;
+        public GameObject arrowLeft;
+        public GameObject arrowRight;
+
         [Header("Zoom")]
         public GameObject zoomPanel;
 
         private CardInstance cardInstance;
         private bool isZoomed;
         private bool _onGrid; // true quand posée sur la grille — bloque hover/select
+        private bool _arrowsFound;
 
         private RectTransform _rt;
         private Coroutine     _hoverCo;
@@ -58,6 +65,19 @@ namespace RoguelikeTCG.Cards
         private void Awake()
         {
             _rt = GetComponent<RectTransform>();
+            FindArrows();
+        }
+
+        private void FindArrows()
+        {
+            if (_arrowsFound) return;
+            var arrowsRoot = transform.Find("Arrows");
+            if (arrowsRoot == null) return;
+            if (arrowUp    == null) arrowUp    = arrowsRoot.Find("ArrowUp")?.gameObject;
+            if (arrowDown  == null) arrowDown  = arrowsRoot.Find("ArrowDown")?.gameObject;
+            if (arrowLeft  == null) arrowLeft  = arrowsRoot.Find("ArrowLeft")?.gameObject;
+            if (arrowRight == null) arrowRight = arrowsRoot.Find("ArrowRight")?.gameObject;
+            _arrowsFound = true;
         }
 
         public void Setup(CardInstance instance)
@@ -72,7 +92,17 @@ namespace RoguelikeTCG.Cards
             var data = cardInstance.data;
             bool isUnit = data.cardType == CardType.Unit;
 
-            if (artwork && data.artwork) artwork.sprite = data.artwork;
+            if (artwork)
+            {
+                if (data.artwork != null)
+                    artwork.sprite = data.artwork;
+                else
+                {
+                    var cfg = Resources.Load<CardTemplateConfig>("CardTemplateConfig");
+                    if (cfg != null)
+                        artwork.sprite = cardInstance.isPlayerCard ? cfg.playerFallbackArt : cfg.enemyFallbackArt;
+                }
+            }
             if (manaCostText) manaCostText.text = $"{data.manaCost}";
 
             // ManaZone : visible uniquement en main (pas encore posée sur la grille)
@@ -100,6 +130,15 @@ namespace RoguelikeTCG.Cards
                             : new Color(1f, 1f, 1f, 0.2f);
                 }
             }
+
+            // Flèches d'attaque : affichées uniquement en jeu, selon les directions réelles
+            if (!_arrowsFound) FindArrows();
+            bool onGrid = isUnit && cardInstance.IsOnGrid;
+            var dirs = data.attackDirections;
+            if (arrowUp)    arrowUp.SetActive(onGrid    && (dirs & AttackDirection.Up)    != 0);
+            if (arrowDown)  arrowDown.SetActive(onGrid  && (dirs & AttackDirection.Down)  != 0);
+            if (arrowLeft)  arrowLeft.SetActive(onGrid  && (dirs & AttackDirection.Left)  != 0);
+            if (arrowRight) arrowRight.SetActive(onGrid && (dirs & AttackDirection.Right) != 0);
 
             // Legacy fields — null-safe, ignorés si non assignés dans le prefab
             if (cardNameText)    cardNameText.text    = data.cardName;

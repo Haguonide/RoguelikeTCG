@@ -95,6 +95,24 @@ namespace RoguelikeTCG.Combat
             RemoveUnit(r, c);
         }
 
+        /// <summary>
+        /// Déplace une unité de (fromR,fromC) vers (toR,toC).
+        /// La case destination doit être vide. Reset le countdown à sa valeur de base.
+        /// Retourne false si la source est vide ou la destination occupée.
+        /// </summary>
+        public bool MoveUnit(int fromR, int fromC, int toR, int toC)
+        {
+            if (!InBounds(fromR, fromC) || !InBounds(toR, toC)) return false;
+            var unit = GetUnit(fromR, fromC);
+            if (unit == null) return false;
+            if (!IsEmpty(toR, toC)) return false;
+
+            RemoveUnit(fromR, fromC);
+            PlaceUnit(unit, toR, toC);
+            unit.currentCountdown = unit.data.countdown; // reset CD
+            return true;
+        }
+
         /// <summary>Retire l'unité par référence directe.</summary>
         public void RemoveUnit(CardInstance unit)
         {

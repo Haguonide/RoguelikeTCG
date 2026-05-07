@@ -72,7 +72,7 @@ namespace RoguelikeTCG.Combat
 
         private void Start()
         {
-            _allCells = FindObjectsOfType<GridCellUI>(true);
+            _allCells = FindObjectsByType<GridCellUI>(FindObjectsInactive.Include);
 
             // Trouve CadreDeckAllié automatiquement si deckZoneRT n'est pas câblé
             if (deckZoneRT == null)
@@ -294,6 +294,8 @@ namespace RoguelikeTCG.Combat
         private IEnumerator ProcessAttacks()
         {
             var readyUnits = gridManager.TickCountdowns();
+            var allUnits = gridManager.GetAllUnitsOnGrid();
+            Log($"[Tick] {allUnits.Count} unité(s) en jeu — {readyUnits.Count} prête(s) à attaquer");
             if (readyUnits.Count == 0) yield break;
 
             // Tri : d'abord les joueurs, puis les ennemis
@@ -324,11 +326,14 @@ namespace RoguelikeTCG.Combat
             var targets = gridManager.GetAttackTargets(row, col, dirs);
             int dmg = 1 + attacker.currentATKBoost;
 
+            string side = attacker.isPlayerCard ? "Joueur" : "Ennemi";
+            Log($"  {side} {attacker.data.cardName} ({row},{col}) dirs={dirs} → {targets.Count} case(s) ciblée(s)");
+
             foreach (var (tr, tc) in new List<(int, int)>(targets))
             {
                 var defender = gridManager.GetUnit(tr, tc);
-                if (defender == null) continue;
-                if (defender.isPlayerCard == attacker.isPlayerCard) continue;
+                if (defender == null) { Log($"    ({tr},{tc}) vide"); continue; }
+                if (defender.isPlayerCard == attacker.isPlayerCard) { Log($"    ({tr},{tc}) allié — ignoré"); continue; }
 
                 var attackerCell = GetCellUI(row, col);
                 var defenderCell = GetCellUI(tr, tc);
@@ -729,19 +734,18 @@ namespace RoguelikeTCG.Combat
 
             int playerScore = gridManager.PlayerRoundScore;
             int enemyScore  = gridManager.EnemyRoundScore;
-            int delta       = playerScore - enemyScore;
 
             Log($"  Score : Joueur {playerScore} — Ennemi {enemyScore}");
 
-            if (delta > 0)
+            if (playerScore > enemyScore)
             {
-                DamageEnemy(delta);
-                Log($"  Joueur inflige {delta} dmg au héros ennemi ! ({enemyCurrentHP}/{enemyMaxHP})");
+                DamageEnemy(playerScore);
+                Log($"  Vous remportez la manche ! Infligez {playerScore} dmg au héros ennemi ({enemyCurrentHP}/{enemyMaxHP})");
             }
-            else if (delta < 0)
+            else if (enemyScore > playerScore)
             {
-                DamagePlayer(-delta);
-                Log($"  Ennemi inflige {-delta} dmg à votre héros ! ({playerHP}/{playerMaxHP})");
+                DamagePlayer(enemyScore);
+                Log($"  L'ennemi remporte la manche ! Inflige {enemyScore} dmg à votre héros ({playerHP}/{playerMaxHP})");
             }
             else
             {
@@ -1056,7 +1060,7 @@ namespace RoguelikeTCG.Combat
 
         private void ShowRelicReward()
         {
-            var canvas = FindObjectOfType<Canvas>();
+            var canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null || relicRewardPool == null || relicRewardPool.Count == 0)
             { ShowResultOverlay(won: true); return; }
 
@@ -1096,7 +1100,7 @@ namespace RoguelikeTCG.Combat
 
         private void ShowRewardScreen()
         {
-            var canvas = FindObjectOfType<Canvas>();
+            var canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null || rewardCardPool == null || rewardCardPool.Count == 0)
             { ShowResultOverlay(won: true); return; }
 
@@ -1163,7 +1167,7 @@ namespace RoguelikeTCG.Combat
 
         private void ShowResultOverlay(bool won)
         {
-            var canvas = FindObjectOfType<Canvas>();
+            var canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null) return;
 
             bool isBossVict = won && (RunPersistence.Instance?.CurrentNode?.type == NodeType.Boss);

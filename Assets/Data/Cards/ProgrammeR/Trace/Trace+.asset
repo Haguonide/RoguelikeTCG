@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
+  m_Name: Trace+
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
+  cardName: Trace+
+  description: 
+  artwork: {fileID: 21300000, guid: 26aba67866020094dbb393b86ee12082, type: 3}
+  cardType: 0
+  rarity: 3
+  manaCost: 3
+  hp: 2
+  countdown: 2
+  attackDirections: 8
+  keyword: 0
+  positionalCondition: 0
+  positionalEffect: 0
+  spellTarget: 0
+  effects: []
+  upgradedVersion: {fileID: 0}

@@ -211,8 +211,8 @@ namespace RoguelikeTCG.Combat
         private void RefreshHighlights()
         {
             ClearHighlights();
-            var allCells  = FindObjectsOfType<GridCellUI>(true);
-            var allHeroes = FindObjectsOfType<HeroPortraitUI>(true);
+            var allCells  = FindObjectsByType<GridCellUI>(FindObjectsInactive.Include);
+            var allHeroes = FindObjectsByType<HeroPortraitUI>(FindObjectsInactive.Include);
 
             switch (_mode)
             {
@@ -288,7 +288,7 @@ namespace RoguelikeTCG.Combat
             foreach (var c in _highlightedCells)
                 c.SetHighlight(false, Color.clear);
             _highlightedCells.Clear();
-            foreach (var h in FindObjectsOfType<HeroPortraitUI>(true))
+            foreach (var h in FindObjectsByType<HeroPortraitUI>(FindObjectsInactive.Include))
                 h.SetHighlight(false);
             spellArrow?.Hide();
         }

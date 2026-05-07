@@ -14,6 +14,8 @@ namespace RoguelikeTCG.Combat
         public void SetActiveBoardCount(int count) { }
         public bool AllBoardsDefeated() => false;
 
+#pragma warning disable CS0067
         public event System.Action<int> OnActiveBoardChanged;
+#pragma warning restore CS0067
     }
 }

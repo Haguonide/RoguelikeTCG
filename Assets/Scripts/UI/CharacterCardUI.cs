@@ -45,7 +45,7 @@ namespace RoguelikeTCG.UI
 
             if (nameText  != null) nameText.text  = character.characterName;
             if (descText  != null) descText.text  = character.description;
-            if (hpText    != null) hpText.text    = $"❤ {character.maxHP} HP";
+            if (hpText    != null) hpText.text    = $"{character.maxHP} HP";
             if (relicText != null)
                 relicText.text = GetRelicDisplayText();
         }

@@ -12,18 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff32d5d01094f8341843c5e2c97bef77, type: 3}
   m_Name: VoltaireHeros
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
-  cardName: Chien de garde
-  description: Un chien-robot avec une oreille en moins. L'autre compense largement.
-  artwork: {fileID: 21300000, guid: 24e8fefe208203a4e8ce24d278ae4be3, type: 3}
+  cardName: Voltaire
+  description: 
+  artwork: {fileID: 21300000, guid: 5688f10d111cfd649bbc68fd96f719f6, type: 3}
   cardType: 0
-  rarity: 0
-  manaCost: 2
-  attackPower: 1
-  maxHP: 4
-  countdown: 3
-  attackDirections: 16
-  keyword: 8
-  keywordValue: 0
+  rarity: 3
+  manaCost: 3
+  hp: 2
+  countdown: 2
+  attackDirections: 8
+  keyword: 0
+  positionalCondition: 0
+  positionalEffect: 0
   spellTarget: 0
   effects: []
-  upgradedVersion: {fileID: 11400000, guid: 8928a39ca03008846b496112010415f7, type: 2}
+  upgradedVersion: {fileID: 11400000, guid: cd409031ed647e84f93dc3fb535a5740, type: 2}

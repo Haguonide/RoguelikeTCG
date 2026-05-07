@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f2d37367844f32499a580de71e06116, type: 3}
+  m_Name: Programme R
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CharacterData
+  characterName: Programme R
+  description: 
+  portrait: {fileID: 0}
+  maxHP: 30
+  startingDeck:
+  - {fileID: 11400000, guid: 8aada4b25ddb16642874f6fb07f29289, type: 2}
+  - {fileID: 11400000, guid: 7e0930ee8a6bfc549924d42c702d8203, type: 2}
+  - {fileID: 11400000, guid: 7c4934f4b929af147a19ba837700b444, type: 2}
+  - {fileID: 11400000, guid: 7c4934f4b929af147a19ba837700b444, type: 2}
+  - {fileID: 11400000, guid: d9d9ea7776f5d8f42af418f089b3f5c1, type: 2}
+  - {fileID: 11400000, guid: bf34f1dc9e229ac4d80317ebff25df73, type: 2}
+  - {fileID: 11400000, guid: bf34f1dc9e229ac4d80317ebff25df73, type: 2}
+  - {fileID: 11400000, guid: 69daaeadaa330034c9ec7ed2dd3b4831, type: 2}
+  - {fileID: 11400000, guid: 44391ad0cb7f9f842acf858da277c146, type: 2}
+  - {fileID: 11400000, guid: 6ff3cb98affb3dd48ababe708f0b308b, type: 2}
+  - {fileID: 11400000, guid: 6ff3cb98affb3dd48ababe708f0b308b, type: 2}
+  - {fileID: 11400000, guid: 6b4816ad50852f84d9d64a334a9594ac, type: 2}
+  - {fileID: 11400000, guid: fa0d8f26bfc69c149a9cef0badbc7f51, type: 2}
+  - {fileID: 11400000, guid: fa0d8f26bfc69c149a9cef0badbc7f51, type: 2}
+  - {fileID: 11400000, guid: 2649e1e41f9489c4eb077395b640b735, type: 2}
+  - {fileID: 11400000, guid: c10c541f1292b6b4dac60af614677618, type: 2}
+  - {fileID: 11400000, guid: b0619a4e9414da4408f844fd839338ae, type: 2}
+  - {fileID: 11400000, guid: b0619a4e9414da4408f844fd839338ae, type: 2}
+  - {fileID: 11400000, guid: 4d73dcd38a08e60408a79693daf566f3, type: 2}
+  - {fileID: 11400000, guid: 6a25c7be516131f4c8710633b6105013, type: 2}
+  - {fileID: 11400000, guid: 6a25c7be516131f4c8710633b6105013, type: 2}
+  - {fileID: 11400000, guid: db7b59d58178efc428413d9512e6a915, type: 2}
+  - {fileID: 11400000, guid: f63af9e310f723c49875b96243aa714e, type: 2}
+  - {fileID: 11400000, guid: e8b328986cf9fc74880151585061bbb6, type: 2}
+  - {fileID: 11400000, guid: e8b328986cf9fc74880151585061bbb6, type: 2}
+  - {fileID: 11400000, guid: fd3c4f72dd95f784fa968cd0cc7623f8, type: 2}
+  - {fileID: 11400000, guid: f3b5bdbbf54b976428166d244bb27c86, type: 2}
+  - {fileID: 11400000, guid: f3b5bdbbf54b976428166d244bb27c86, type: 2}
+  - {fileID: 11400000, guid: 15f6a792a8cb05b4bb598b1b3991defe, type: 2}
+  - {fileID: 11400000, guid: 9f36c58020ef90c41a373b27adefefdb, type: 2}
+  cardPool: []

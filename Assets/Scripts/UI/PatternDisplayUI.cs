@@ -148,8 +148,8 @@ namespace RoguelikeTCG.UI
                 {
                     _statusTMPs[p].text = status == -1
                         ? (pattern != null ? $"+{pattern.Points} pts" : "")
-                        : status == 0 ? "✓ Vous"
-                        : "✓ Ennemi";
+                        : status == 0 ? "OK Vous"
+                        : "OK Ennemi";
                     _statusTMPs[p].color = status == -1 ? new Color(1f, 0.85f, 0.2f) :
                                            status == 0  ? new Color(0.4f, 1f, 0.4f) :
                                                           new Color(1f, 0.4f, 0.4f);
