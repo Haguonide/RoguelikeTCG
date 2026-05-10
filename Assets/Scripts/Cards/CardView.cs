@@ -22,7 +22,7 @@ namespace RoguelikeTCG.Cards
         public Image[] heartImages;
 
         [Header("Zones (CardPrefab)")]
-        public TextMeshProUGUI hpText;    // HPZone/HPText — "2/3"
+        public TextMeshProUGUI hpText;    // HPZone/HPText — HP restants uniquement
         public GameObject      manaZone;  // caché quand la carte est posée sur la grille
         public GameObject      cdZone;    // caché pour les sorts/utilitaires
         public GameObject      hpZone;    // caché pour les sorts/utilitaires
@@ -44,7 +44,8 @@ namespace RoguelikeTCG.Cards
 
         private CardInstance cardInstance;
         private bool isZoomed;
-        private bool _onGrid; // true quand posée sur la grille — bloque hover/select
+        private bool _onGrid;     // true quand posée sur la grille — bloque hover/select
+        private bool _zoomMode;   // true dans le panneau de zoom — bloque hover/select, affiche toutes les flèches
         private bool _arrowsFound;
 
         private RectTransform _rt;
@@ -59,7 +60,14 @@ namespace RoguelikeTCG.Cards
         public void SetOnGrid(bool onGrid)
         {
             _onGrid = onGrid;
-            Refresh(); // manaZone se cache (IsOnGrid devient true)
+            Refresh();
+        }
+
+        /// <summary>Appelé par CardZoomPanel. Affiche toutes les flèches (actives/inactives) et bloque les interactions.</summary>
+        public void SetZoomMode(bool zoom)
+        {
+            _zoomMode = zoom;
+            Refresh();
         }
 
         private void Awake()
@@ -112,9 +120,9 @@ namespace RoguelikeTCG.Cards
             if (cdZone) cdZone.SetActive(false);
             if (cdText) cdText.text = "";
 
-            // HPZone + HPText : "currentHP/maxHP" pour les unités
+            // HPZone + HPText : HP restants pour les unités
             if (hpZone) hpZone.SetActive(isUnit);
-            if (hpText) hpText.text = isUnit ? $"{cardInstance.currentHP}/{data.hp}" : "";
+            if (hpText) hpText.text = isUnit ? $"{cardInstance.currentHP}" : "";
 
             // Icônes cœurs (ancien affichage HP, coexiste avec hpText)
             if (heartImages != null)
@@ -131,20 +139,31 @@ namespace RoguelikeTCG.Cards
                 }
             }
 
-            // Flèches d'attaque : affichées uniquement en jeu, selon les directions réelles
+            // Flèches d'attaque
             if (!_arrowsFound) FindArrows();
-            bool onGrid = isUnit && cardInstance.IsOnGrid;
             var dirs = data.attackDirections;
-            if (arrowUp)    arrowUp.SetActive(onGrid    && (dirs & AttackDirection.Up)    != 0);
-            if (arrowDown)  arrowDown.SetActive(onGrid  && (dirs & AttackDirection.Down)  != 0);
-            if (arrowLeft)  arrowLeft.SetActive(onGrid  && (dirs & AttackDirection.Left)  != 0);
-            if (arrowRight) arrowRight.SetActive(onGrid && (dirs & AttackDirection.Right) != 0);
+            if (_zoomMode && isUnit)
+            {
+                // Mode zoom : toutes les flèches visibles, grisées si direction inactive
+                RefreshArrowZoom(arrowUp,    (dirs & AttackDirection.Up)    != 0);
+                RefreshArrowZoom(arrowDown,  (dirs & AttackDirection.Down)  != 0);
+                RefreshArrowZoom(arrowLeft,  (dirs & AttackDirection.Left)  != 0);
+                RefreshArrowZoom(arrowRight, (dirs & AttackDirection.Right) != 0);
+            }
+            else
+            {
+                bool onGrid = isUnit && cardInstance.IsOnGrid;
+                if (arrowUp)    arrowUp.SetActive(onGrid    && (dirs & AttackDirection.Up)    != 0);
+                if (arrowDown)  arrowDown.SetActive(onGrid  && (dirs & AttackDirection.Down)  != 0);
+                if (arrowLeft)  arrowLeft.SetActive(onGrid  && (dirs & AttackDirection.Left)  != 0);
+                if (arrowRight) arrowRight.SetActive(onGrid && (dirs & AttackDirection.Right) != 0);
+            }
 
             // Legacy fields — null-safe, ignorés si non assignés dans le prefab
             if (cardNameText)    cardNameText.text    = data.cardName;
             if (descriptionText) descriptionText.text = data.description;
             if (statsText)       statsText.text       = isUnit
-                ? $"HP {cardInstance.currentHP}/{data.hp}"
+                ? $"HP {cardInstance.currentHP}"
                 : "";
             if (keywordText)     keywordText.text     = (isUnit && data.keyword != UnitKeyword.Aucun)
                 ? data.keyword.ToString()
@@ -170,13 +189,23 @@ namespace RoguelikeTCG.Cards
             }
         }
 
+        private static readonly Color ColArrowInactive = new Color(0.30f, 0.30f, 0.30f, 0.40f);
+
+        private static void RefreshArrowZoom(GameObject arrowGO, bool active)
+        {
+            if (arrowGO == null) return;
+            arrowGO.SetActive(true);
+            var img = arrowGO.GetComponent<Image>() ?? arrowGO.GetComponentInChildren<Image>(true);
+            if (img != null) img.color = active ? Color.white : ColArrowInactive;
+        }
+
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (_onGrid) return;
-            if (eventData.button == PointerEventData.InputButton.Left)
-                CardSelector.Instance?.SelectCard(this);
-            else if (eventData.button == PointerEventData.InputButton.Right)
+            if (_zoomMode) return;
+            if (eventData.button == PointerEventData.InputButton.Right)
                 ToggleZoom();
+            else if (eventData.button == PointerEventData.InputButton.Left && !_onGrid)
+                CardSelector.Instance?.SelectCard(this);
         }
 
         private void ToggleZoom()
@@ -194,7 +223,7 @@ namespace RoguelikeTCG.Cards
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (_onGrid || _rt == null) return;
+            if (_onGrid || _zoomMode || _rt == null) return;
             if (!_baseCaptured)
             {
                 _basePos = _rt.anchoredPosition;
@@ -209,7 +238,7 @@ namespace RoguelikeTCG.Cards
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            if (_onGrid || _rt == null || !_baseCaptured) return;
+            if (_onGrid || _zoomMode || _rt == null || !_baseCaptured) return;
             if (_hoverCo != null) StopCoroutine(_hoverCo);
             _hoverCo = StartCoroutine(HoverLerp(_basePos, _baseRot, 1f));
         }
