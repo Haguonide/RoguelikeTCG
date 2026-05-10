@@ -3,152 +3,145 @@ using UnityEngine.UI;
 
 namespace RoguelikeTCG.UI
 {
-    public class SpellArrowUI : MonoBehaviour
+    [RequireComponent(typeof(CanvasRenderer))]
+    public class SpellArrowUI : MaskableGraphic
     {
-        [SerializeField] private Sprite segmentSprite;
-        [SerializeField] private Sprite arrowheadSprite;
-        [SerializeField] private int    dotCount = 20;
+        [SerializeField] private int   ribbonSegments = 30;
+        [SerializeField] private float ribbonWidth    = 20f;
+        [SerializeField] private float arrowheadSize  = 36f;
 
-        private RectTransform   _originRT;
-        private RectTransform   _selfRT;
-        private Camera          _canvasCamera;
+        // ── État interne ─────────────────────────────────────────────────────
 
-        private RectTransform[] _segments;
-        private Image[]         _segmentImages;
-        private RectTransform   _arrowheadRT;
-        private Image           _arrowheadImage;
-
-        private Color _arrowColor = new Color(1f, 0.9f, 0.4f, 0.85f);
-
-        // Segment dimensions — length varies slightly near tip for depth effect
-        private const float SegW    = 22f;
-        private const float SegH    = 9f;
-        private const float AheadSz = 40f;
+        private RectTransform _originRT;
+        private Vector2 _p0, _p1, _p2;
+        private bool _hasPoints;
 
         // ── Lifecycle ────────────────────────────────────────────────────────
 
-        private void Awake()
+        protected override void Awake()
         {
-            _selfRT = GetComponent<RectTransform>();
-            var canvas = GetComponentInParent<Canvas>();
-            _canvasCamera = canvas != null ? canvas.worldCamera : null;
+            base.Awake();
+            raycastTarget = false;
 
-            _segments      = new RectTransform[dotCount];
-            _segmentImages = new Image[dotCount];
+            var s = Shader.Find("RoguelikeTCG/RibbonArrow");
+            if (s != null)
+                material = new Material(s) { hideFlags = HideFlags.DontSave };
 
-            for (int i = 0; i < dotCount; i++)
-            {
-                var go  = new GameObject($"SpellSeg_{i}", typeof(RectTransform), typeof(Image));
-                go.transform.SetParent(transform, false);
-
-                var img = go.GetComponent<Image>();
-                img.sprite        = segmentSprite;
-                img.color         = _arrowColor;
-                img.raycastTarget = false;
-                img.preserveAspect = false;
-
-                var rt = go.GetComponent<RectTransform>();
-                rt.sizeDelta = new Vector2(SegW, SegH);
-                rt.anchorMin = new Vector2(0.5f, 0.5f);
-                rt.anchorMax = new Vector2(0.5f, 0.5f);
-                rt.pivot     = new Vector2(0.5f, 0.5f);
-
-                _segments[i]      = rt;
-                _segmentImages[i] = img;
-
-                go.SetActive(false);
-            }
-
-            var ahead = new GameObject("SpellArrowhead", typeof(RectTransform), typeof(Image));
-            ahead.transform.SetParent(transform, false);
-
-            _arrowheadImage               = ahead.GetComponent<Image>();
-            _arrowheadImage.sprite        = arrowheadSprite;
-            _arrowheadImage.color         = _arrowColor;
-            _arrowheadImage.raycastTarget = false;
-            _arrowheadImage.preserveAspect = true;
-
-            _arrowheadRT          = ahead.GetComponent<RectTransform>();
-            _arrowheadRT.sizeDelta = new Vector2(AheadSz, AheadSz);
-            _arrowheadRT.anchorMin = new Vector2(0.5f, 0.5f);
-            _arrowheadRT.anchorMax = new Vector2(0.5f, 0.5f);
-            _arrowheadRT.pivot     = new Vector2(0.5f, 0.5f);
-
-            ahead.SetActive(false);
             gameObject.SetActive(false);
         }
 
-        // ── Public API ───────────────────────────────────────────────────────
+        // ── API publique (identique à l'ancienne version MonoBehaviour) ──────
 
-        public void SetArrowColor(Color color)
+        public void SetArrowColor(Color c)
         {
-            _arrowColor = color;
-            for (int i = 0; i < dotCount; i++)
-                if (_segmentImages[i] != null) _segmentImages[i].color = color;
-            if (_arrowheadImage != null) _arrowheadImage.color = color;
+            // Graphic.color déclenche SetVerticesDirty + SetMaterialDirty automatiquement
+            color = c;
         }
 
         public void Show(RectTransform origin)
         {
             _originRT = origin;
             gameObject.SetActive(true);
-            // Pre-position before activating to avoid one-frame flash at center
             UpdateArrow(Input.mousePosition);
-            for (int i = 0; i < dotCount; i++)
-                _segments[i].gameObject.SetActive(true);
-            _arrowheadRT.gameObject.SetActive(true);
         }
 
         public void Hide()
         {
-            for (int i = 0; i < dotCount; i++)
-                _segments[i].gameObject.SetActive(false);
-            _arrowheadRT.gameObject.SetActive(false);
             gameObject.SetActive(false);
-            _originRT = null;
+            _originRT  = null;
+            _hasPoints = false;
         }
 
         public void UpdateArrow(Vector2 mouseScreenPos)
         {
-            if (_originRT == null || _selfRT == null) return;
+            if (_originRT == null) return;
 
-            Vector2 p0 = OriginLocalPoint();
+            var selfRT = (RectTransform)transform;
+            var canvas = GetComponentInParent<Canvas>();
+            var cam    = canvas != null ? canvas.worldCamera : null;
+
+            // Origine : centre haut de la carte source
+            Rect    rect      = _originRT.rect;
+            Vector3 topCenter = _originRT.TransformPoint(new Vector3(0f, rect.yMax, 0f));
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _selfRT, mouseScreenPos, _canvasCamera, out Vector2 p2);
+                selfRT,
+                RectTransformUtility.WorldToScreenPoint(cam, topCenter),
+                cam,
+                out _p0);
 
-            // Control point: above midpoint, curvature scales with horizontal distance
-            float height = Mathf.Abs(p2.x - p0.x) * 0.4f + 80f;
-            Vector2 mid  = (p0 + p2) * 0.5f;
-            Vector2 p1   = mid + Vector2.up * height;
+            // Destination : souris en espace local du canvas
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                selfRT, mouseScreenPos, cam, out _p2);
 
-            for (int i = 0; i < dotCount; i++)
-            {
-                float t  = (float)i / (dotCount - 1);
-                Vector2 pt      = Bezier(p0, p1, p2, t);
-                Vector2 tangent = BezierTangent(p0, p1, p2, t).normalized;
+            // Point de contrôle Bézier : au-dessus du point médian
+            float height = Mathf.Abs(_p2.x - _p0.x) * 0.4f + 80f;
+            _p1 = (_p0 + _p2) * 0.5f + Vector2.up * height;
 
-                _segments[i].anchoredPosition = pt;
-
-                // Rotate segment to align with curve direction
-                float angle = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg;
-                _segments[i].localRotation = Quaternion.Euler(0f, 0f, angle);
-
-                // Slight scale-up near the tip for a depth effect
-                float scale = Mathf.Lerp(0.75f, 1.1f, t);
-                _segments[i].localScale = new Vector3(scale, scale, 1f);
-            }
-
-            // Arrowhead at curve tip, rotated along final tangent
-            Vector2 tip         = Bezier(p0, p1, p2, 1f);
-            Vector2 tipTangent  = BezierTangent(p0, p1, p2, 0.98f);
-            float   aheadAngle  = Mathf.Atan2(tipTangent.y, tipTangent.x) * Mathf.Rad2Deg - 90f;
-
-            _arrowheadRT.anchoredPosition = tip;
-            _arrowheadRT.localRotation    = Quaternion.Euler(0f, 0f, aheadAngle);
+            _hasPoints = true;
+            SetVerticesDirty();
         }
 
-        // ── Bézier math ──────────────────────────────────────────────────────
+        // ── Rendu mesh ───────────────────────────────────────────────────────
+
+        protected override void OnPopulateMesh(VertexHelper vh)
+        {
+            vh.Clear();
+            if (!_hasPoints) return;
+
+            Color32 c = color;
+            int     N = ribbonSegments;
+
+            // ── Ruban (N quads) ──────────────────────────────────────────────
+            for (int i = 0; i < N; i++)
+            {
+                float t0 = (float)i       / N;
+                float t1 = (float)(i + 1) / N;
+
+                Vector2 pos0  = Bezier(_p0, _p1, _p2, t0);
+                Vector2 pos1  = Bezier(_p0, _p1, _p2, t1);
+                Vector2 perp0 = Perp(BezierTangent(_p0, _p1, _p2, t0));
+                Vector2 perp1 = Perp(BezierTangent(_p0, _p1, _p2, t1));
+
+                // Le ruban s'élargit légèrement de la queue vers la pointe
+                float w0 = Mathf.Lerp(ribbonWidth * 0.4f, ribbonWidth, t0);
+                float w1 = Mathf.Lerp(ribbonWidth * 0.4f, ribbonWidth, t1);
+
+                // Rétrécit sur les 2 derniers segments avant la tête de flèche
+                if (i >= N - 2)
+                    w1 = Mathf.Lerp(w1, 0f, (float)(i - N + 2) / 2f);
+
+                // u = progression le long de la courbe, v = 0/1 pour les bords
+                int b = vh.currentVertCount;
+                vh.AddVert(MakeVert(pos0 - perp0 * w0, c, t0, 0f));
+                vh.AddVert(MakeVert(pos0 + perp0 * w0, c, t0, 1f));
+                vh.AddVert(MakeVert(pos1 + perp1 * w1, c, t1, 1f));
+                vh.AddVert(MakeVert(pos1 - perp1 * w1, c, t1, 0f));
+                vh.AddTriangle(b,     b + 1, b + 2);
+                vh.AddTriangle(b,     b + 2, b + 3);
+            }
+
+            // ── Tête de flèche (chevron triangulaire) ────────────────────────
+            Vector2 tip     = Bezier(_p0, _p1, _p2, 1f);
+            Vector2 tipTan  = BezierTangent(_p0, _p1, _p2, 0.96f).normalized;
+            Vector2 tipPerp = new Vector2(-tipTan.y, tipTan.x);
+            float   ah      = arrowheadSize;
+            Vector2 aBase   = tip - tipTan * ah * 0.7f;
+
+            int ai = vh.currentVertCount;
+            vh.AddVert(MakeVert(tip,                          c, 1f,    0.5f));
+            vh.AddVert(MakeVert(aBase - tipPerp * ah * 0.6f, c, 0.85f, 0f));
+            vh.AddVert(MakeVert(aBase + tipPerp * ah * 0.6f, c, 0.85f, 1f));
+            vh.AddTriangle(ai, ai + 1, ai + 2);
+        }
+
+        // ── Helpers ──────────────────────────────────────────────────────────
+
+        private static UIVertex MakeVert(Vector2 pos, Color32 col, float u, float v) =>
+            new UIVertex { position = pos, color = col, uv0 = new Vector2(u, v) };
+
+        private static Vector2 Perp(Vector2 v) =>
+            new Vector2(-v.y, v.x).normalized;
 
         private static Vector2 Bezier(Vector2 p0, Vector2 p1, Vector2 p2, float t)
         {
@@ -156,24 +149,7 @@ namespace RoguelikeTCG.UI
             return inv * inv * p0 + 2f * inv * t * p1 + t * t * p2;
         }
 
-        private static Vector2 BezierTangent(Vector2 p0, Vector2 p1, Vector2 p2, float t)
-        {
-            return 2f * (1f - t) * (p1 - p0) + 2f * t * (p2 - p1);
-        }
-
-        // ── Helpers ──────────────────────────────────────────────────────────
-
-        private Vector2 OriginLocalPoint()
-        {
-            Rect    rect      = _originRT.rect;
-            Vector3 topCenter = _originRT.TransformPoint(new Vector3(0f, rect.yMax, 0f));
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _selfRT,
-                RectTransformUtility.WorldToScreenPoint(_canvasCamera, topCenter),
-                _canvasCamera,
-                out Vector2 local);
-            return local;
-        }
+        private static Vector2 BezierTangent(Vector2 p0, Vector2 p1, Vector2 p2, float t) =>
+            2f * (1f - t) * (p1 - p0) + 2f * t * (p2 - p1);
     }
 }

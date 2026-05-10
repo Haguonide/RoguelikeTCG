@@ -19,7 +19,10 @@ namespace RoguelikeTCG.UI
         public TextMeshProUGUI enemyDeckCountText;
         public TextMeshProUGUI enemyDiscardCountText;
 
-        [Header("Score — nouveau système grille")]
+        [Header("Score — Flip Scoreboard")]
+        public FlipScoreUI flipScoreUI;
+
+        [Header("Score — fallback TMP (si FlipScoreUI absent)")]
         public TextMeshProUGUI playerScoreText;
         public TextMeshProUGUI enemyScoreText;
 
@@ -67,6 +70,11 @@ namespace RoguelikeTCG.UI
 
         public void RefreshScores(int playerScore, int enemyScore)
         {
+            if (flipScoreUI != null)
+            {
+                flipScoreUI.SetScores(playerScore, enemyScore);
+                return;
+            }
             if (playerScoreText) playerScoreText.text = $"Score: {playerScore}";
             if (enemyScoreText)  enemyScoreText.text  = $"Score: {enemyScore}";
         }

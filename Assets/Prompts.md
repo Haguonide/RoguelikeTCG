@@ -588,10 +588,6 @@ PERSONNAGE À ILLUSTRER :
 
 ---
 
-## PROGRAMME R
-
----
-
 ## Notes workflow Leonardo AI
 
 - Winner retenu → uploader comme **Character Reference** dans Phoenix 1.0 pour toutes les cartes de ce perso
@@ -693,8 +689,597 @@ Génère-moi :
 3. 3 ajustements rapides si le résultat n'est pas satisfaisant
 ```
 
+---
 
+# FICHES VISUELLES — Cartes non-héros
 
+> Même format que les personnages — copier le bloc dans la conversation Claude avec le meta-prompt.
+> Les cartes de type Sort (pas d'unité posée) ont une illustration d'effet/scène plutôt que de personnage.
+
+---
+
+## PROGRAMME R — Voltaire *(électricité)*
+
+**Palette Voltaire :** bleu électrique vif + gris anthracite + lueurs bleu-blanc
+
+---
+
+### Éclair Conduit *(unité rapide — frappe dès le tour suivant)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Éclair Conduit
+- Type : Unité (pas le héros Voltaire lui-même — un sbire électrique)
+- Concept visuel : un jeune délinquant de rue électrifié, hoodie sombre
+  avec câbles et composants électroniques bricolés cousus dessus,
+  pas de super-costume, look urbain underground
+- Âge approximatif : 19-20 ans
+- Morphologie : homme, mince et nerveux, cheveux dressés électrostatiques,
+  bras fine avec veines lumineuses bleues sous la peau
+- Pose souhaitée : en pleine course d'élan, bras tendu en avant prêt
+  à décharger, expression de concentration intense, corps incliné
+- Props / éléments visuels signature : arcs électriques crépitant entre les
+  doigts, veines bleues lumineuses visibles sous la peau des avant-bras,
+  câbles du hoodie qui crachent des étincelles, traînée bleue derrière lui
+- Palette de couleurs : gris anthracite + bleu électrique vif, fond sombre
+  urbain, lueurs bleu-blanc intenses
+```
+
+---
+
+### Parafoudre *(unité — attire les coups)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Parafoudre
+- Type : Unité (sbire de Voltaire, rôle de bouclier humain)
+- Concept visuel : un homme trapu et stoïque avec des tiges de métal
+  vissées sur les épaulières comme des antennes de paratonnerre artisanales,
+  armure de fortune soudée, look de quelqu'un qui s'est volontairement
+  rendu conducteur de foudre et trouve ça parfaitement normal
+- Âge approximatif : 35 ans
+- Morphologie : homme, massif et bas sur pattes, cou épais, tête rasée,
+  regard vide et résigné — il sait ce que son rôle implique
+- Pose souhaitée : debout de face, bras légèrement écartés, paumes ouvertes
+  vers le ciel — posture d'accueil/réception, comme invitant la foudre
+  à tomber sur lui, expression neutre et fataliste
+- Props / éléments visuels signature : 4-5 tiges métalliques soudées
+  sur les épaules et la tête comme un paratonnerre ambulant, éclairs
+  qui convergent vers lui depuis tous les côtés, corps légèrement fumant,
+  électricité qui crépite sur toute la surface de l'armure
+- Palette de couleurs : gris métal + bleu électrique, éclairs blanc-jaune,
+  fond sombre chargé d'électricité statique
+```
+
+---
+
+### Court-Circuit *(sort — effet négatif sur une unité ennemie)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Court-Circuit
+- Type : Sort (illustration d'effet — pas de personnage central)
+- Concept visuel : un court-circuit spectaculaire — un équipement
+  électronique (serveur, armure tech, dispositif) qui prend feu de l'intérieur,
+  étincelles et fumée jaillissant de toutes les fissures
+- Scène souhaitée : gros plan sur l'équipement en train de griller,
+  étincelles explosant en gerbes, fumée noire s'échappant, fils fondus,
+  écrans qui clignotent et meurent, ambiance d'urgence électrique
+- Props / éléments visuels signature : gerbes d'étincelles orange-blanc,
+  fumée noire dense, câbles fondus, lueurs de court-circuit bleu-blanc,
+  aucun personnage visible — juste l'effet
+- Palette de couleurs : noir + orange étincelles + bleu-blanc électrique,
+  fumée grise, fond très sombre, contraste fort
+```
+
+---
+
+### Surcharge *(sort — buff sur toutes les unités alliées)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Surcharge
+- Type : Sort (illustration d'effet — onde d'énergie explosive)
+- Concept visuel : une onde d'énergie électrique qui explose vers l'extérieur
+  depuis un point central — power surge total, comme si une centrale
+  électrique lâchait tout d'un coup
+- Scène souhaitée : explosion d'arcs électriques partant en étoile
+  depuis un centre aveuglant, énergie qui déborde, trop d'électricité
+  pour être contenue, lumière bleue-blanche aveuglante au cœur
+- Props / éléments visuels signature : arcs concentriques d'électricité
+  en expansion, particules d'énergie dispersées, onde de choc visible,
+  intensité maximale, pas de personnage — juste la puissance pure
+- Palette de couleurs : blanc aveuglant au centre, bleu électrique en
+  expansion, fond anthracite saturé, halos d'énergie en couches
+```
+
+---
+
+## PROGRAMME R — Cendres *(feu / explosion)*
+
+**Palette Cendres :** orange vif + rouge brûlé + noir fumée
+
+---
+
+### Bombe à Retardement *(unité — explose en mourant, dégâts zone)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Bombe à Retardement
+- Type : Unité (créature-bombe vivante, pas Cendres elle-même)
+- Concept visuel : une créature sphérique qui EST une bombe — corps
+  sombre avec veines de lave incandescentes visibles, une mèche
+  qui brûle sur le crâne, yeux rouges fixes et vides, expression
+  de totale acceptation de son destin
+- Morphologie : silhouette compacte et ronde, petit, trapu, aucun cou
+  visible, bras courts, posture ramassée comme une bombe qui attend
+- Pose souhaitée : statique, centré, regardant fixement le spectateur,
+  mèche qui brûle activement sur la tête, fissures de lave visibles
+  sur tout le corps, chaleur irradiante visible autour
+- Props / éléments visuels signature : mèche brûlante sur le crâne,
+  fissures lumineuses orange-rouge sur le corps (comme de la lave),
+  légère fumée montant de ces fissures, compte à rebours tacite
+  dans le regard — il sait ce qu'il va faire
+- Palette de couleurs : noir charbon + orange lave incandescent + rouge
+  profond, fond sombre chaud, lueurs de chaleur autour du corps
+```
+
+---
+
+### Flammèche *(sort — effet positionnel au coin)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Flammèche
+- Type : Sort (petit esprit de feu, illustration d'effet ou créature minuscule)
+- Concept visuel : un minuscule esprit de feu vivant — une flamme
+  anthropomorphique de la taille d'un poing, animée, vive, espiègle,
+  qui tournoie dans l'air comme une toupie enflammée
+- Scène souhaitée : la flammèche flotte au bout d'un doigt tendu
+  (on voit juste la main, pas de personnage complet) ou danse seule
+  dans l'air, lumineuse et concentrée, petite mais intense
+- Props / éléments visuels signature : corps entièrement en feu
+  mais clairement vivant (silhouette animée reconnaissable), traînée
+  de chaleur derrière elle, éclat orangé qui illumine l'espace autour,
+  tourbillon de braises
+- Palette de couleurs : orange vif + jaune brillant + rouge cœur,
+  fond très sombre pour maximiser le contraste lumineux, braises
+  orange dispersées
+```
+
+---
+
+### Embrasement *(sort — dégâts zone toutes unités adjacentes)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Embrasement
+- Type : Sort (illustration d'effet — conflagration totale)
+- Concept visuel : une vague de feu qui dévore tout — déflagration
+  massive, pas de personnage, juste la puissance du feu à son maximum
+- Scène souhaitée : mur de flammes qui s'étend d'un bord à l'autre
+  du cadre, intensité maximale, chaleur visible, fond consumé par
+  le feu, rien ne survit à cette vague
+- Props / éléments visuels signature : vague de feu tridimensionnelle
+  avec profondeur, nuances de rouge / orange / jaune / blanc au cœur,
+  débris embrasés qui volent, fumée noire dense au-dessus
+- Palette de couleurs : orange brûlant + rouge profond + blanc intense
+  au cœur des flammes, fumée noire, fond consumé noir
+```
+
+---
+
+### Fumée Noire *(sort — affaiblit une unité ennemie)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Fumée Noire
+- Type : Sort (illustration d'effet — nuage d'obscurcissement)
+- Concept visuel : un nuage de fumée noire et épaisse qui s'enroule
+  autour d'une silhouette floue — la cible est visible en ombre
+  derrière la fumée mais complètement enveloppée, neutralisée
+- Scène souhaitée : fumée qui tourbillonne et étouffe, silhouette
+  derrière qui essaie de voir à travers, effet d'enfermement et
+  d'asphyxie, aucune flamme — juste la fumée froide et oppressante
+- Props / éléments visuels signature : volutes de fumée noire dense
+  avec nuances de gris-violet, silhouette à peine visible derrière
+  (ombre floue), particules de suie qui flottent, lumière étouffée
+- Palette de couleurs : noir charbon + gris-violet sombre, fond quasi
+  noir, aucune couleur chaude — effet d'extinction
+```
+
+---
+
+## PROGRAMME R — Le Bloc *(force brute)*
+
+**Palette Le Bloc :** noir profond + rouge brique + gris anthracite
+
+---
+
+### Sbire Musclé *(unité — homme de main standard)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Sbire Musclé
+- Type : Unité (homme de main générique de Le Bloc, pas Le Bloc lui-même)
+- Concept visuel : un sbire classique et interchangeable — casque
+  intégral noir qui cache complètement le visage, uniforme d'exécutant
+  sobre, musculature évidente, attitude d'obéissance totale
+- Âge approximatif : indéterminé (masqué)
+- Morphologie : homme, grand et musclé mais pas monstrueux — la version
+  standard de brute de terrain, moins impressionnant que Le Bloc
+- Pose souhaitée : bras croisés, debout de face, poids sur les deux jambes,
+  posture d'attente d'ordres — pas d'expression car pas de visage visible
+- Props / éléments visuels signature : casque noir intégral opaque
+  (aucun oeil visible), uniforme tactique sobre avec insigne "R" petit
+  et discret, gants épais, boots renforcées, aura rouge-brique légère
+  autour des poings fermés
+- Palette de couleurs : noir mat + rouge brique pour les accents,
+  fond sombre industriel, éclairage dur et directionnel
+```
+
+---
+
+### Mur de Chair *(unité — tank, résistance maximale)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Mur de Chair
+- Type : Unité (sbire/créature de Le Bloc, encore plus massif que lui)
+- Concept visuel : un être humain qui est littéralement un mur —
+  largeur exceptionnelle, bras écartés naturellement parce que
+  les biceps empêchent de les rapprocher, jambes comme des piliers,
+  aucune intention agressive — il EST juste là, il bloque
+- Âge approximatif : 45 ans, vieux soldat
+- Morphologie : homme, dimensions hors norme — plus large que haut
+  presque, épaules qui débordent du cadre, cou inexistant, tête
+  petite et carrée posée directement sur les épaules
+- Pose souhaitée : de face, bras légèrement écartés (il ne peut pas
+  faire autrement), jambes légèrement écartées, posture d'obstacle
+  naturel, expression vide et impassible
+- Props / éléments visuels signature : fissures légères dans le sol
+  sous ses pieds, aura rouge-brique sur tout le corps (résistance),
+  uniforme noir aux coutures apparemment testées à la limite
+- Palette de couleurs : noir + rouge brique saturé pour l'aura,
+  fond très sombre, éclairage rasant qui accentue le volume
+```
+
+---
+
+### Ordre Simple *(sort — accélère une unité alliée)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Ordre Simple
+- Type : Sort (illustration d'un ordre donné — geste d'autorité)
+- Concept visuel : un bras massif en gant noir qui pointe vers l'avant
+  avec une autorité absolue — aucun doute possible sur ce que cela
+  signifie, geste sans ambiguïté, sans fioritures
+- Scène souhaitée : gros plan sur la main/bras (on ne voit que ça),
+  doigt tendu, geste ferme et décisif, légère aura rouge autour
+  du gant, fond sombre épuré
+- Props / éléments visuels signature : gant opérationnel noir épais,
+  aura rouge autour de la main au moment du geste, ligne d'énergie
+  qui part du doigt pointé vers l'avant (direction de l'ordre)
+- Palette de couleurs : noir + rouge vif pour l'énergie de l'ordre,
+  fond anthracite presque noir, contraste net
+```
+
+---
+
+### En Formation *(sort — accélère toutes les unités alliées adjacentes)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : En Formation
+- Type : Sort (illustration d'unité tactique — groupe en mouvement)
+- Concept visuel : 3 silhouettes de sbires musclés en formation en V
+  qui avancent ensemble, synchronisés, énergie de cohésion entre eux
+- Scène souhaitée : vue légèrement de face en contre-plongée,
+  les 3 silhouettes en formation serrée qui avancent de concert,
+  aura partagée rouge qui les unit, mouvement uniforme et délibéré
+- Props / éléments visuels signature : les 3 silhouettes portent
+  le même uniforme (sbires de Le Bloc), aura rouge-brique qui
+  les entoure tous les trois comme un champ d'énergie partagé,
+  sol qui vibre légèrement sous leurs pas synchronisés
+- Palette de couleurs : noir + rouge brique pour l'aura collective,
+  fond sombre, éclairage dramatique en contre-plongée
+```
+
+---
+
+## PROGRAMME R — Trace *(super-vitesse)*
+
+**Palette Trace :** vert électrique vif + gris foncé + blanc de vitesse
+
+---
+
+### Faux Départ *(unité — s'élance dans la mauvaise direction)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Faux Départ
+- Type : Unité (version comique de Trace ou coureur générique)
+- Concept visuel : un sprinter en tenue légère vert électrique qui
+  s'est élancé à toute vitesse... mais dans la mauvaise direction,
+  réalisant son erreur exactement au moment de l'illustration —
+  corps en avant lancé, tête tournée avec une expression d'horreur comique
+- Âge approximatif : 20 ans environ, jeune coureur
+- Morphologie : homme, silhouette très fine et élancée comme Trace
+  mais en version "pas tout à fait aussi coordonné"
+- Pose souhaitée : corps projeté en avant à pleine vitesse, mais
+  tête et regard tournés en arrière ou de côté avec une expression
+  de "oh non pas encore", traînées de vitesse vertes qui partent
+  dans la mauvaise direction
+- Props / éléments visuels signature : traînées de vitesse vert vif
+  qui pointent manifestement dans le mauvais sens, expression
+  de panique comic, semelles avec éclat cinétique, chaussure
+  peut-être en train de se délacer au pire moment
+- Palette de couleurs : vert électrique + gris foncé, traînées
+  blanc-vert, fond flouté par la vitesse, ambiance comique rapide
+```
+
+---
+
+### Ligne Directe *(unité — frappe immédiate, bonus si sur un bord)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Ligne Directe
+- Type : Unité (coureur, thème vitesse pure — peut être Trace ou générique)
+- Concept visuel : un coureur qui fonce en ligne droite absolue,
+  complètement focused, laser total, aucune déviation possible —
+  vitesse maximale, trajectoire parfaite
+- Morphologie : silhouette très fine et aérodynamique, corps incliné
+  en avant à 45°, parfaite posture de sprint
+- Pose souhaitée : profil de course — vu de côté, corps parfaitement
+  incliné, un pied levé, bras en action de course, regard fixé sur
+  un point hors-cadre devant lui, expression de concentration totale
+- Props / éléments visuels signature : traînée de vitesse vert électrique
+  parfaitement rectiligne derrière lui (pas de courbe), ligne d'énergie
+  verte qui matérialise la trajectoire directe, distorsion de l'air
+  autour du corps due à la vitesse
+- Palette de couleurs : vert électrique intense + gris foncé, ligne
+  de vitesse blanche rectiligne, fond flouté horizontal
+```
+
+---
+
+### Vitesse Relative *(sort — accélère une unité ennemie pour déclencher son attaque plus tôt)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Vitesse Relative
+- Type : Sort (illustration d'effet — manipulation du temps/vitesse)
+- Concept visuel : une horloge dont les aiguilles tournent à une
+  vitesse folle, ou une distorsion temporelle autour d'une silhouette
+  floue qui se retrouve forcée d'agir trop vite — relativité de
+  la vitesse comme arme
+- Scène souhaitée : grande horloge murale aux aiguilles filant
+  à toute vitesse, lignes de distorsion temporelle autour, effet
+  de "temps accéléré" — ou une silhouette dans un vortex vert
+  de vitesse forcée, prise dans un courant qu'elle ne contrôle pas
+- Props / éléments visuels signature : aiguilles d'horloge en
+  mouvement rapide flou, distorsion de l'espace autour, lignes
+  de vitesse vert qui encerclent la cible plutôt que de la propulser,
+  effet piège plus que boost
+- Palette de couleurs : vert électrique + blanc vif + fond sombre,
+  distorsion violette pour l'aspect manipulation temporelle
+```
+
+---
+
+### En Retard Comme D'hab *(sort — permet de piocher une carte)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : En Retard Comme D'hab
+- Type : Sort (illustration comique — coureur qui arrive en retard)
+- Concept visuel : une personne qui court à toute vitesse, montre
+  au poignet bien visible indiquant un retard flagrant, valise
+  ou sac qui vole, expression de panique comique totale — malgré
+  la super-vitesse, il est encore en retard
+- Scène souhaitée : personnage en pleine course comique, un pied
+  soulevé, un bras tenant une valise qui s'ouvre et lâche des
+  papiers, l'autre bras avec la montre levée vers le visage,
+  fond flouté par la vitesse
+- Props / éléments visuels signature : montre bien visible montrant
+  une heure impossible, valise ouverte qui perd des papiers volants,
+  traînées vert électrique derrière lui, expression de catastrophe
+  assumée, peut-être un café renversé aussi
+- Palette de couleurs : vert électrique + gris, papiers blancs
+  qui volent, fond flouté urbain, ambiance course-poursuite comique
+```
+
+---
+
+## LES CONTRACTUELS — Cartes non-héros
+
+**Palette équipe :** bleu corporate terne + blanc + gris open-space
+**Ton visuel :** fonctionnaire las avec des super-pouvoirs, désengagement professionnel total
+
+---
+
+### Agent Syndical *(unité — bonus positionnel au bord)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Agent Syndical
+- Type : Unité (personnage — représentant syndical dans l'équipe ennemie)
+- Concept visuel : un représentant syndical en tenue corporate débraillée —
+  veste bleue ouverte sur chemise froissée, badge délégué syndical bien
+  visible, clipboard serré contre la poitrine, regard combatif de quelqu'un
+  qui connaît chaque article de la convention collective par cœur
+- Âge approximatif : 48 ans
+- Morphologie : homme ou femme (non défini), silhouette ordinaire, légère
+  bedaine, lunettes, aucune allure de super-héros — tout dans l'attitude
+- Pose souhaitée : debout, légèrement penché en avant, doigt levé
+  en signe d'avertissement ou de revendication, expression déterminée
+  mais bureaucratique — "j'ai le droit" écrit sur le visage
+- Props / éléments visuels signature : badge délégué syndical en évidence,
+  clipboard avec formulaires, stylo derrière l'oreille, aura bleu
+  corporatif terne autour de lui, peut-être une pile de documents
+- Palette de couleurs : bleu corporate terne + blanc cassé + gris,
+  fond couloir de bureau, lumière néon froide
+```
+
+---
+
+### Consultant Externe *(unité — combo)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Consultant Externe
+- Type : Unité (consultant en mission chez L'Équipe Numéro Un)
+- Concept visuel : un consultant en costume impeccable à 3000€/jour —
+  sourire commercial parfait et légèrement vide, laptop bag en bandoulière,
+  badge "CONSULTANT — ACCÈS LIMITÉ" autour du cou, regard de quelqu'un
+  qui facture à l'heure et le fait savoir
+- Âge approximatif : 36 ans
+- Morphologie : homme ou femme, silhouette soignée et précise, posture
+  droite de quelqu'un qui a fait une école de commerce, aucun souci
+  apparent — le monde est son tableau Excel
+- Pose souhaitée : légèrement de côté, un bras tenant le laptop bag,
+  l'autre main tendue comme pour un pitch ou une poignée de main
+  commerciale, sourire présent mais pas chaleureux
+- Props / éléments visuels signature : badge "CONSULTANT — ACCÈS LIMITÉ"
+  bien visible, laptop bag de marque discrète, aura dorée subtile
+  (il coûte cher), expression de quelqu'un qui optimise tout ce qu'il voit
+- Palette de couleurs : bleu corporate + gris argent pour le costume,
+  badge blanc en évidence, fond salle de réunion neutre
+```
+
+---
+
+### Note De Frais *(sort — affaiblit une unité ennemie)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Note De Frais
+- Type : Sort (illustration comique — paperasse administrative comme arme)
+- Concept visuel : une note de frais démesurée — un long formulaire
+  qui se déroule depuis le haut jusqu'en bas du cadre et au-delà,
+  avec des montants astronomiques, tampons, signatures multiples,
+  et cases cochées à l'infini
+- Scène souhaitée : le formulaire qui se déroule comme un parchemin
+  absurde jusqu'au sol et peut-être par-delà le cadre, stylo
+  bille suspendu dans l'air en train de rajouter une ligne,
+  ambiance de paperasse kafkaïenne
+- Props / éléments visuels signature : formulaire N-ARN/47-bis visible
+  en entête, montants barrés et récrits en rouge, tampons "APPROUVÉ"
+  et "REFUSÉ" qui se contredisent, aura bleu corporate autour
+  du document, fond de bureau désenchanté
+- Palette de couleurs : blanc formulaire + bleu corporate + rouge tampon,
+  fond gris de bureau, lumière artificielle froide
+```
+
+---
+
+### Heure Sup *(sort — affaiblit fortement une unité ennemie)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Heure Sup
+- Type : Sort (illustration — employé épuisé contraint de continuer)
+- Concept visuel : un employé épuisé à son bureau sous une lumière
+  au néon crue à 22h00, horloge murale visible montrant une heure
+  tardive, yeux cernés, costume desserré, qui continue de taper
+  sur un clavier avec la résignation de quelqu'un qui a compris
+  que ça ne finira jamais
+- Scène souhaitée : vue de face sur le bureau encombré, l'employé
+  légèrement éclairé par l'écran devant lui, horloge murale
+  bien visible en fond, fenêtre noire qui trahit l'heure tardive,
+  une tasse de café vide renversée sur le bureau
+- Props / éléments visuels signature : horloge montrant 22h15,
+  tasse vide renversée, pile de dossiers sur le côté, lumière
+  néon froide qui écrase l'ambiance, aura bleu corporatif
+  qui pulse légèrement (la contrainte de l'heure sup)
+- Palette de couleurs : gris + bleu froid de néon + blanc d'écran,
+  fond bureau de nuit, aucune couleur chaude
+```
+
+---
+
+### Coup De Bureaucratie *(sort — affaiblit toutes les unités ennemies adjacentes)*
+
+```
+CARTE À ILLUSTRER :
+- Nom : Coup De Bureaucratie
+- Type : Sort (illustration d'effet — avalanche administrative)
+- Concept visuel : une avalanche de formulaires, tampons et documents
+  qui s'abattent depuis le haut du cadre — pluie de paperasse
+  administrative kafkaïenne qui écrase tout, absurde et implacable
+- Scène souhaitée : vue légèrement de bas — papiers et formulaires
+  qui tombent en masse depuis le haut, tampons géants qui frappent,
+  classeurs qui s'ouvrent et répandent leurs pages, énergie
+  bureaucratique bleue qui émane de cette avalanche
+- Props / éléments visuels signature : formulaires standardisés EN MASSE
+  (dizaines), tampons "REFUSÉ" en rouge visible sur certains, logos
+  "L'Équipe Numéro Un" sur les documents, aura bleue corporatiste
+  qui pulse, ambiance étouffement administratif total
+- Palette de couleurs : blanc documents + bleu corporate + rouge tampons,
+  fond gris anthracite, pluie de papier qui domine le cadre
+```
+
+---
+
+# ASSETS UI — Flèche de pose (drag carte → case)
+
+## Contexte
+
+Dans le jeu, quand le joueur sélectionne une carte en main, une flèche courbée apparaît
+entre la carte et la case de la grille visée. L'effet cible est celui de Wildfrost :
+un ruban fluide translucide (aqueux/lumineux) avec une tête de flèche stylisée au bout.
+
+L'effet est construit en Unity avec deux sprites séparés :
+1. **Tête de flèche** — affichée au bout de la courbe (chevron/flèche)
+2. **Corps de flèche** — texture étirée le long de la courbe (ruban avec gradient d'opacité)
+
+Les deux sprites doivent être **blancs sur fond transparent** pour être colorés dynamiquement
+via `Image.color` ou `LineRenderer.colorGradient` en Unity.
+
+---
+
+## Meta-prompt — Générer les prompts pour les sprites UI de la flèche
+
+> Copier-coller ce bloc dans une conversation Claude pour générer les prompts Photopea/Leonardo.
+
+```
+Je développe un jeu de cartes roguelike en Unity (style Wildfrost/Marvel Snap).
+J'ai besoin de créer deux sprites PNG pour une flèche de pose de carte :
+quand le joueur sélectionne une carte, une flèche courbée et fluide s'affiche
+entre sa carte et la case de la grille visée.
+
+RÉFÉRENCE VISUELLE CIBLE (jeu Wildfrost) :
+- Ruban courbé translucide d'apparence aqueuse/cristalline, légèrement lumineux
+- La queue de la flèche est fine et s'effile, la tête est un chevron blanc stylisé
+- Effet "smooth ribbon" — pas une ligne rigide, plutôt un flux fluide
+- Couleur générale : blanc/cyan pâle, légèrement irisé
+
+CONTRAINTES TECHNIQUES UNITY :
+- Format : PNG, fond 100% transparent
+- Couleur : BLANC pur (le sprite sera teinté en runtime via Image.color)
+- Sprite 1 — TÊTE DE FLÈCHE : 128×64 px, chevron pointant vers la droite
+  (→), forme nette, légèrement arrondie sur les côtés. Peut avoir un léger
+  glow ou emboss blanc pour donner du relief, mais rester lisible à petite taille.
+- Sprite 2 — CORPS/RUBAN : 128×32 px, rectangle avec gradient d'opacité
+  de gauche (opaque, 100%) à droite (transparent, 0%). Peut avoir un léger
+  relief central (plus brillant au milieu, plus sombre sur les bords) pour
+  simuler la forme d'un ruban 3D.
+
+UTILISATION EN UNITY :
+- La tête sera un GameObject Image positionné au bout d'un LineRenderer ou
+  d'une courbe de Bézier
+- Le corps sera la texture d'un LineRenderer (tiled/stretched le long de la courbe)
+- Les deux seront colorés dynamiquement (blanc → couleur selon contexte)
+
+Génère-moi :
+1. Un guide Photopea étape par étape pour créer la TÊTE DE FLÈCHE (128×64 px)
+2. Un guide Photopea étape par étape pour créer le CORPS/RUBAN (128×32 px)
+3. Si Leonardo AI peut générer ces assets UI : le prompt adapté pour chaque sprite
+4. Des alternatives simples si je veux les faire entièrement en code Unity
+   (LineRenderer natif, GL.Lines, etc.) sans sprite externe
+```
 
 
 
