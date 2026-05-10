@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Ordre Simple
   description: 
-  artwork: {fileID: 21300000, guid: 321483cef5be16248b102f9dd368c7d3, type: 3}
+  artwork: {fileID: 21300000, guid: 2eea796e03dad964d93720ff4ab43190, type: 3}
   cardType: 1
   rarity: 0
   manaCost: 1

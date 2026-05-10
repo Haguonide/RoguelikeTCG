@@ -11,9 +11,6 @@ namespace RoguelikeTCG.Cards
         public int gridRow = -1;
         public int gridCol = -1;
 
-        // Countdown (décrémenté chaque fin de tour, attaque à 0)
-        public int currentCountdown;
-
         // HP actuels (initialisés depuis data.hp)
         public int currentHP;
 
@@ -27,10 +24,9 @@ namespace RoguelikeTCG.Cards
 
         public CardInstance(CardData data, bool isPlayerCard)
         {
-            this.data             = data;
-            this.isPlayerCard     = isPlayerCard;
-            this.currentCountdown = data.countdown;
-            this.currentHP        = data.hp;
+            this.data         = data;
+            this.isPlayerCard = isPlayerCard;
+            this.currentHP    = data.hp;
         }
 
         /// <summary>Applique des dégâts. Retourne true si l'unité meurt (HP <= 0).</summary>

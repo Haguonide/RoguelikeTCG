@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Parafoudre
   description: 
-  artwork: {fileID: 21300000, guid: 5688f10d111cfd649bbc68fd96f719f6, type: 3}
+  artwork: {fileID: 21300000, guid: 08f476fb271c81545ade972f675052eb, type: 3}
   cardType: 0
   rarity: 0
   manaCost: 1

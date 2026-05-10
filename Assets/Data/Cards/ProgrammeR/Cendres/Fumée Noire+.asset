@@ -14,12 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Fum\xE9e Noire+"
   description: 
-  artwork: {fileID: 21300000, guid: ea97dc573a09fca4eaeaa11043cd682c, type: 3}
+  artwork: {fileID: 21300000, guid: 0e55f215d9fb6634db05deefd7e99517, type: 3}
   cardType: 1
   rarity: 0
   manaCost: 1
   hp: 1
-  countdown: 2
   attackDirections: 8
   keyword: 0
   positionalCondition: 0
@@ -27,6 +26,6 @@ MonoBehaviour:
   spellTarget: 2
   effects:
   - effectType: 3
-    value: 3
+    value: 2
     target: 2
   upgradedVersion: {fileID: 0}

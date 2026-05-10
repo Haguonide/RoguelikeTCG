@@ -14,14 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Sbire Muscl\xE9"
   description: 
-  artwork: {fileID: 21300000, guid: 321483cef5be16248b102f9dd368c7d3, type: 3}
+  artwork: {fileID: 21300000, guid: e8397ee9f68d2404584552901128aec6, type: 3}
   cardType: 0
   rarity: 0
   manaCost: 2
   hp: 2
-  countdown: 2
   attackDirections: 2
-  keyword: 10
+  keyword: 7
   positionalCondition: 0
   positionalEffect: 0
   spellTarget: 0

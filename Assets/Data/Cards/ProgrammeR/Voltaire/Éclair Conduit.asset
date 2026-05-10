@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "\xC9clair Conduit"
   description: 
-  artwork: {fileID: 21300000, guid: 5688f10d111cfd649bbc68fd96f719f6, type: 3}
+  artwork: {fileID: 21300000, guid: e27dd202655dbd64f85fb12dd9055887, type: 3}
   cardType: 0
   rarity: 2
   manaCost: 2

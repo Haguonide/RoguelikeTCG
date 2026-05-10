@@ -19,9 +19,6 @@ namespace RoguelikeTCG.Data
         [Header("Unit — Grille 3x3")]
         [Range(1, 3)]
         public int hp = 1;
-        [Tooltip("Valeur initiale du countdown (1-3). À 0 l'unité attaque puis revient à cette valeur.")]
-        [Range(1, 3)]
-        public int countdown = 2;
         [EnumFlags]
         [Tooltip("Directions attaquées (flags combinables : Up, Down, Left, Right)")]
         public AttackDirection attackDirections = AttackDirection.Right;

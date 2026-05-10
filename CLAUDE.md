@@ -65,12 +65,11 @@ Numérotation des cases (référence interne) :
 
 ### Structure d'un tour
 
-1. Le joueur joue **1 unité maximum** (sur une case vide) + **autant de cartes** (sorts, utilitaires) que son mana le permet
-2. Le joueur clique **"Fin de Tour"**
-3. Le **compte à rebours** de chaque unité en jeu descend de 1
-4. Les unités dont le compte à rebours atteint **0 attaquent** (kill instantané), puis leur CD repart à sa valeur max
-5. L'ennemi joue son tour (même structure)
-6. Répéter jusqu'à **6 tours max par joueur** = **1 manche**
+1. Le joueur joue **1 unité maximum** (sur une case vide) — **l'unité attaque immédiatement** dans ses directions à la pose
+2. Le joueur joue **autant de sorts/utilitaires** que son mana le permet
+3. Le joueur clique **"Fin de Tour"**
+4. L'ennemi joue son tour (même structure)
+5. Répéter jusqu'à **6 tours max par joueur** = **1 manche**
 
 ### Anatomie d'une carte unité (format carré)
 
@@ -78,8 +77,7 @@ Numérotation des cases (référence interne) :
 |---|---|
 | **HP (1–3)** | Icônes gouttes : remplies = HP actuel, contour vide = HP perdu |
 | **ATK** | Toujours 1 — pas de stat affichée, représenté par les flèches directionnelles avec glow récurrent |
-| **CD (Compte à rebours)** | Tours avant la première attaque (1–4), affiché dans un cercle/icône sur la carte |
-| **Flèches (1–4)** | Directions d'attaque, bump/glow récurrent. Option paramètres : affichage permanent ou survol uniquement |
+| **Flèches (1–4)** | Directions d'attaque (à la pose uniquement). Option paramètres : affichage permanent ou survol uniquement |
 | **Passif positionnel** | Optionnel. Effet déclenché si l'unité est sur coin / bord / centre. Indiqué par mini-schéma grille 3×3 sur la carte |
 | **Keyword** | Optionnel — effet permanent toujours actif |
 | **Coût mana** | Commun unités et sorts |
@@ -93,15 +91,17 @@ Couche stratégique indépendante des keywords — une carte peut avoir les deux
 - **Condition absolue** : coin (cases 1,3,7,9) / bord (cases 2,4,6,8) / centre (case 5)
 - **Dynamique** : si l'unité est déplacée (Carte Déplacement), le passif s'active ou se désactive immédiatement
 - **Feedback visuel** : particules vertes montantes + son à l'activation / particules rouges-grises descendantes + son à la désactivation
-- **Effets possibles** : +1 ATK (ATK=2 ce tour), -1 CD, pioche 1 carte, +1 pt, etc.
+- **Effets possibles** : +1 ATK (ATK=2 à la pose), pioche 1 carte, +1 pt, etc.
 
 ### Mécanique d'attaque
 
-Quand le compte à rebours d'une unité atteint 0 :
-- Elle attaque toutes les **cases adjacentes pointées par ses flèches**
+Une unité attaque **une seule fois, au moment de sa pose** :
+- Elle attaque toutes les **cases pointées par ses flèches**
 - **Unité ennemie** sur une case ciblée → **perd 1 HP** (ou 2 si ATK boostée). Si HP = 0 → détruite (va en défausse)
 - **Case vide ou unité alliée** → aucun effet
-- L'unité attaquante **reste sur la grille**, CD repart à sa valeur initiale
+- L'unité attaquante **reste sur la grille** comme pièce positionnelle jusqu'à la fin de la manche
+
+**Sorts de buff ATK** : "la prochaine unité jouée gagne +1 ATK" — le buff se consomme à la pose de l'unité suivante, qu'elle touche ou non une cible.
 
 ### Système de scoring
 
@@ -171,10 +171,10 @@ X X X      . X .      X . X      X . X      . X .
 
 - **3 types** : Unités, Sorts, Utilitaires
 - **Mana unifié** : toutes les cartes coûtent du mana
-- **Unités** : posées sur une case vide de la grille, CD/Flèches/Keyword
+- **Unités** : posées sur une case vide de la grille, attaquent à la pose selon leurs Flèches, puis restent comme pièce positionnelle
 - **Sorts** : effets instantanés (buffs, débuffs, contrôle de board), ne prennent pas de case
 - **Utilitaires** : cartes neutres limitées à 2 exemplaires par deck, jamais upgradables :
-  - **Carte Déplacement** (coût 1 mana) : déplace une unité alliée vers une case adjacente vide, reset son CD
+  - **Carte Déplacement** (coût 1 mana) : déplace une unité alliée vers une case adjacente vide (l'unité n'attaque pas à nouveau)
   - **Carte Repioche** : mélange la main actuelle dans le deck et pioche autant de cartes
 - **Raretés** : Commune / Rare / Épique / Légendaire
 - Les cartes peuvent être **upgradées** via la Forge (3 copies identiques → 1 carte +)
@@ -198,17 +198,17 @@ X X X      . X .      X . X      X . X      . X .
 
 | Keyword | Description | Rareté min |
 |---|---|---|
-| **Hâte** | Le compte à rebours démarre à 1 (frappe le tour suivant) | Libre |
+| **Impact** | À la pose, inflige 1 dégât supplémentaire à la première cible touchée | Libre |
 | **Épine** | À la mort, inflige 1 dégât à l'unité attaquante | **Rare+** |
 | **Explosion** | À la mort, inflige 1 dégât à toutes les unités adjacentes (alliées + ennemies) | **Rare+** |
 | **Combo** | Si ce placement complète un motif actif → +1 pt bonus | Libre |
 | **Inspiration** | À la pose, pioche 1 carte | Libre |
-| **Légion** | CD -1 par unité alliée adjacente (minimum 1) | Libre |
+| **Essaim** | +1 ATK à la pose par unité alliée adjacente | Libre |
 | **Dominance** | Si encore en vie en fin de manche, +1 pt | Libre |
 | **Percée** | Si tue une unité ennemie (HP=0), attaque aussi la case derrière dans la même direction | Libre |
-| **Ralliement** | À la pose, -1 CD à toutes les unités alliées adjacentes | Libre |
+| **Réveil** | À la pose, chaque unité alliée adjacente attaque à nouveau dans ses directions | Libre |
 
-> **Bouclier supprimé** — rendu redondant par le système HP. Épine et Explosion restreintes Rare+ : empêche une commune de counter une légendaire via kill automatique. Les deux keywords passent à 1 dégât pour rester cohérents avec la règle HP uniforme.
+> **Bouclier supprimé** — rendu redondant par le système HP. Épine et Explosion restreintes Rare+ : empêche une commune de counter une légendaire via kill automatique. **Hâte/Légion/Ralliement supprimés** (liés au CD, système retiré) → remplacés par Impact, Essaim, Réveil.
 
 ### IA ennemie
 
@@ -256,8 +256,7 @@ Canvas/
 ```
 
 - **Clic droit sur une carte** : affiche une copie agrandie (CardZoomPanel)
-- **Flèches d'attaque** : affichées sur chaque carte posée
-- **Compte à rebours** : affiché sur chaque unité posée, décrémente à chaque tour
+- **Flèches d'attaque** : affichées sur chaque carte posée (indiquent les directions de l'attaque à la pose)
 - **Cases slots** : invisibles (fond transparent), grille délimitée par traits via GridLinesDrawer
 
 ---
@@ -337,7 +336,7 @@ Canvas/
 #### Programme R — Archétype : Aggro
 
 **Concept :** Ex-vilains en liberté conditionnelle. Suicide Squad / Thunderbolts style. Personne n'a vraiment envie d'être là.
-**Keywords naturels :** Hâte, Percée, Explosion, Ralliement
+**Keywords naturels :** Impact, Percée, Explosion, Essaim
 
 | Héros | Pouvoir | Personnalité | Rôle |
 |---|---|---|---|
@@ -349,7 +348,7 @@ Canvas/
 #### Les Éternels — Archétype : Combo / Placement
 
 **Concept :** Vieux super-héros sortis de retraite contraints et forcés. Se chamaillent en permanence.
-**Keywords naturels :** Combo, Inspiration, Dominance, Ralliement
+**Keywords naturels :** Combo, Inspiration, Dominance, Réveil
 
 | Héros | Pouvoir | Personnalité | Rôle |
 |---|---|---|---|
@@ -390,8 +389,8 @@ Super-héros sous CDI. Pouvoirs réels, motivation inexistante. Font ça comme u
 
 ## 🃏 Decks
 
-> À designer — les cartes doivent respecter la nouvelle anatomie : HP (1-3) / ATK implicite=1 / CD / Flèches / Passif positionnel (optionnel) / Keyword (optionnel) / Coût.
-> Archétypes validés : Programme R (Aggro — Hâte/Percée/Explosion/Ralliement) et Les Éternels (Combo — Combo/Inspiration/Dominance/Ralliement).
+> À designer — les cartes doivent respecter la nouvelle anatomie : HP (1-3) / ATK implicite=1 / Flèches (attaque à la pose) / Passif positionnel (optionnel) / Keyword (optionnel) / Coût.
+> Archétypes validés : Programme R (Aggro — Impact/Percée/Explosion/Essaim) et Les Éternels (Combo — Combo/Inspiration/Dominance/Réveil).
 > Cible : 4 decks jouables total (2 pour le prototype).
 
 ---
@@ -473,8 +472,8 @@ Assets/
 
 ### 🔄 Priorités actuelles
 
-1. **Adapter les CardData ScriptableObjects** : ajouter HP (1-3), passif positionnel (condition + effet), retirer Bouclier, mettre à jour Épine/Explosion (Rare+, 1 dégât)
-2. **Réécrire le système de combat** : HP sur les unités, dégâts par attaque (1 ou 2 si boost), mort à HP=0, passifs positionnels dynamiques, 6 tours max, mana croissant
+1. **Adapter les CardData ScriptableObjects** : ajouter HP (1-3), passif positionnel (condition + effet), retirer CD et Bouclier, mettre à jour keywords (Impact/Essaim/Réveil), Épine/Explosion (Rare+, 1 dégât)
+2. **Réécrire le système de combat** : attaque à la pose (plus de CD), HP sur les unités, dégâts 1 ou 2 si boost, mort à HP=0, passifs positionnels dynamiques, 6 tours max, mana croissant
 3. **Implémenter les passifs positionnels** : détection coin/bord/centre, activation/désactivation au déplacement, feedback visuel (particules + son)
 4. **Implémenter le système de motifs** : banque ScriptableObject, tirage aléatoire, scoring à la pose, logique premier arrivé premier servi
 5. **Redesigner les decks** Programme R et Les Éternels (2 prototype, 4 cible total)

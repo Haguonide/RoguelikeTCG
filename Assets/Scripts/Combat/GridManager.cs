@@ -97,7 +97,7 @@ namespace RoguelikeTCG.Combat
 
         /// <summary>
         /// Déplace une unité de (fromR,fromC) vers (toR,toC).
-        /// La case destination doit être vide. Reset le countdown à sa valeur de base.
+        /// La case destination doit être vide.
         /// Retourne false si la source est vide ou la destination occupée.
         /// </summary>
         public bool MoveUnit(int fromR, int fromC, int toR, int toC)
@@ -109,7 +109,6 @@ namespace RoguelikeTCG.Combat
 
             RemoveUnit(fromR, fromC);
             PlaceUnit(unit, toR, toC);
-            unit.currentCountdown = unit.data.countdown; // reset CD
             return true;
         }
 
@@ -141,29 +140,6 @@ namespace RoguelikeTCG.Combat
             for (int i = 0; i < CELL_COUNT; i++)
                 if (_grid[i] != null) result.Add(_grid[i]);
             return result;
-        }
-
-        // ── Countdown & attaques ──────────────────────────────────────────────
-
-        /// <summary>Décrémente tous les CD de 1. Retourne les unités dont CD atteint 0.</summary>
-        public List<CardInstance> TickCountdowns()
-        {
-            var readyToAttack = new List<CardInstance>();
-            for (int i = 0; i < CELL_COUNT; i++)
-            {
-                var u = _grid[i];
-                if (u == null) continue;
-                u.currentCountdown--;
-                if (u.currentCountdown <= 0)
-                    readyToAttack.Add(u);
-            }
-            return readyToAttack;
-        }
-
-        /// <summary>Réinitialise le CD d'une unité à sa valeur de base.</summary>
-        public void ResetCountdown(CardInstance unit)
-        {
-            unit.currentCountdown = unit.data.countdown;
         }
 
         // ── Scoring via PatternManager ────────────────────────────────────────

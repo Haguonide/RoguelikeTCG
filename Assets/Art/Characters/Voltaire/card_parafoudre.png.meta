@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: ea97dc573a09fca4eaeaa11043cd682c
+guid: 08f476fb271c81545ade972f675052eb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 569890570625455132
-    second: card_cendres_0
+      213: 5814913215563253442
+    second: card_parafoudre_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,7 +113,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: card_cendres_0
+      name: card_parafoudre_0
       rect:
         serializedVersion: 2
         x: 2
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c1499fe5478a8e700800000000000000
-      internalID: 569890570625455132
+      spriteID: 2c64f55c2c8b2b050800000000000000
+      internalID: 5814913215563253442
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      card_cendres_0: 569890570625455132
+      card_parafoudre_0: 5814913215563253442
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -155,8 +155,8 @@ namespace RoguelikeTCG.AI
                 }
             }
 
-            // ── Légion : bonus si unité alliée adjacente ───────────────────────
-            if (unit.data.keyword == UnitKeyword.Légion)
+            // ── Essaim : bonus si unité alliée adjacente ───────────────────────
+            if (unit.data.keyword == UnitKeyword.Essaim)
             {
                 var neighbors = ScoringSystem.GetOrthogonalNeighbors(r, c);
                 foreach (var (nr, nc) in neighbors)
@@ -257,17 +257,17 @@ namespace RoguelikeTCG.AI
 
                 case SpellTarget.AllyUnit:
                 {
-                    // Buff une unité alliée
+                    // Buff prochaine unité ou unité alliée ciblée
                     var allies = _grid.GetAllUnits(isPlayer: false);
-                    if (allies.Count == 0) break;
-                    var target = allies[0];
+                    var target = allies.Count > 0 ? allies[0] : null;
                     foreach (var eff in card.data.effects)
                     {
-                        if (eff.effectType == EffectType.BuffAttack && eff.value > 0) score += eff.value * 2f;
-                        if (eff.effectType == EffectType.BuffHP     && eff.value > 0) score += eff.value;
-                        if (eff.effectType == EffectType.Heal                        ) score += eff.value;
+                        if (eff.effectType == EffectType.BuffNextUnitATK && eff.value > 0) score += eff.value * 2f;
+                        if (eff.effectType == EffectType.BuffAllAllyHP   && eff.value > 0) score += eff.value * (allies.Count > 0 ? allies.Count : 1);
+                        if (eff.effectType == EffectType.Heal                             ) score += eff.value;
                     }
-                    if (score > 0f) return new GridSpellAction { card = card, row = target.gridRow, col = target.gridCol, Score = score };
+                    int tr = target?.gridRow ?? -1, tc = target?.gridCol ?? -1;
+                    if (score > 0f) return new GridSpellAction { card = card, row = tr, col = tc, Score = score };
                     break;
                 }
 
@@ -284,7 +284,6 @@ namespace RoguelikeTCG.AI
                         foreach (var eff in card.data.effects)
                         {
                             if (eff.effectType == EffectType.Damage || eff.effectType == EffectType.DestroyUnit) s += 3f;
-                            if (eff.effectType == EffectType.ReduceCountdown) s += eff.value * 1.5f;
                         }
                         if (s > bestS) { bestS = s; bestTarget = t; }
                     }
@@ -308,10 +307,10 @@ namespace RoguelikeTCG.AI
                 case SpellTarget.AllAllyUnits:
                 {
                     int count = _grid.GetAllUnits(isPlayer: false).Count;
-                    if (count > 1)
+                    foreach (var eff in card.data.effects)
                     {
-                        foreach (var eff in card.data.effects)
-                            if (eff.effectType == EffectType.BuffAttack && eff.value > 0) score += eff.value * count * 1.5f;
+                        if (eff.effectType == EffectType.BuffAllAllyHP && eff.value > 0) score += eff.value * Mathf.Max(1, count) * 1.2f;
+                        if (eff.effectType == EffectType.TriggerAllAllyAttack && count > 0) score += count * 2f;
                     }
                     if (score > 0f) return new GridSpellAction { card = card, row = -1, col = -1, Score = score };
                     break;

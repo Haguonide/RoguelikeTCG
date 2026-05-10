@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Court-Circuit
   description: 
-  artwork: {fileID: 21300000, guid: 5688f10d111cfd649bbc68fd96f719f6, type: 3}
+  artwork: {fileID: 21300000, guid: 44252e1dac019a242ab4b556a160e3aa, type: 3}
   cardType: 1
   rarity: 0
   manaCost: 1

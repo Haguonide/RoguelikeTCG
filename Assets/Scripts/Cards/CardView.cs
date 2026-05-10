@@ -109,8 +109,8 @@ namespace RoguelikeTCG.Cards
             if (manaZone) manaZone.SetActive(!cardInstance.IsOnGrid);
 
             // CDZone + CDText : uniquement pour les unités
-            if (cdZone) cdZone.SetActive(isUnit);
-            if (cdText) cdText.text = isUnit ? $"{cardInstance.currentCountdown}" : "";
+            if (cdZone) cdZone.SetActive(false);
+            if (cdText) cdText.text = "";
 
             // HPZone + HPText : "currentHP/maxHP" pour les unités
             if (hpZone) hpZone.SetActive(isUnit);
@@ -144,7 +144,7 @@ namespace RoguelikeTCG.Cards
             if (cardNameText)    cardNameText.text    = data.cardName;
             if (descriptionText) descriptionText.text = data.description;
             if (statsText)       statsText.text       = isUnit
-                ? $"HP {cardInstance.currentHP}/{data.hp}  CD {cardInstance.currentCountdown}"
+                ? $"HP {cardInstance.currentHP}/{data.hp}"
                 : "";
             if (keywordText)     keywordText.text     = (isUnit && data.keyword != UnitKeyword.Aucun)
                 ? data.keyword.ToString()

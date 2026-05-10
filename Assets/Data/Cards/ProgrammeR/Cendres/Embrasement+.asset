@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Embrasement+
   description: 
-  artwork: {fileID: 21300000, guid: ea97dc573a09fca4eaeaa11043cd682c, type: 3}
+  artwork: {fileID: 21300000, guid: 43f0b9b0e2e4feb4b8a4747306bd2c10, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 1

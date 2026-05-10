@@ -64,7 +64,7 @@ namespace RoguelikeTCG.UI
                     0.03f, 0.04f, 0.97f, 0.22f, 10f, FontStyles.Bold, TextAlignmentOptions.Center);
                 statsTMP.richText = true;
                 string kwLabel = card.keyword != UnitKeyword.Aucun ? $"  [{card.keyword}]" : "";
-                statsTMP.text = $"CD {card.countdown}{kwLabel}";
+                statsTMP.text = $"HP {card.hp}  ATK 1{kwLabel}";
             }
             else
             {

@@ -527,7 +527,7 @@ namespace RoguelikeTCG.Combat
                 statsTMP.textWrappingMode = TextWrappingModes.NoWrap;
                 statsTMP.richText = true;
                 string kwLabel = card.data.keyword != UnitKeyword.Aucun ? $"  [{card.data.keyword}]" : "";
-                statsTMP.text = $"CD {card.currentCountdown}{kwLabel}";
+                statsTMP.text = $"HP {card.currentHP}/{card.data.hp}{kwLabel}";
             }
             else
             {

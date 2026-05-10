@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 321483cef5be16248b102f9dd368c7d3
+guid: e27dd202655dbd64f85fb12dd9055887
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4719184341559337784
-    second: card_lebloc_0
+      213: 6782002659864918490
+    second: card_eclairconduit_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,7 +113,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: card_lebloc_0
+      name: card_eclairconduit_0
       rect:
         serializedVersion: 2
         x: 2
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8cc15cb38d6128eb0800000000000000
-      internalID: -4719184341559337784
+      spriteID: ad9b00f8c738e1e50800000000000000
+      internalID: 6782002659864918490
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      card_lebloc_0: -4719184341559337784
+      card_eclairconduit_0: 6782002659864918490
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

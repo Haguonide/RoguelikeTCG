@@ -1,16 +1,10 @@
 fileFormatVersion: 2
-guid: d858ac86c281a5e428fd4392c7348e5b
+guid: ae525deaa7045b740a057446fbe6c8d4
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6003180566181561754
-    second: CendresBlanc_0
-  - first:
-      213: 5830751190084577969
-    second: CendresBlanc_1
-  - first:
-      213: 3884725786356669370
-    second: CendresBlanc_2
+      213: -2582727620347549325
+    second: card_surcharge_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -119,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CendresBlanc_0
+      name: card_surcharge_0
       rect:
         serializedVersion: 2
-        x: 150
-        y: 25
-        width: 727
-        height: 949
+        x: 2
+        y: 2
+        width: 396
+        height: 396
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,52 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a95c7c13be49f4350800000000000000
-      internalID: 6003180566181561754
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: CendresBlanc_1
-      rect:
-        serializedVersion: 2
-        x: 872
-        y: 601
-        width: 7
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1ba6da2905dfae050800000000000000
-      internalID: 5830751190084577969
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: CendresBlanc_2
-      rect:
-        serializedVersion: 2
-        x: 870
-        y: 573
-        width: 8
-        height: 12
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: abbd691458159e530800000000000000
-      internalID: 3884725786356669370
+      spriteID: 3792895c9ee482cd0800000000000000
+      internalID: -2582727620347549325
       vertices: []
       indices: 
       edges: []
@@ -198,9 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      CendresBlanc_0: 6003180566181561754
-      CendresBlanc_1: 5830751190084577969
-      CendresBlanc_2: 3884725786356669370
+      card_surcharge_0: -2582727620347549325
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

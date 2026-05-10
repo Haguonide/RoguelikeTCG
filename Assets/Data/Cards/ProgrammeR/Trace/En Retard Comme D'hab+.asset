@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: En Retard Comme D'hab+
   description: 
-  artwork: {fileID: 21300000, guid: 26aba67866020094dbb393b86ee12082, type: 3}
+  artwork: {fileID: 21300000, guid: c577dad2b7adff34c98b72f61659e093, type: 3}
   cardType: 1
   rarity: 0
   manaCost: 1

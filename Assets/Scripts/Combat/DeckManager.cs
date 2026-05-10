@@ -72,13 +72,6 @@ namespace RoguelikeTCG.Combat
             hand.Clear();
         }
 
-        /// <summary>Réinitialise les CD de toutes les cartes de la défausse pour la prochaine manche.</summary>
-        public void ResetDiscardCountdowns()
-        {
-            foreach (var c in discard)
-                c.currentCountdown = c.data.countdown;
-        }
-
         private void RecycleDiscard()
         {
             deck.AddRange(discard);

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Bombe \xE0 Retardement"
   description: 
-  artwork: {fileID: 21300000, guid: ea97dc573a09fca4eaeaa11043cd682c, type: 3}
+  artwork: {fileID: 21300000, guid: ace756011bda714418d4fb563cb46990, type: 3}
   cardType: 0
   rarity: 2
   manaCost: 2

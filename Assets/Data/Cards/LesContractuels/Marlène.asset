@@ -14,14 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Marl\xE8ne"
   description: 
-  artwork: {fileID: 0}
+  artwork: {fileID: 21300000, guid: 9f95bbe1598fb6b4bbcb46037a79206a, type: 3}
   cardType: 0
   rarity: 0
   manaCost: 2
   hp: 1
-  countdown: 2
   attackDirections: 12
-  keyword: 7
+  keyword: 10
   positionalCondition: 0
   positionalEffect: 0
   spellTarget: 0

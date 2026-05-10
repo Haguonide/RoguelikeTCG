@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Flamm\xE8che+"
   description: 
-  artwork: {fileID: 21300000, guid: ea97dc573a09fca4eaeaa11043cd682c, type: 3}
+  artwork: {fileID: 21300000, guid: 8a2f074a559cfc14abe723f07274871e, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 1

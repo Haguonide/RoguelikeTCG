@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Faux D\xE9part+"
   description: 
-  artwork: {fileID: 21300000, guid: 26aba67866020094dbb393b86ee12082, type: 3}
+  artwork: {fileID: 21300000, guid: 5de4c3363a72efb47908d9161ce76390, type: 3}
   cardType: 0
   rarity: 0
   manaCost: 1

@@ -8,20 +8,20 @@ namespace RoguelikeTCG.Data
     public enum UnitKeyword
     {
         Aucun       = 0,
-        Hâte        = 1,  // CD fixe à 1 (le CardData.countdown doit être 1)
+        Impact      = 1,  // à la pose : inflige 1 dégât supplémentaire à la première cible touchée
         Épine       = 3,  // à la mort : inflige 1 dégât à l'unité attaquante (Rare+)
         Explosion   = 4,  // à la mort : inflige 1 dégât à toutes les unités adjacentes (Rare+)
         Combo       = 5,  // si la pose complète un motif actif → +1 pt bonus
         Inspiration = 6,  // à la pose : pioche 1 carte
-        Légion      = 7,  // CD -1 par unité alliée adjacente (minimum 1)
+        Essaim      = 7,  // +1 ATK à la pose par unité alliée adjacente
         Dominance   = 8,  // si encore en vie en fin de manche : +1 pt
         Percée      = 9,  // si kill → attaque aussi la case derrière dans la même direction
-        Ralliement  = 10, // à la pose : -1 CD à toutes les unités alliées adjacentes
+        Réveil      = 10, // à la pose : chaque unité alliée adjacente attaque à nouveau dans ses directions
     }
 
     public enum PositionalCondition { None, Corner, Edge, Center }
 
-    public enum PositionalEffect { None, PlusOneATK, MinusOneCD, DrawCard, PlusOnePoint }
+    public enum PositionalEffect { None, PlusOneATK, PlusOneHP, DrawCard, PlusOnePoint }
 
     /// <summary>
     /// Directions d'attaque d'une unité sur la grille 3×3.
@@ -55,15 +55,16 @@ namespace RoguelikeTCG.Data
 
     public enum EffectType
     {
-        Damage,          // dégâts au héros cible, ou kill instantané si cible = unité
-        Heal,            // soins au héros joueur uniquement
-        DrawCard,        // pioche X cartes
-        ReduceCountdown, // réduit le CD d'une unité de X (min 1)
-        DestroyUnit,     // détruit instantanément une unité ciblée
-        BuffAttack,      // obsolète — conservé pour compatibilité sérialisation
-        BuffHP,          // obsolète — conservé pour compatibilité sérialisation
-        Shield,          // obsolète — conservé pour compatibilité sérialisation
-        ApplyPoison,     // obsolète — conservé pour compatibilité sérialisation
-        SlowUnit,        // obsolète — conservé pour compatibilité sérialisation
+        Damage               = 0, // dégâts au héros cible, ou kill si cible = unité
+        Heal                 = 1, // soins au héros joueur
+        DrawCard             = 2, // pioche X cartes
+        BuffNextUnitATK      = 3, // la prochaine unité jouée gagne +X ATK (à la pose)
+        DestroyUnit          = 4, // détruit instantanément une unité ciblée
+        BuffAllAllyHP        = 5, // +X HP à toutes les unités alliées sur la grille
+        TriggerAllAllyAttack = 9, // toutes les unités alliées sur la grille attaquent à nouveau
+        // Obsolètes — conservés pour compatibilité sérialisation
+        BuffHP_Obsolete      = 6,
+        Shield_Obsolete      = 7,
+        ApplyPoison_Obsolete = 8,
     }
 }
