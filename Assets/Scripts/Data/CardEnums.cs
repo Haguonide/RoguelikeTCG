@@ -41,6 +41,8 @@ namespace RoguelikeTCG.Data
 
     public enum CardType { Unit, Spell, Utility }
 
+    public enum UtilityEffect { Deplacement = 0, Repioche = 1 }
+
     public enum CardRarity { Common, Uncommon, Rare, Epic, Legendary }
 
     public enum SpellTarget

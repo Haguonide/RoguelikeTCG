@@ -81,13 +81,25 @@ namespace RoguelikeTCG.Combat
             }
             else if (card.data.cardType == CardType.Utility)
             {
+                if (card.data.utilityEffect == UtilityEffect.Repioche)
+                {
+                    if (CombatManager.Instance.TryPlayRepioche(card)) Deselect();
+                    else Deselect();
+                    return;
+                }
                 _mode = Mode.AwaitingUtilityAllyUnit;
+            }
+            else if (card.data.spellTarget == SpellTarget.PlayerHero)
+            {
+                // Sorts sans cible sur le board : auto-cast immédiat
+                if (CombatManager.Instance.TryPlaySpellOnHero(card, true)) Deselect();
+                else Deselect();
+                return;
             }
             else
             {
                 _mode = card.data.spellTarget switch
                 {
-                    SpellTarget.PlayerHero    => Mode.AwaitingHero,
                     SpellTarget.EnemyHero     => Mode.AwaitingHero,
                     SpellTarget.AllyUnit      => Mode.AwaitingAllyUnit,
                     SpellTarget.EnemyUnit     => Mode.AwaitingEnemyUnit,

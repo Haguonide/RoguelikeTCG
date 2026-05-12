@@ -72,6 +72,19 @@ namespace RoguelikeTCG.Combat
             hand.Clear();
         }
 
+        /// <summary>
+        /// Carte Repioche : mélange la main dans le deck, pioche autant de cartes.
+        /// La carte Repioche elle-même doit avoir été retirée de la main avant l'appel.
+        /// </summary>
+        public void ReshuffleHandAndRedraw()
+        {
+            int count = hand.Count;
+            deck.AddRange(hand);
+            hand.Clear();
+            Shuffle(deck);
+            DrawCards(count);
+        }
+
         private void RecycleDiscard()
         {
             deck.AddRange(discard);

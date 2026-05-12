@@ -29,6 +29,9 @@ namespace RoguelikeTCG.Data
         public PositionalCondition positionalCondition = PositionalCondition.None;
         public PositionalEffect    positionalEffect    = PositionalEffect.None;
 
+        [Header("Utility subtype (Utility only)")]
+        public UtilityEffect utilityEffect = UtilityEffect.Deplacement;
+
         [Header("Spell Targeting & Effects (Spell only)")]
         public SpellTarget spellTarget;
         public List<CardEffect> effects;

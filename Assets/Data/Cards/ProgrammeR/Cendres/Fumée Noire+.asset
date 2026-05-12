@@ -23,9 +23,10 @@ MonoBehaviour:
   keyword: 0
   positionalCondition: 0
   positionalEffect: 0
-  spellTarget: 2
+  utilityEffect: 0
+  spellTarget: 0
   effects:
   - effectType: 3
     value: 2
-    target: 2
+    target: 0
   upgradedVersion: {fileID: 0}

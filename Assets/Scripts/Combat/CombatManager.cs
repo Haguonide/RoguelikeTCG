@@ -506,6 +506,23 @@ namespace RoguelikeTCG.Combat
         }
 
         /// <summary>
+        /// Joue une Carte Repioche : mélange la main dans le deck, pioche autant.
+        /// </summary>
+        public bool TryPlayRepioche(CardInstance card)
+        {
+            if (!CanPlay()) return false;
+            if (!manaManager.CanAfford(card.data.manaCost)) return false;
+
+            manaManager.Spend(card.data.manaCost);
+            playerDeck.PlayCard(card);          // retire Repioche de la main → défausse
+            playerDeck.ReshuffleHandAndRedraw(); // mélange le reste, repioche autant
+            Log($"> Carte Repioche jouée — main mélangée et repigée.");
+            AudioManager.Instance.PlaySFX("sfx_card_place");
+            RefreshAllUI();
+            return true;
+        }
+
+        /// <summary>
         /// Joue une carte Utilitaire de type Déplacement.
         /// Déplace l'unité alliée en (fromR,fromC) vers (toR,toC), reset son CD,
         /// réévalue le passif positionnel, puis défausse la carte.

@@ -20,7 +20,7 @@ MonoBehaviour:
   manaCost: 3
   hp: 2
   countdown: 2
-  attackDirections: 8
+  attackDirections: 15
   keyword: 0
   positionalCondition: 0
   positionalEffect: 0

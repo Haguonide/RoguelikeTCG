@@ -19,7 +19,7 @@ MonoBehaviour:
   rarity: 0
   manaCost: 1
   hp: 1
-  attackDirections: 8
+  attackDirections: 4
   keyword: 5
   positionalCondition: 0
   positionalEffect: 0

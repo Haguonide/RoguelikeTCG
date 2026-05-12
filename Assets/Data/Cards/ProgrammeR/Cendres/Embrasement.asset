@@ -23,9 +23,9 @@ MonoBehaviour:
   keyword: 0
   positionalCondition: 0
   positionalEffect: 0
-  spellTarget: 4
+  spellTarget: 3
   effects:
   - effectType: 0
     value: 1
-    target: 4
+    target: 3
   upgradedVersion: {fileID: 11400000, guid: 05648c2b2af86004188a9b456ab63531, type: 2}
