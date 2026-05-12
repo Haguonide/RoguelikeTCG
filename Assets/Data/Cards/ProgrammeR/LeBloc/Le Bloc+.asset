@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: Le Bloc+
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Le Bloc+
-  description: 
+  description: "Centre : +1 ATK \xE0 la pose"
   artwork: {fileID: 21300000, guid: 321483cef5be16248b102f9dd368c7d3, type: 3}
   cardType: 0
   rarity: 3
   manaCost: 4
   hp: 3
-  countdown: 3
   attackDirections: 2
   keyword: 0
   positionalCondition: 3

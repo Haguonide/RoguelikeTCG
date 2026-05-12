@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: Consultant Externe
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Consultant Externe
-  description: 
+  description: "Combo : si ce placement compl\xE8te un motif actif, +1 pt bonus."
   artwork: {fileID: 21300000, guid: b849045b0304ff44d9dd293a3823db65, type: 3}
   cardType: 0
   rarity: 0
   manaCost: 2
   hp: 2
-  countdown: 2
   attackDirections: 10
   keyword: 5
   positionalCondition: 0

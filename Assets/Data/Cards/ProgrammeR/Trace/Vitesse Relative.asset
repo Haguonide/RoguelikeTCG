@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: Vitesse Relative
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Vitesse Relative
-  description: 
+  description: "La prochaine unit\xE9 alli\xE9e jou\xE9e gagne +2 ATK."
   artwork: {fileID: 21300000, guid: 48f97e21e6c5bb24dad2e96e80f87223, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 2
   hp: 1
-  countdown: 2
   attackDirections: 8
   keyword: 0
   positionalCondition: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Heure Sup
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Heure Sup
-  description: 
+  description: "La prochaine unit\xE9 alli\xE9e jou\xE9e gagne +1 ATK."
   artwork: {fileID: 21300000, guid: 0cb3f21666dae524191676a773f1db22, type: 3}
   cardType: 1
   rarity: 0

@@ -204,8 +204,13 @@ namespace RoguelikeTCG.Cards
             if (_zoomMode) return;
             if (eventData.button == PointerEventData.InputButton.Right)
                 ToggleZoom();
-            else if (eventData.button == PointerEventData.InputButton.Left && !_onGrid)
-                CardSelector.Instance?.SelectCard(this);
+            else if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                if (_onGrid)
+                    GetComponentInParent<RoguelikeTCG.Combat.GridCellUI>()?.OnPointerClick(eventData);
+                else
+                    CardSelector.Instance?.SelectCard(this);
+            }
         }
 
         private void ToggleZoom()
@@ -223,7 +228,12 @@ namespace RoguelikeTCG.Cards
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (_onGrid || _zoomMode || _rt == null) return;
+            if (_zoomMode) return;
+
+            // Aperçu : affiché pour toutes les cartes (main + grille)
+            RoguelikeTCG.UI.CardPreviewUI.Instance?.ShowForCard(cardInstance);
+
+            if (_onGrid || _rt == null) return;
             if (!_baseCaptured)
             {
                 _basePos = _rt.anchoredPosition;
@@ -238,7 +248,11 @@ namespace RoguelikeTCG.Cards
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            if (_onGrid || _zoomMode || _rt == null || !_baseCaptured) return;
+            if (_zoomMode) return;
+
+            RoguelikeTCG.UI.CardPreviewUI.Instance?.Hide();
+
+            if (_onGrid || _rt == null || !_baseCaptured) return;
             if (_hoverCo != null) StopCoroutine(_hoverCo);
             _hoverCo = StartCoroutine(HoverLerp(_basePos, _baseRot, 1f));
         }

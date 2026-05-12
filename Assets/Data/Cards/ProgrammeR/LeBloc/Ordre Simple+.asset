@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: Ordre Simple+
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Ordre Simple+
-  description: 
+  description: "La prochaine unit\xE9 alli\xE9e jou\xE9e gagne +2 ATK."
   artwork: {fileID: 21300000, guid: 2eea796e03dad964d93720ff4ab43190, type: 3}
   cardType: 1
   rarity: 0
   manaCost: 1
   hp: 1
-  countdown: 2
   attackDirections: 2
   keyword: 0
   positionalCondition: 0

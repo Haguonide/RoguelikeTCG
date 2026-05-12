@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Ligne Directe
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Ligne Directe
-  description: 
+  description: "Impact : +1 d\xE9g\xE2t \xE0 la premi\xE8re cible. Bord : +1 ATK
+    \xE0 la pose."
   artwork: {fileID: 21300000, guid: fb1e6a6e062d14242b9c6c21fe5a9918, type: 3}
   cardType: 0
   rarity: 2
   manaCost: 2
   hp: 1
-  countdown: 1
   attackDirections: 8
   keyword: 1
   positionalCondition: 2

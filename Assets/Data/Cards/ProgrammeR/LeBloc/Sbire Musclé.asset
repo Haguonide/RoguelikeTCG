@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "Sbire Muscl\xE9"
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Sbire Muscl\xE9"
-  description: 
+  description: "Essaim : +1 ATK \xE0 la pose par unit\xE9 alli\xE9e adjacente."
   artwork: {fileID: 21300000, guid: e8397ee9f68d2404584552901128aec6, type: 3}
   cardType: 0
   rarity: 0

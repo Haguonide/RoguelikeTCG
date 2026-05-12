@@ -43,6 +43,8 @@ namespace RoguelikeTCG.Combat
         private readonly List<GridCellUI> _highlightedCells = new();
 
         [SerializeField] private SpellArrowUI spellArrow;
+        [SerializeField] public  Sprite       targetSprite;
+        public Sprite TargetSprite => targetSprite;
 
         private void Awake()
         {
@@ -188,16 +190,55 @@ namespace RoguelikeTCG.Combat
                 Deselect();
         }
 
+        // ── Ciblage visuel ────────────────────────────────────────────────────
+
+        public bool IsCellTargetable(GridCellUI cell) => _mode switch
+        {
+            Mode.AwaitingGridCell          => !cell.IsOccupied,
+            Mode.AwaitingAllyUnit          => cell.HasPlayerUnit,
+            Mode.AwaitingEnemyUnit         => cell.HasEnemyUnit,
+            Mode.AwaitingAoEConfirm        => cell.HasEnemyUnit,
+            Mode.AwaitingAllAllyUnits      => cell.HasPlayerUnit,
+            Mode.AwaitingUtilityAllyUnit   => cell.HasPlayerUnit,
+            Mode.AwaitingUtilityTargetCell => !cell.IsOccupied && _utilitySourceCell != null
+                                              && IsOrthogonallyAdjacent(_utilitySourceCell, cell),
+            _ => false,
+        };
+
         // ── Hover sur case ────────────────────────────────────────────────────
 
         public void OnGridCellHoverEnter(GridCellUI cell)
         {
             foreach (var c in _highlightedCells) c.StartShake();
+
+            if (_mode == Mode.None || _selectedView == null) return;
+
+            if (_mode == Mode.AwaitingAoEConfirm && cell.HasEnemyUnit)
+            {
+                foreach (var c in FindObjectsByType<GridCellUI>(FindObjectsInactive.Include))
+                    if (IsCellTargetable(c)) c.ShowTarget();
+            }
+            else if (_mode == Mode.AwaitingAllAllyUnits && cell.HasPlayerUnit)
+            {
+                foreach (var c in FindObjectsByType<GridCellUI>(FindObjectsInactive.Include))
+                    if (IsCellTargetable(c)) c.ShowTarget();
+            }
+            else if (IsCellTargetable(cell))
+            {
+                cell.ShowTarget();
+            }
         }
 
         public void OnGridCellHoverExit(GridCellUI cell)
         {
             foreach (var c in _highlightedCells) c.StopShake();
+
+            if ((_mode == Mode.AwaitingAoEConfirm    && cell.HasEnemyUnit) ||
+                (_mode == Mode.AwaitingAllAllyUnits && cell.HasPlayerUnit))
+            {
+                foreach (var c in FindObjectsByType<GridCellUI>(FindObjectsInactive.Include))
+                    c.HideTarget();
+            }
         }
 
         // ── Compatibilité LaneSlotUI (ancien système — no-op dans le nouveau) ──
@@ -290,6 +331,8 @@ namespace RoguelikeTCG.Combat
             _highlightedCells.Clear();
             foreach (var h in FindObjectsByType<HeroPortraitUI>(FindObjectsInactive.Include))
                 h.SetHighlight(false);
+            foreach (var c in FindObjectsByType<GridCellUI>(FindObjectsInactive.Include))
+                c.HideTarget();
             spellArrow?.Hide();
         }
 

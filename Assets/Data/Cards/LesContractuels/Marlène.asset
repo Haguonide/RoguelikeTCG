@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: "Marl\xE8ne"
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Marl\xE8ne"
-  description: 
+  description: "R\xE9veil : \xE0 la pose, chaque unit\xE9 alli\xE9e adjacente attaque
+    \xE0 nouveau dans ses directions."
   artwork: {fileID: 21300000, guid: 9f95bbe1598fb6b4bbcb46037a79206a, type: 3}
   cardType: 0
   rarity: 0

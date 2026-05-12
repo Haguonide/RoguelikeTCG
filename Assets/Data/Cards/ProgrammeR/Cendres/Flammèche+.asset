@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: "Flamm\xE8che+"
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Flamm\xE8che+"
-  description: 
+  description: "La prochaine unit\xE9 alli\xE9e jou\xE9e gagne +1 ATK."
   artwork: {fileID: 21300000, guid: 8a2f074a559cfc14abe723f07274871e, type: 3}
   cardType: 1
   rarity: 2
   manaCost: 1
   hp: 1
-  countdown: 2
   attackDirections: 8
   keyword: 0
   positionalCondition: 1

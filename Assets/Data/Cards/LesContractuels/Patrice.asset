@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: Patrice
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Patrice
-  description: 
+  description: "Centre : +1 ATK \xE0 la pose."
   artwork: {fileID: 21300000, guid: 036894ca79ca5c04aaf9aaca1fd4d5f0, type: 3}
   cardType: 0
   rarity: 0
   manaCost: 2
   hp: 2
-  countdown: 3
   attackDirections: 6
   keyword: 0
   positionalCondition: 3

@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: En Retard Comme D'hab
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: En Retard Comme D'hab
-  description: 
+  description: Pioche 1 carte.
   artwork: {fileID: 21300000, guid: c577dad2b7adff34c98b72f61659e093, type: 3}
   cardType: 1
   rarity: 0
   manaCost: 1
   hp: 1
-  countdown: 2
   attackDirections: 8
   keyword: 0
   positionalCondition: 0

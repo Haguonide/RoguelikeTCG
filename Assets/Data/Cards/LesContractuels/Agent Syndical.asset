@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Agent Syndical
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Agent Syndical
-  description: 
+  description: "Combo : si ce placement compl\xE8te un motif actif, +1 pt bonus.
+    Coin : +1 pt \xE0 la pose."
   artwork: {fileID: 21300000, guid: 20147554298f6f34cbb21162af51983a, type: 3}
   cardType: 0
   rarity: 0
   manaCost: 1
   hp: 1
-  countdown: 2
   attackDirections: 2
   keyword: 5
   positionalCondition: 1

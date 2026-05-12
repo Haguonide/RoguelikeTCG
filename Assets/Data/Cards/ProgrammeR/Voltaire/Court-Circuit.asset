@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: Court-Circuit
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Court-Circuit
-  description: 
+  description: "La prochaine unit\xE9 alli\xE9e jou\xE9e gagne +1 ATK."
   artwork: {fileID: 21300000, guid: 44252e1dac019a242ab4b556a160e3aa, type: 3}
   cardType: 1
   rarity: 0
   manaCost: 1
   hp: 1
-  countdown: 2
   attackDirections: 8
   keyword: 0
   positionalCondition: 0

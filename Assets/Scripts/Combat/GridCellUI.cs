@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using DG.Tweening;
 using RoguelikeTCG.Cards;
 using RoguelikeTCG.UI;
 
@@ -25,6 +26,9 @@ namespace RoguelikeTCG.Combat
 
         private CardInstance _currentUnit;
         private CardView     _placedCard;
+
+        private GameObject _targetGO;
+        private Tween      _bounceTween;
 
         private void Awake() { }
 
@@ -78,6 +82,43 @@ namespace RoguelikeTCG.Combat
         public void StartShake() { }
         public void StopShake()  { }
 
+        // ── Target overlay (hover + ciblage actif) ────────────────────────────
+
+        public void ShowTarget()
+        {
+            if (_targetGO != null) return;
+
+            var sprite = CardSelector.Instance?.TargetSprite;
+            if (sprite == null) return;
+
+            _targetGO = new GameObject("TargetOverlay");
+            _targetGO.transform.SetParent(transform, false);
+
+            var rt         = _targetGO.AddComponent<RectTransform>();
+            rt.anchorMin   = Vector2.zero;
+            rt.anchorMax   = Vector2.one;
+            rt.offsetMin   = rt.offsetMax = Vector2.zero;
+            rt.localScale  = Vector3.one * 0.85f;
+
+            var img            = _targetGO.AddComponent<Image>();
+            img.sprite         = sprite;
+            img.preserveAspect = true;
+            img.color          = new Color(1f, 1f, 1f, 0.88f);
+            img.raycastTarget  = false;
+
+            _bounceTween = rt.DOScale(1.15f, 0.45f)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetLink(_targetGO);
+        }
+
+        public void HideTarget()
+        {
+            _bounceTween?.Kill();
+            _bounceTween = null;
+            if (_targetGO != null) { Destroy(_targetGO); _targetGO = null; }
+        }
+
         // ── Propriétés ────────────────────────────────────────────────────────
 
         public bool IsOccupied    => _currentUnit != null;
@@ -97,8 +138,20 @@ namespace RoguelikeTCG.Combat
             CardSelector.Instance?.OnGridCellClicked(this);
         }
 
-        public void OnPointerEnter(PointerEventData eventData) => CardSelector.Instance?.OnGridCellHoverEnter(this);
-        public void OnPointerExit(PointerEventData eventData)  => CardSelector.Instance?.OnGridCellHoverExit(this);
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            CardSelector.Instance?.OnGridCellHoverEnter(this);
+            if (_currentUnit != null)
+                RoguelikeTCG.UI.CardPreviewUI.Instance?.ShowForCard(_currentUnit);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            CardSelector.Instance?.OnGridCellHoverExit(this);
+            if (_currentUnit != null)
+                RoguelikeTCG.UI.CardPreviewUI.Instance?.Hide();
+            HideTarget();
+        }
 
         // ── Spawn ─────────────────────────────────────────────────────────────
 

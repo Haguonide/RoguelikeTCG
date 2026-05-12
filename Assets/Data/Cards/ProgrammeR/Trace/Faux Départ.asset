@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: "Faux D\xE9part"
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: "Faux D\xE9part"
-  description: 
+  description: "Combo : si ce placement compl\xE8te un motif actif, +1 pt bonus."
   artwork: {fileID: 21300000, guid: 5de4c3363a72efb47908d9161ce76390, type: 3}
   cardType: 0
   rarity: 0
   manaCost: 1
   hp: 1
-  countdown: 2
   attackDirections: 8
   keyword: 5
   positionalCondition: 0

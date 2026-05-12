@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Parafoudre
   m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Data.CardData
   cardName: Parafoudre
-  description: 
+  description: "Perc\xE9e : si cette unit\xE9 tue une unit\xE9 ennemie, elle attaque
+    aussi la case derri\xE8re dans la m\xEAme direction."
   artwork: {fileID: 21300000, guid: 08f476fb271c81545ade972f675052eb, type: 3}
   cardType: 0
   rarity: 0
   manaCost: 1
   hp: 1
-  countdown: 2
   attackDirections: 8
   keyword: 9
   positionalCondition: 0
