@@ -1,4 +1,4 @@
-# CLAUDE.md — Contexte du projet : Roguelike Deckbuilder (Super-héros Burlesque)
+# CLAUDE.md — Roguelike Deckbuilder Fantasy (Sorciers)
 
 ---
 
@@ -14,7 +14,7 @@
 1. **Écrire tous les scripts C#** nécessaires à la feature
 2. **Attendre confirmation** que Unity a compilé sans erreur
 3. **Configurer la scène via MCP** : créer les GameObjects, attacher les scripts, régler les valeurs dans l'Inspector
-4. **Signaler les références manuelles restantes** : si une référence ne peut pas être liée via MCP (ex: glisser-déposer complexe entre objets), lister explicitement ce que le développeur doit faire manuellement dans Unity
+4. **Signaler les références manuelles restantes** : si une référence ne peut pas être liée via MCP, lister explicitement ce que le développeur doit faire manuellement dans Unity
 
 ### Ce que Claude Code peut faire via MCP
 - ✅ Créer / supprimer / renommer des GameObjects
@@ -22,12 +22,12 @@
 - ✅ Modifier des valeurs simples dans l'Inspector (int, float, string, bool)
 - ✅ Exécuter des menu items Unity
 - ✅ Créer la structure de la Hierarchy
+- ✅ Câbler des références via RunCommand
 
 ### Ce qui nécessite une intervention manuelle du développeur
-- ⚠️ Lier des références entre objets (glisser un objet dans un champ d'un autre)
-- ⚠️ Configurer des Canvas UI complexes
+- ⚠️ Assigner des Sprites / Textures dans l'Inspector (drag & drop)
 - ⚠️ Créer et configurer des Prefabs
-- ⚠️ Toute opération nécessitant un drag & drop dans l'Inspector
+- ⚠️ Assigner des ScriptableObjects dans des listes (rewardCardPool, etc.)
 
 ---
 
@@ -35,10 +35,11 @@
 
 Roguelike deckbuilder stratégique, inspiré de **Slay the Spire** et **Wildfrost**.
 
-- **Univers** : Super-héros dysfonctionnels et burlesque. Ton Dispatch (workplace comedy meets superheroes) — ex-vilains en liberté conditionnelle, héros sortis de retraite, supers sous CDI qui font ça comme un job 9h-17h. L'antagoniste final : **L'Équipe Numéro Un**, qui a corporatisé le héroïsme.
-- **Ton** : Absurde assumé. Humour noir, burlesque maîtrisé. Les ennemis ne sont jamais "evil" — ils sont des agents d'une logique corporative absurde.
-- **Structure narrative** : 5 chapitres, chacun correspondant à un département de L'Équipe Numéro Un. Prototype : 1 chapitre fonctionnel.
-- **Style graphique** : Cartes carrées, style Marvel Snap (flat cartoon dynamique), palette forte par team. Lisibilité avant tout.
+- **Univers** : Fantasy médiéval — sorciers, nécromanciens, créatures magiques. Ton léger et burlesque.
+- **Style graphique** : **Wildfrost** — chibi animal, flat cartoon, thick black outlines, sticker style avec contour blanc. Palette vive par personnage. Lisibilité avant tout.
+- **Plateau** : Table d'enchantement vue de dessus — bords décorés (bougies, grimoires, gemmes), centre épuré.
+- **Couleurs** : Bois sombre, lueur teal/cyan pour les runes, ambre chaud pour les bougies.
+- **Structure narrative** : Progression roguelike à chapitres. Prototype : 1 chapitre fonctionnel.
 
 ---
 
@@ -46,175 +47,141 @@ Roguelike deckbuilder stratégique, inspiré de **Slay the Spire** et **Wildfros
 
 ### Structure de la grille
 
-Le combat se joue sur une **grille 3×3 partagée** entre le joueur et l'ennemi.
+Le combat se joue sur une **grille 2×5** : 2 lignes (joueur / ennemi), 5 colonnes chacune.
 
-- **9 cases**, toutes accessibles aux deux joueurs
+```
+┌──────────────────────────────────────┐
+│  HP Ennemi : ████████████░░░░  14/20 │
+├──────┬──────┬──────┬──────┬──────────┤
+│  E0  │  E1  │  E2  │  E3  │   E4    │  ← Row 0 : ligne ennemie
+├──────┼──────┼──────┼──────┼──────────┤
+│  P0  │  P1  │  P2  │  P3  │   P4    │  ← Row 1 : ligne joueur
+└──────┴──────┴──────┴──────┴──────────┘
+│  HP Joueur : ████████████████  30/30 │
+└──────────────────────────────────────┘
+```
+
+- **Duel de colonne** : chaque unité joueur [1,c] fait face à l'unité ennemie [0,c]
 - **1 unité maximum par case**
-- Une case libérée par la mort d'une unité peut être réoccupée
-- **Coin flip** en début de combat pour déterminer qui joue en premier
-- **1 HP bar par camp** : joueur (global à tous les combats), ennemi (spécifique au combat)
-- **Victoire** : HP ennemi tombe à zéro. **Défaite** : HP joueur global tombe à zéro
-- Les **intentions ennemies ne sont pas visibles**
-
-Numérotation des cases (référence interne) :
-```
-1 2 3
-4 5 6
-7 8 9
-```
+- Les unités survivantes **restent en jeu** d'un tour à l'autre — pas de reset de manches
+- **Pas de manches** : le combat dure jusqu'à ce qu'un camp tombe à 0 HP
 
 ### Structure d'un tour
 
-1. Le joueur joue **1 unité maximum** (sur une case vide) — **l'unité attaque immédiatement** dans ses directions à la pose
-2. Le joueur joue **autant de sorts/utilitaires** que son mana le permet
-3. Le joueur clique **"Fin de Tour"**
-4. L'ennemi joue son tour (même structure)
-5. Répéter jusqu'à **6 tours max par joueur** = **1 manche**
+**Tour joueur :**
+1. **Pioche** — 2 cartes (4 au premier tour du combat)
+2. **Pose** — 1 unité sur une case Row 1 vide (coût 0, gratuit)
+3. **Sorts** — 0-N sorts (limité par le mana disponible)
+4. **Fin de Tour** → phase d'attaque simultanée résolue
 
-### Anatomie d'une carte unité (format carré)
+**Phase d'attaque simultanée :**
+- Chaque unité [1,c] attaque [0,c] :
+  - Unité ennemie présente → elle perd HP (mort si HP ≤ 0, elle ne réplique pas)
+  - Case ennemie vide → **fuite de lane** : 1 dégât direct aux HP ennemis
+- En parallèle, chaque unité [0,c] encore vivante attaque [1,c] :
+  - Unité joueur présente → elle perd HP
+  - Case joueur vide → **fuite de lane** : 1 dégât direct aux HP joueur
+- Les **Bonds d'attaque** se déclenchent avant la résolution des dégâts
 
-| Champ | Description |
-|---|---|
-| **HP (1–3)** | Icônes gouttes : remplies = HP actuel, contour vide = HP perdu |
-| **ATK** | Toujours 1 — pas de stat affichée, représenté par les flèches directionnelles avec glow récurrent |
-| **Flèches (1–4)** | Directions d'attaque (à la pose uniquement). Option paramètres : affichage permanent ou survol uniquement |
-| **Passif positionnel** | Optionnel. Effet déclenché si l'unité est sur coin / bord / centre. Indiqué par mini-schéma grille 3×3 sur la carte |
-| **Keyword** | Optionnel — effet permanent toujours actif |
-| **Coût mana** | Commun unités et sorts |
-
-> ℹ️ **ATK est toujours 1.** Si un boost est actif (passif positionnel ou sort), une flèche rouge scintillante apparaît sur la carte (grisée quand le passif est inactif mais toujours visible pour indiquer sa présence).
-
-### Passifs positionnels
-
-Couche stratégique indépendante des keywords — une carte peut avoir les deux simultanément.
-
-- **Condition absolue** : coin (cases 1,3,7,9) / bord (cases 2,4,6,8) / centre (case 5)
-- **Dynamique** : si l'unité est déplacée (Carte Déplacement), le passif s'active ou se désactive immédiatement
-- **Feedback visuel** : particules vertes montantes + son à l'activation / particules rouges-grises descendantes + son à la désactivation
-- **Effets possibles** : +1 ATK (ATK=2 à la pose), pioche 1 carte, +1 pt, etc.
-
-### Mécanique d'attaque
-
-Une unité attaque **une seule fois, au moment de sa pose** :
-- Elle attaque toutes les **cases pointées par ses flèches**
-- **Unité ennemie** sur une case ciblée → **perd 1 HP** (ou 2 si ATK boostée). Si HP = 0 → détruite (va en défausse)
-- **Case vide ou unité alliée** → aucun effet
-- L'unité attaquante **reste sur la grille** comme pièce positionnelle jusqu'à la fin de la manche
-
-**Sorts de buff ATK** : "la prochaine unité jouée gagne +1 ATK" — le buff se consomme à la pose de l'unité suivante, qu'elle touche ou non une cible.
-
-### Système de scoring
-
-**Score immédiat à la pose** — les points sont encaissés au moment du placement, pas en fin de manche.
-
-| Événement | Points |
-|---|---|
-| Compléter un motif 3 cases | 4 pts |
-| Compléter un motif 4 cases | 6 pts |
-| Compléter un motif 5 cases | 9 pts |
-| Tuer une unité ennemie | 1 pt (immédiat au kill) |
-
-**Motifs de combat :**
-- **3 motifs** sont tirés aléatoirement dans la banque au début de chaque combat
-- Ils sont **communs aux deux joueurs** et **fixes pour tout le combat**
-- **Premier arrivé premier servi** : le premier joueur qui complète un motif le score et le **ferme pour la manche**
-- Un motif fermé se **réouvre au début de la manche suivante** (les deux joueurs peuvent le rechasser)
-- Chaque motif peut ainsi être scoré **une fois par joueur par manche** mais pas deux fois par le même joueur
-- Le tirage garantit **maximum 2 motifs utilisant la case centrale (5)** par combat
-
-**Banque de motifs :**
-
-*3 cases — 4 pts (8 motifs)*
-```
-Ligne H    Col V      Diag ↘     Diag ↗     Coin TL    Coin TR    Coin BL    Coin BR
-X X X      X . .      X . .      . . X      X X .      . X X      . . .      . . .
-. . .      X . .      . X .      . X .      X . .      . . X      X . .      . . X
-. . .      X . .      . . X      X . .      . . .      . . .      X X .      . X X
-(×3 lignes)(×3 cols)
-```
-*(les 3 lignes et 3 colonnes sont 6 motifs distincts + 2 diagonales + 4 coins = 12 motifs 3 cases au total)*
-
-*4 cases — 6 pts (10 motifs)*
-```
-Carré TL   Carré TR   Carré BL   Carré BR   4 Coins
-X X .      . X X      . . .      . . .      X . X
-X X .      . X X      X X .      . X X      . . .
-. . .      . . .      X X .      . X X      X . X
-
-T haut     T bas      T gauche   T droite   L (×4 rotations)
-. X .      . . .      . X .      . X .      X . .
-X X X      X X X      X X .      . X X      X . .
-. . .      . X .      . X .      . X .      X X .
-```
-
-*5 cases — 9 pts (5 motifs)*
-```
-Croix      X total    U haut     U bas      Z
-. X .      X . X      X . X      . . .      X X .
-X X X      . X .      X . X      X . X      . X .
-. X .      X . X      X X X      X X X      . X X
-```
-
-**Règles supplémentaires :**
-- Les unités restent en jeu après avoir contribué à un motif scoré
-- Le keyword **Combo** ajoute +1 pt bonus si le placement complète un motif
-
-### Résolution d'une manche
-
-- Fin de manche : toutes les unités survivantes → **défausse**
-- Points comparés : le gagnant inflige **(ses points − points adverses) dégâts** aux HP ennemis
-- Si égalité : aucun dégât
-- **Le deck ne se réinitialise pas** entre les manches
-- Les manches se répètent jusqu'à ce qu'un camp tombe à 0 HP
-
-### Cartes
-
-- **3 types** : Unités, Sorts, Utilitaires
-- **Mana unifié** : toutes les cartes coûtent du mana
-- **Unités** : posées sur une case vide de la grille, attaquent à la pose selon leurs Flèches, puis restent comme pièce positionnelle
-- **Sorts** : effets instantanés (buffs, débuffs, contrôle de board), ne prennent pas de case
-- **Utilitaires** : cartes neutres limitées à 2 exemplaires par deck, jamais upgradables :
-  - **Carte Déplacement** (coût 1 mana) : déplace une unité alliée vers une case adjacente vide (l'unité n'attaque pas à nouveau)
-  - **Carte Repioche** : mélange la main actuelle dans le deck et pioche autant de cartes
-- **Raretés** : Commune / Rare / Épique / Légendaire
-- Les cartes peuvent être **upgradées** via la Forge (3 copies identiques → 1 carte +)
-
-### Deck et main
-
-- Deck initial : **20 cartes minimum**
-- **5 cartes** en main au démarrage
-- **1 carte piochée** au début de chaque tour joueur
-- Main maximale : **10 cartes**
-- Quand le deck est vide, la **défausse** est mélangée pour reformer un nouveau deck
-- Pas de cimetière — toutes les unités mortes vont en défausse
+**Tour ennemi (après résolution) :**
+- L'IA pose 1 unité sur Row 0, joue des sorts
+- Pas de phase d'attaque supplémentaire (l'attaque est simultanée dans le tour joueur)
 
 ### Mana
 
-- **Mana croissant** : 1 au tour 1 de chaque manche, +1 par tour joueur, **plafond à 6**
-- Se **régénère entièrement** au début de chaque manche
-- Commun à tous les types de cartes
+- **Pour les sorts uniquement** — les unités sont gratuites
+- Croissant : 1 mana au tour 1, +1 par tour joueur, **plafond à 6**
+- Se régénère entièrement au début de chaque tour joueur
 
-### Keywords (9 validés)
+### Éléments (5)
 
-| Keyword | Description | Rareté min |
-|---|---|---|
-| **Impact** | À la pose, inflige 1 dégât supplémentaire à la première cible touchée | Libre |
-| **Épine** | À la mort, inflige 1 dégât à l'unité attaquante | **Rare+** |
-| **Explosion** | À la mort, inflige 1 dégât à toutes les unités adjacentes (alliées + ennemies) | **Rare+** |
-| **Combo** | Si ce placement complète un motif actif → +1 pt bonus | Libre |
-| **Inspiration** | À la pose, pioche 1 carte | Libre |
-| **Essaim** | +1 ATK à la pose par unité alliée adjacente | Libre |
-| **Dominance** | Si encore en vie en fin de manche, +1 pt | Libre |
-| **Percée** | Si tue une unité ennemie (HP=0), attaque aussi la case derrière dans la même direction | Libre |
-| **Réveil** | À la pose, chaque unité alliée adjacente attaque à nouveau dans ses directions | Libre |
+| Icône | Nom       | Archétype       |
+|-------|-----------|-----------------|
+| 🔥    | Feu       | Offensif        |
+| ❄️    | Glace     | Contrôle        |
+| ⚡    | Foudre    | Chain / burst   |
+| 🌑    | Ombre     | Drain / debuff  |
+| 🌿    | Nature    | Support / heal  |
 
-> **Bouclier supprimé** — rendu redondant par le système HP. Épine et Explosion restreintes Rare+ : empêche une commune de counter une légendaire via kill automatique. **Hâte/Légion/Ralliement supprimés** (liés au CD, système retiré) → remplacés par Impact, Essaim, Réveil.
+### Système de Bonds d'adjacence
+
+Deux unités **adjacentes** (gauche/droite sur la même ligne) avec des éléments compatibles déclenchent un **Bond**.
+
+**Règle de cumul :** une unité encadrée par deux éléments différents déclenche les deux Bonds simultanément.
+
+| Paire              | Nom            | Type    | Effet                                                       |
+|--------------------|----------------|---------|-------------------------------------------------------------|
+| 🔥 + 🔥            | Embrasement    | Attaque | +1 ATK, splash 1 dégât aux cases ennemies adjacentes        |
+| ❄️ + ❄️            | Blizzard       | Attaque | Freeze : la cible passe son prochain tour d'attaque          |
+| ⚡ + ⚡            | Surcharge      | Attaque | +2 ATK si l'ennemi en face a déjà subi des dégâts ce tour   |
+| 🌑 + 🌑            | Abîme          | Attaque | Drain : soigne 1 HP à l'unité attaquante                    |
+| 🌿 + 🌿            | Forêt dense    | Passif  | +1 HP max aux deux unités 🌿                                |
+| ⚡ + 🔥 ou 🔥 + ⚡ | Éclair ardent  | Attaque | L'attaque saute sur l'unité ennemie en colonne adjacente    |
+| ⚡ + 🌑 ou 🌑 + ⚡ | Foudre noire   | Attaque | Ignore les HP bonus de la cible, dégâts bruts               |
+| ❄️ + 🌿 ou 🌿 + ❄️ | Givre vivant   | Passif  | La 🌿 régénère 1 HP/tour si adjacente à ❄️                  |
+| 🔥 + 🌑 ou 🌑 + 🔥 | Cendres        | Attaque | Si kill : la 🌑 adjacente gagne +1 ATK permanent            |
+| 🌿 + 🌑 ou 🌑 + 🌿 | Décomposition  | Passif  | Les unités ennemies en face perdent 1 HP max                |
+
+### Anatomie d'une carte unité
+
+```
+┌─────────────┐
+│  Nom unité  │
+│  [Élément]  │
+│             │
+│  ATK : X    │
+│  HP  : X    │
+│             │
+│  "Bond :    │
+│   effet si  │
+│   adjacent" │
+└─────────────┘
+  (gratuite à poser)
+```
+
+- **Coût** : 0 mana — les unités sont gratuites
+- **ATK / HP** : stats de l'unité (ATK 1-3, HP 1-5)
+- **Bond** : effet déclenché si un voisin compatible est présent
+
+### Anatomie d'une carte sort
+
+```
+┌─────────────┐
+│  Nom sort   │
+│  [Élément]  │
+│             │
+│  "Effet"    │
+└─────────────┘
+   Coût : X mana
+```
+
+- **Sorts offensifs** : dégâts directs (HP ennemis ou unité ennemie)
+- **Sorts utilitaires** : buffs, debuffs, déplacement d'unité, soins
+
+### Deck et main
+
+- **Taille du deck** : 20 cartes minimum
+- **Répartition** : libre selon le personnage
+- **Main de départ** : 4 cartes
+- **Pioche** : 2 cartes au début de chaque tour joueur
+- **Main maximale** : 10 cartes
+- Deck vide → défausse mélangée pour reformer un nouveau deck
+
+### HP des camps
+
+| Type de combat | HP ennemi |
+|----------------|-----------|
+| Combat normal  | 20 HP     |
+| Combat élite   | 35 HP     |
+| Boss           | 50 HP     |
+
+- **HP joueur** : **30 HP** global persistant entre combats — récupération uniquement via nœud Repos
 
 ### IA ennemie
 
-- Joue **1 unité** (priorité : cases qui complètent un motif actif pour l'IA, ou qui bloquent un motif que le joueur est en train de construire)
-- Stratégie spécifique par team ennemie
-- Les intentions ne sont **pas visibles**
+- Chaque ennemi a un **`EnemyBehaviorData`** ScriptableObject : deck + stratégie (Aggressive / Defensive / SynergySeeker)
+- L'ennemi pose 1 unité sur Row 0, joue des sorts depuis son deck
+- Les intentions ennemies ne sont **pas visibles**
 
 ---
 
@@ -223,41 +190,40 @@ X X X      . X .      X . X      X . X      . X .
 ### Layout cible
 
 ```
-[ Or | Reliques | Score joueur vs Score ennemi ]     ← barre haut (full width)
+[ HP Ennemi — barre de vie ]
 
-[Portrait joueur]  [  Grille 3×3 partagée  ]  [Portrait ennemi]
-     HP ↓          [  9 cases carrées       ]       HP ↓
-                   [ Motifs actifs (×3)     ]
+[Portrait joueur]  [  Grille 2×5  ]  [Portrait ennemi]
+     HP ↓          [ Row 0 ennemi ]       HP ↓
+                   [ Row 1 joueur ]
 
-[Mana / Deck / Défausse]       [ Main du joueur ]   [Fin de Tour]
-      ↑ bas-gauche               ↑ centré bas          ↑ bas-droite
+[Mana / Deck / Défausse]    [ Main du joueur ]    [Fin de Tour]
+      ↑ bas-gauche              ↑ centré bas          ↑ bas-droite
 ```
 
-### Hiérarchie Canvas (scène Combat)
+### Hiérarchie Canvas (scène Combat — état actuel)
 
 ```
 Canvas/
   FullBG                      — fond plein écran
-  GridArea                    — grille 3×3, anchor centré
-    Row_0..2                  — 3 lignes × 3 cases (GridCellUI câblés)
-    GridLines                 — lignes de grille (GridLinesDrawer, raycastTarget=false)
-    PatternOverlay            — surbrillance des cases cibles des 3 motifs actifs
-  PatternDisplay              — affichage des 3 motifs du combat (icônes + statut ouvert/fermé)
-  PortraitPlayer              — anchor gauche
-    HPLabel / HPText (TMP vert)
+  GridArea                    — grille 2×5, anchor centré (ACTIF)
+    GridAreaToPlay
+      GridRow_0               — 5 cases ennemies (Cell_0_0..Cell_0_4)
+      GridRow_1               — 5 cases joueur (Cell_1_0..Cell_1_4)
+  PortraitPlayer              — anchor gauche (portraits, HP, mana, BtnPass)
   PortraitEnemy               — anchor droite
-    HPLabel / HPText (TMP rouge)
-  ScoreBar                    — score joueur / score ennemi en temps réel
-  BottomInfo                  — bas-gauche : ManaText / DeckText / DiscardText
+  CombatUI                    — GO logique, refs TMP câblées
   Hand                        — main joueur, centré bas
-  EndTurnButton               — bas-droite
-  CombatUI                    — GO logique, toutes refs TMP câblées
+  CardSelector                — gestion clics cartes et cellules
+  SpellArrow                  — flèche de ciblage pour les sorts
+  CardZoomPanel               — zoom clic droit sur une carte
   RelicBar                    — barre or/reliques
+  RelicTooltipUI              — tooltip hover reliques
+  PauseMenu                   — menu pause
+  ScanlinesOverlay            — overlay CRT (inactif)
 ```
 
-- **Clic droit sur une carte** : affiche une copie agrandie (CardZoomPanel)
-- **Flèches d'attaque** : affichées sur chaque carte posée (indiquent les directions de l'attaque à la pose)
-- **Cases slots** : invisibles (fond transparent), grille délimitée par traits via GridLinesDrawer
+- **BtnPass** (dans PortraitPlayer) → appelle `CombatManager.EndPlayerTurn()`
+- **GridCellUI** sur chaque cellule : `row` (0=ennemi, 1=joueur), `col` (0-4)
 
 ---
 
@@ -265,59 +231,34 @@ Canvas/
 
 ### Carte de run
 
-- Forme : **carte avec chemins multiples** (style Slay the Spire).
-- **Entièrement visible** dès le début du run.
-- Un nœud visité est **bloqué définitivement**.
-- Chapitre introductif : **10 lignes**, **maximum 4 nœuds par ligne**.
-- **Arbre vertical scrollable**.
-
-### Affichage des nœuds
-
-- **Gris** : nœuds inaccessibles
-- **Vert foncé** : nœuds déjà visités
-- **Vert clair** : nœuds disponibles (accessibles maintenant)
-- Lignes reliant les nœuds, icône simple pour chaque type d'événement
+- Forme : arbre vertical scrollable (style Slay the Spire), entièrement visible dès le début
+- Un nœud visité est bloqué définitivement
+- Chapitre introductif : 10 lignes, maximum 4 nœuds par ligne
 
 ### Types de nœuds
 
-| Nœud | Récompense |
-|---|---|
-| Combat normal | Choix de cartes + or |
-| Combat élite (mini-boss) | Relique + or |
-| Boss (fin de chapitre) | Relique + or |
-| Événement narratif | Texte + choix avec conséquences |
-| Marchand | Acheter carte / relique, vendre carte du deck |
-| Forge | Améliorer une carte (3 copies → 1 carte +) |
-| Repos / Soin | Gain de HP + suppression d'une carte du deck |
-| Mystère | Inconnu jusqu'à l'arrivée |
-
-### Marchand
-
-- Acheter une carte (du pool de la team jouée, cartes de base uniquement)
-- Acheter une relique
-- Vendre une carte du deck
-- (La forge est un nœud séparé)
-
-### Récompenses de combat
-
-- Après victoire : choisir 1 carte parmi 3 proposées (versions de base uniquement — jamais upgradée)
-- Bouton "Vendre" sous chaque carte : Commune 25 or, Rare 50 or, Épique 75 or
-- Les cartes upgradées (+) s'obtiennent **exclusivement à la Forge**
+| Nœud              | Récompense                             |
+|-------------------|----------------------------------------|
+| Combat normal     | Choix de cartes + or                   |
+| Combat élite      | Relique + or                           |
+| Boss              | Relique + or                           |
+| Événement narratif| Texte + choix avec conséquences        |
+| Marchand          | Acheter carte / relique, vendre carte  |
+| Forge             | 3 copies identiques → 1 carte upgradée |
+| Repos / Soin      | Gain de HP + suppression d'une carte   |
+| Mystère           | Inconnu jusqu'à l'arrivée              |
 
 ### Forge — Système de fusion
 
-- Déposer **3 copies identiques** → obtenir **1 exemplaire upgradé (+)**
-- **Coût en or : aucun** — le coût c'est le sacrifice des 3 copies
-- **Fusion bloquée si le deck descend sous 20 cartes**
-- **Une seule chaîne d'upgrade** : Normal → + (pas de ++)
+- **3 copies identiques** → **1 exemplaire upgradé (+)**
+- Coût : 0 or — le coût c'est le sacrifice des 3 copies
+- Fusion bloquée si le deck descend sous 20 cartes
+- Une seule chaîne d'upgrade : Normal → + (pas de ++)
 
----
+### Récompenses de combat
 
-## 🏆 Structure d'un Run
-
-- **5 chapitres**, chacun = un département de L'Équipe Numéro Un
-- **Chapitre 1** : Département Juridique & Conformité (prototype)
-- **Priorité** : chapitre 1 100% fonctionnel avant d'étendre
+- Après victoire : choisir 1 carte parmi 3 proposées
+- Bouton "Vendre" : Commune 25 or, Uncommon 37 or, Rare 50 or, Epic 75 or, Legendary 100 or
 
 ---
 
@@ -325,73 +266,37 @@ Canvas/
 
 - Obtenues via combats élite, boss, et leveling de compte
 - Effets : `DrawExtraCardPerTurn`, `StartWithBonusMana`, `MaxHPBonus`, `HealAfterCombat`
-- Relique débloquable au mini-boss du chapitre intro (overlay de sélection)
 
 ---
 
-## 🦸 Personnages
+## 🦸 Personnages jouables (prototype)
 
-### Teams jouables
+### CatSorcerer — Élément : 🔥 Feu
 
-#### Programme R — Archétype : Aggro
+Sorcier chat. Offensif, explosif. Bonds naturels : Embrasement (🔥+🔥), Éclair ardent (⚡+🔥), Cendres (🔥+🌑).
 
-**Concept :** Ex-vilains en liberté conditionnelle. Suicide Squad / Thunderbolts style. Personne n'a vraiment envie d'être là.
-**Keywords naturels :** Impact, Percée, Explosion, Essaim
+**Cartes test disponibles :** `Assets/Data/Cards/CatSorcerer/`
+- Flamme (Unit, Fire, 1/1)
+- Brasier (Unit, Fire, 2/1)
+- Embrasement (Unit, Fire, 1/2 — Uncommon)
+- Boule de Feu (Spell, Fire, 2 mana — 3 dégâts héros ennemi)
 
-| Héros | Pouvoir | Personnalité | Rôle |
-|---|---|---|---|
-| **Voltaire** | Électricité | Se croit le plus intelligent, cite des philosophes à contresens | Capitaine |
-| **Cendres** | Feu / explosion | Traite tout ça comme un job alimentaire, zéro remords | |
-| **Le Bloc** | Force brute | Suit les ordres, mange beaucoup, pose pas de questions | |
-| **Trace** | Super-vitesse | Toujours en retard malgré sa vitesse supersonique | |
+### RaccoonNecromancer — Élément : 🌑 Ombre
 
-#### Les Éternels — Archétype : Combo / Placement
+Nécromancien raton laveur. Drain, debuff. Bonds naturels : Abîme (🌑+🌑), Foudre noire (⚡+🌑), Décomposition (🌿+🌑).
 
-**Concept :** Vieux super-héros sortis de retraite contraints et forcés. Se chamaillent en permanence.
-**Keywords naturels :** Combo, Inspiration, Dominance, Réveil
+**Cartes test disponibles :** `Assets/Data/Cards/RaccoonNecromancer/`
+- Ombre (Unit, Shadow, 1/1)
+- Draine-Âme (Unit, Shadow, 1/2)
+- Spectre (Unit, Shadow, 2/1 — Uncommon)
+- Drain de Vie (Spell, Shadow, 2 mana — 2 dégâts unité + soins 1)
 
-| Héros | Pouvoir | Personnalité | Rôle |
-|---|---|---|---|
-| **Aciera** | Magnétisme | 74 ans, pragmatique, légèrement terrifiante. Tricote entre deux combats. | Capitaine |
-| **Le Maître** | Télékinésie | Calme absolu, parle peu mais juste. A tout vu, rien ne l'étonne. | |
-| **Titanio** | Duplication | Raconte ses exploits des années 60 en boucle. Se froisse le dos en combat. | |
-| **Glamoura** | Illusion | Utilise l'argot des jeunes à contresens. Ses illusions ressemblent à elle en 1968. | |
+### Ennemi test
 
-### Teams ennemies (prototype)
-
-#### Les Contractuels — combats normaux + élite
-Super-héros sous CDI. Pouvoirs réels, motivation inexistante. Font ça comme un job 9h-17h.
-
-| Héros | Pouvoir | Comportement |
-|---|---|---|
-| **Patrice** | Super-force | 60% de puissance max, préserve son dos |
-| **Régine** | Téléportation | S'en sert principalement pour aller chercher son café |
-| **Chad** | Boucliers énergétiques | Part à 17h01 peu importe l'état du combat |
-| **Marlène** | Duplication | Crée des copies pour glander pendant qu'elles bossent |
-
-#### Les Acquisitions — mini-boss + boss
-Équipe d'élite. Professionnels, froids, costume trois pièces. Objectif : "faire une offre".
-
-| Héros | Pouvoir | Rôle |
-|---|---|---|
-| **Le Partenaire** | Persuasion mentale | Parle de "synergie" et "d'opportunité" |
-| **La Clause** | Binding / entrave | "Termes et conditions" |
-| **L'Évaluateur** | Scan / analyse | Évalue chaque unité en "valeur de rachat" |
-| **Le Liquidateur** | Destruction pure | Activé uniquement si l'acquisition échoue |
-
-### Structure deck par team
-
-- **4 héros × 7 cartes** (1 carte héros ×1 + 1 unité ×1 + 1 unité ×2 + 1 sort ×1 + 1 sort ×2) = 28 cartes
-- **+ 2 Cartes Repioche** = **30 cartes total**
-- Les Cartes Déplacement sont optionnelles (max 2, remplacent d'autres cartes)
-
----
-
-## 🃏 Decks
-
-> À designer — les cartes doivent respecter la nouvelle anatomie : HP (1-3) / ATK implicite=1 / Flèches (attaque à la pose) / Passif positionnel (optionnel) / Keyword (optionnel) / Coût.
-> Archétypes validés : Programme R (Aggro — Impact/Percée/Explosion/Essaim) et Les Éternels (Combo — Combo/Inspiration/Dominance/Réveil).
-> Cible : 4 decks jouables total (2 pour le prototype).
+**Cartes test disponibles :** `Assets/Data/Cards/Enemies/TestEnemy/`
+- Grunt (Unit, None, 1/1)
+- Brute (Unit, None, 2/2)
+- Fireball (Spell, Fire, 2 mana — 2 dégâts héros joueur)
 
 ---
 
@@ -408,58 +313,48 @@ Super-héros sous CDI. Pouvoirs réels, motivation inexistante. Font ça comme u
 Assets/
 ├── Art/
 │   ├── Cards/
-│   │   ├── Units/
-│   │   └── Spells/
 │   ├── Characters/
-│   │   ├── ProgrammeR/
-│   │   │   ├── Voltaire/
-│   │   │   ├── Cendres/
-│   │   │   ├── LeBloc/
-│   │   │   └── Trace/
-│   │   ├── LesEternels/
-│   │   │   ├── Aciera/
-│   │   │   ├── LeMaitre/
-│   │   │   ├── Titanio/
-│   │   │   └── Glamoura/
-│   │   └── Enemies/
+│   │   ├── CatSorcerer/
+│   │   └── RaccoonNecromancer/
+│   ├── Enemies/
 │   ├── UI/
 │   ├── Boards/
-│   ├── Icons/
-│   │   └── NodeIcons/
 │   └── Effects/
 ├── Audio/
 │   ├── Music/
 │   └── SFX/
 ├── Data/
 │   ├── Cards/
+│   │   ├── CatSorcerer/
+│   │   ├── RaccoonNecromancer/
+│   │   └── Enemies/
 │   ├── Relics/
 │   ├── Characters/
 │   └── Events/
 ├── Prefabs/
 │   ├── Cards/
 │   ├── UI/
-│   ├── Boards/
 │   └── Nodes/
 ├── Scenes/
 │   ├── MainMenu/
 │   ├── Combat/
 │   └── RunMap/
 ├── Scripts/
-│   ├── Combat/
-│   ├── Cards/
-│   ├── AI/
-│   ├── RunMap/
-│   ├── Data/
-│   ├── UI/
-│   ├── SaveSystem/
-│   └── Core/
+│   ├── Combat/        — CombatManager, GridManager, BondSystem, DeckManager, ManaManager, TurnManager
+│   ├── Cards/         — CardInstance, CardView
+│   ├── AI/            — EnemyAI, EnemyBehaviorData
+│   ├── RunMap/        — RunMapManager, NodeView, EdgeView, etc.
+│   ├── Data/          — CardData, CardEnums, CardEffect, RelicData, CharacterData, EnemyBehaviorData
+│   ├── UI/            — CombatUI, HandView, CardSelector, GridCellUI, etc.
+│   ├── SaveSystem/    — DiskSave, AccountSave
+│   └── Core/          — RunPersistence, AudioManager, SessionLogger
 ├── Resources/
 └── Plugins/
 ```
 
 ---
 
-## 📋 État d'avancement et priorités
+## 📋 État d'avancement
 
 ### ✅ Réalisé
 
@@ -468,31 +363,32 @@ Assets/
 - Nœuds non-combat (Rest, Forge, Shop, Event, Mystery) — 12 événements narratifs ✅
 - Système or, reliques (avec tooltip hover), sauvegarde disque, leveling de compte ✅
 - SessionLogger ✅
-- Scène Combat : grille 3×3, portraits, layout bas (mana/deck/défausse), GridLinesDrawer ✅
+- **Système de combat 2×5** : GridManager, CombatManager, BondSystem, EnemyAI scriptable ✅
+- **CardData** : nouveau format (Element, ATK, HP, sans keyword/passif positionnel) ✅
+- **Scène Combat** : grille 2×5 câblée, portraits, main, bouton fin de tour ✅
+- **Cartes test** : CatSorcerer (4 cartes), RaccoonNecromancer (4 cartes), TestEnemy (3 cartes) ✅
 
 ### 🔄 Priorités actuelles
 
-1. **Adapter les CardData ScriptableObjects** : ajouter HP (1-3), passif positionnel (condition + effet), retirer CD et Bouclier, mettre à jour keywords (Impact/Essaim/Réveil), Épine/Explosion (Rare+, 1 dégât)
-2. **Réécrire le système de combat** : attaque à la pose (plus de CD), HP sur les unités, dégâts 1 ou 2 si boost, mort à HP=0, passifs positionnels dynamiques, 6 tours max, mana croissant
-3. **Implémenter les passifs positionnels** : détection coin/bord/centre, activation/désactivation au déplacement, feedback visuel (particules + son)
-4. **Implémenter le système de motifs** : banque ScriptableObject, tirage aléatoire, scoring à la pose, logique premier arrivé premier servi
-5. **Redesigner les decks** Programme R et Les Éternels (2 prototype, 4 cible total)
-6. **IA ennemie** (Les Contractuels) — priorité cases complétant un motif ou bloquant le joueur
-7. **Animations** : pose sur grille, HP loss, kill, score popup, motif complété, activation/désactivation passif positionnel
+1. **CharacterData** pour CatSorcerer et RaccoonNecromancer (startingDeck, portrait)
+2. **Premier test de combat** — assigner playerCharacter dans CombatManager Inspector
+3. **Decks complets** — 20 cartes par personnage
+4. **CardView / CardUIBuilder** — adapter l'affichage des cartes au nouveau format (Element, ATK, pas de flèches)
+5. **BondSystem feedback visuel** — indicateurs de bonds actifs sur la grille
+6. **IA ennemie** — créer un EnemyBehaviorData pour le combat test
 
 ### 📌 Post-prototype
 
-- Team 3+ (roster étendu)
-- Chapitres 2–5
+- Éléments Glace, Foudre, Nature (personnages supplémentaires)
+- Chapitres 2+
 - Système d'Ascension
-- L'Équipe Numéro Un (boss final)
 
 ---
 
 ## 🔧 Notes techniques
 
 - Tout le code est en **C# Unity**, from scratch. Namespaces : `RoguelikeTCG.Combat`, `RoguelikeTCG.RunMap`, `RoguelikeTCG.UI`, `RoguelikeTCG.Core`, `RoguelikeTCG.Data`.
-- **ScriptableObjects** pour toutes les données de jeu (cartes, reliques, personnages, événements).
+- **ScriptableObjects** pour toutes les données (cartes, reliques, personnages, events, comportements IA).
 - **DOTween** pour toutes les animations — jamais de Coroutine pour les tweens.
 - **UI toujours construite dans la scène** (via MCP), jamais en code dans `Start()`. Scripts = logique pure avec refs public assignées depuis la scène.
 - Les visuels (images) sont déposés **manuellement par le développeur** dans les dossiers `Art/` prévus.
@@ -502,7 +398,7 @@ Assets/
 
 | Agent | Usage |
 |---|---|
-| `combat-coder` | Toute feature du système de combat |
+| `combat-coder` | Toute feature du système de combat (grille 2×5, bonds, IA) |
 | `ui-flow-coder` | RunMap, menus, nodes, sauvegarde, futurs écrans |
 | `card-balancer` | Design et équilibrage des cartes / decks |
 | `unity-builder` | Configuration scènes via Unity MCP |

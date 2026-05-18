@@ -12,31 +12,35 @@ namespace RoguelikeTCG.Data
         public Sprite artwork;
         public CardType cardType;
         public CardRarity rarity;
+        public Element element;
 
         [Header("Cost")]
         public int manaCost;
 
-        [Header("Unit — Grille 3x3")]
-        [Range(1, 3)]
+        [Header("Unit stats (Unit only)")]
+        public int atk = 1;
+        [Range(1, 5)]
         public int hp = 1;
-        [EnumFlags]
-        [Tooltip("Directions attaquées (flags combinables : Up, Down, Left, Right)")]
-        public AttackDirection attackDirections = AttackDirection.Right;
-        [Tooltip("Keyword unique de l'unité")]
-        public UnitKeyword keyword = UnitKeyword.Aucun;
 
-        [Header("Passif positionnel")]
-        public PositionalCondition positionalCondition = PositionalCondition.None;
-        public PositionalEffect    positionalEffect    = PositionalEffect.None;
-
-        [Header("Utility subtype (Utility only)")]
-        public UtilityEffect utilityEffect = UtilityEffect.Deplacement;
-
-        [Header("Spell Targeting & Effects (Spell only)")]
+        [Header("Spell (Spell only)")]
         public SpellTarget spellTarget;
         public List<CardEffect> effects;
 
         [Header("Upgrade")]
-        public CardData upgradedVersion; // null if no upgrade or already upgraded
+        public CardData upgradedVersion;
+
+        // ── Champs legacy — conservés pour compatibilité avec les scripts de combat existants ──
+
+        [Header("Legacy — Grille 3x3 (ne plus utiliser pour de nouvelles cartes)")]
+        [Tooltip("Directions d'attaque (flags). Conservé pour le système de combat existant.")]
+        public AttackDirection attackDirections = AttackDirection.Right;
+        [Tooltip("Keyword unique de l'unité. Conservé pour le système de combat existant.")]
+        public UnitKeyword keyword = UnitKeyword.Aucun;
+        [Tooltip("Condition de passif positionnel. Conservé pour le système de combat existant.")]
+        public PositionalCondition positionalCondition = PositionalCondition.None;
+        [Tooltip("Effet de passif positionnel. Conservé pour le système de combat existant.")]
+        public PositionalEffect    positionalEffect    = PositionalEffect.None;
+        [Tooltip("Sous-type utilitaire. Conservé pour le système de combat existant.")]
+        public UtilityEffect utilityEffect = UtilityEffect.Deplacement;
     }
 }

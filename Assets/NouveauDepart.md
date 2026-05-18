@@ -28,6 +28,19 @@ L'univers super-héros CDI burlesque est **abandonné**. On repart sur :
 - Chaque case joueur **fait face** à la case ennemie de même colonne (duel de colonne)
 - 1 unité maximum par case
 - Les unités survivantes **restent en jeu** d'un tour à l'autre
+- **Pas de manches** — le combat dure jusqu'à ce qu'un camp tombe à 0 HP
+
+---
+
+## Éléments (5 définitifs)
+
+| Icône | Nom    | Archétype      |
+|-------|--------|----------------|
+| 🔥    | Feu    | Offensif       |
+| ❄️    | Glace  | Contrôle       |
+| ⚡    | Foudre | Chain / burst  |
+| 🌑    | Ombre  | Drain / debuff |
+| 🌿    | Nature | Support / heal |
 
 ---
 
@@ -41,72 +54,153 @@ L'univers super-héros CDI burlesque est **abandonné**. On repart sur :
 │  ATK : X    │
 │  HP  : X    │
 │             │
-│  "Effet si  │
-│   adjacent  │
-│   à [elem]" │
+│  "Bond :    │
+│   effet si  │
+│   adjacent" │
+└─────────────┘
+  (gratuite à poser)
+```
+
+- **Coût** : 0 mana — les unités sont gratuites à poser
+- **ATK** : dégâts infligés à l'unité en face lors de la phase d'attaque
+- **HP** : points de vie, l'unité meurt à 0
+- **Bond** : effet déclenché si une unité adjacente compatible est présente (voir table Bonds)
+
+---
+
+## Anatomie d'une carte sort
+
+```
+┌─────────────┐
+│  Nom sort   │
+│  [Élément]  │
+│             │
+│  "Effet"    │
+│             │
 └─────────────┘
    Coût : X mana
 ```
 
----
-
-## Système de synergies d'adjacence (Bonds)
-
-Deux unités **adjacentes** avec des éléments compatibles déclenchent un bond au moment de l'attaque.
-
-### Règle de cumul (validée)
-Une unité entourée de deux éléments différents **déclenche les deux bonds simultanément**.
-Cela récompense le placement stratégique. Contre-balance naturelle : ça coûte 3 cartes et plusieurs tours à construire — l'ennemi a le temps de casser une case.
-
-```
-[🌪️][🔥][⚡]
- bond A  bond B  → les deux s'activent, 🔥 bénéficie des deux effets
-```
-
-### Table de synergies (draft)
-
-| Paire        | Nom Bond  | Effet                                  |
-|--------------|-----------|----------------------------------------|
-| 🔥 + 🌪️    | Brasier   | +1 ATK, splash sur la case adjacente   |
-| ❄️ + ❄️    | Blizzard  | Freeze ennemi (passe son attaque)      |
-| ⚡ + 🌊    | Foudre    | L'attaque saute sur 2 ennemis          |
-| 🌑 + 🌑    | Ombre     | Drain 1 HP ennemi → joueur             |
-| 🌿 + any    | Racines   | +1 HP à l'unité adjacente              |
-
-*(Table à compléter / équilibrer)*
+- **Sorts offensifs** : dégâts directs (aux HP ennemis ou à une unité ennemie)
+- **Sorts utilitaires** : buffs, debuffs, déplacement d'unité, soins
 
 ---
 
 ## Structure d'un tour
 
-### Phase joueur
-1. **Pioche** — tirer 3 cartes
-2. **Phase de jeu** — placer des unités sur cases vides, jouer des sorts (limité par mana)
-3. **Phase d'attaque** :
-   - Chaque unité attaque la case directement en face
-   - Les bonds d'adjacence se déclenchent avant résolution des dégâts
-   - Case vide en face = **fuite de lane** → 1 dégât direct aux HP ennemis
-4. **Riposte ennemie** — les unités ennemies survivantes attaquent en retour
-5. **Cleanup** — unités mortes en défausse, survivantes restent en place
+### Tour joueur
+1. **Pioche** — tirer 2 cartes (4 en main au départ du combat)
+2. **Phase de jeu** :
+   - Poser **1 unité** sur une case joueur vide (gratuit)
+   - Jouer **0-N sorts** (limité par le mana disponible)
+3. **Phase d'attaque simultanée** :
+   - Chaque unité joueur attaque la case ennemie en face
+   - Chaque unité ennemie attaque la case joueur en face (simultané)
+   - **Si une unité est tuée, elle ne réplique pas** (mort avant résolution)
+   - Les Bonds actifs se déclenchent avant la résolution des dégâts
+   - Case ennemie vide en face d'une unité joueur → **1 dégât direct aux HP ennemis**
+   - Case joueur vide en face d'une unité ennemie → **1 dégât direct aux HP joueur**
+4. **Cleanup** — unités mortes en défausse, survivantes restent en place
+
+### Tour ennemi (après le tour joueur)
+1. L'IA pose **1 unité** sur une case ennemie vide (selon sa logique scriptée)
+2. L'IA joue **0-N sorts** de son deck
+3. *(Pas de phase d'attaque supplémentaire — l'attaque est simultanée pendant le tour joueur)*
 
 ### Mana
-- Croissant : 1 au tour 1, +1 par tour, plafond à 6
-- Se régénère entièrement chaque manche
+- **Pour les sorts uniquement** — les unités sont gratuites
+- Croissant : 1 mana au tour 1, +1 par tour joueur, plafond à 6
+- Se régénère entièrement à chaque tour
+
+---
+
+## Système de synergies d'adjacence (Bonds)
+
+Deux unités adjacentes (gauche/droite) avec des éléments compatibles déclenchent un **Bond**.
+
+### Règle de cumul
+Une unité encadrée par deux éléments différents **déclenche les deux Bonds simultanément**.
+
+```
+[⚡][🔥][🌑]
+    ↑
+ Bond A (⚡+🔥) ET Bond B (🔥+🌑) s'activent tous les deux
+```
+
+### Timing des Bonds
+- **Bonds à l'attaque** : s'activent pendant la phase d'attaque (bonus offensifs, chains)
+- **Bonds passifs** : actifs en permanence tant que les deux unités sont adjacentes et vivantes
+
+### Table de synergies (validée)
+
+| Paire       | Nom           | Type    | Effet                                                        |
+|-------------|---------------|---------|--------------------------------------------------------------|
+| 🔥 + 🔥    | Embrasement   | Attaque | +1 ATK, les dégâts splash sur les cases ennemies adjacentes  |
+| ❄️ + ❄️    | Blizzard      | Attaque | L'unité ciblée passe son prochain tour d'attaque (Freeze)    |
+| ⚡ + ⚡    | Surcharge     | Attaque | Si l'ennemi en face a déjà subi des dégâts ce tour, +2 ATK   |
+| 🌑 + 🌑    | Abîme         | Attaque | Drain : soigne 1 HP à l'unité attaquante                     |
+| 🌿 + 🌿    | Forêt dense   | Passif  | +1 HP max aux deux unités 🌿                                 |
+| ⚡ + 🔥    | Éclair ardent | Attaque | L'attaque saute sur la case ennemie adjacente après impact    |
+| ⚡ + 🌑    | Foudre noire  | Attaque | Ignore les HP bonus de la cible, dégâts bruts                |
+| ❄️ + 🌿    | Givre vivant  | Passif  | L'unité 🌿 régénère 1 HP par tour si adjacente à ❄️          |
+| 🔥 + 🌑    | Cendres       | Attaque | Si l'ennemi en face meurt, l'unité 🌑 adjacente gagne +1 ATK permanent |
+| 🌿 + 🌑    | Décomposition | Passif  | Les unités ennemies adjacentes perdent 1 HP max (debuff permanent) |
+
+---
+
+## HP et dégâts
+
+### Unités joueur/ennemi
+- **HP** : 1 à 3 selon la carte
+- **ATK** : 1 à 3 selon la carte
+- Mort à HP = 0 → défausse
+
+### HP des camps
+| Type de combat | HP ennemi |
+|----------------|-----------|
+| Combat normal  | 20 HP     |
+| Combat élite   | 35 HP     |
+| Boss           | 50 HP     |
+
+- **HP joueur** : global persistant entre les combats — **30 HP de départ**
+- Récupération uniquement via nœud Repos sur la RunMap
+
+---
+
+## Deck et main
+
+- **Taille du deck** : 20 cartes minimum
+- **Répartition** : libre selon le personnage (pas de ratio imposé unités/sorts)
+- **Main de départ** : 4 cartes
+- **Pioche** : 2 cartes au début de chaque tour joueur
+- **Main maximale** : 10 cartes
+- Deck vide → la défausse est mélangée pour reformer un nouveau deck
+
+---
+
+## IA ennemie
+
+- Chaque ennemi a un **ScriptableObject** dédié avec son deck et sa logique de comportement
+- L'ennemi joue aussi des sorts (depuis son deck)
+- **Comportements possibles** (à définir par ennemi) :
+  - Agressif : priorité lanes vides pour fuir et faire des dégâts directs
+  - Défensif : priorité bloquer les lanes joueur occupées
+  - Synergy-seeking : cherche à construire des Bonds dans sa ligne
 
 ---
 
 ## La tension centrale : construire sa ligne
 
 ```
-Où poser cette unité pour maximiser les bonds
-sans laisser de lanes libres qui saignent mes HP ?
+Où poser cette unité pour maximiser les Bonds
+sans laisser de lanes vides qui saignent mes HP ?
 
-[ ][🌪️][ ][ ][ ]  ← état actuel
-[🔥 en main]
+[ ][🔥][ ][ ][ ]  ← état actuel, P1 et P3-P5 vides
+[⚡ en main]
 
-Option A : poser en P1 → pas adjacent à 🌪️, pas de bond
-Option B : poser en P2 → bond 🔥+🌪️ activé, mais P1 vide = fuite de dégâts
-Option C : poser en P3 → comble un trou, pas de bond
+Option A : poser en P1 → bouche une fuite, pas de Bond
+Option B : poser en P3 → Bond ⚡+🔥 activé (Éclair ardent), mais P1 continue de saigner 1 HP/tour
+Option C : attendre et jouer un sort de déplacement pour repositionner 🔥 d'abord
 ```
 
 ---
@@ -137,7 +231,7 @@ DÉPART
 - **Style** : Wildfrost — chibi animal, flat cartoon, thick black outlines, sticker style avec contour blanc
 - **Plateau** : Table d'enchantement vue de dessus, bords décorés (bougies, grimoires, gemmes), centre uniforme et épuré
 - **Couleurs** : bois sombre, lueur teal/cyan pour les runes, ambre chaud pour les bougies
-- **Persos existants** : CatSorcerer (🔥 ?), RaccoonNecromancer (🌑 ?)
+- **Persos existants** : CatSorcerer (🔥 Feu), RaccoonNecromancer (🌑 Ombre)
 
 ---
 
@@ -148,9 +242,9 @@ DÉPART
 - Architecture Unity (ScriptableObjects, DOTween, namespaces)
 - Scènes MainMenu, CharacterSelect, RunMap
 
-## Ce qui est à réécrire
+## Ce qui est à réécrire / créer
 
-- Système de combat (grille 3×3 → ligne 2×5, nouveau système d'attaque et synergies)
-- Tous les CardData ScriptableObjects
-- IA ennemie
+- Système de combat (grille 3×3 → ligne 2×5, attaque simultanée, Bonds, mana sorts)
+- Tous les CardData ScriptableObjects (nouveau format avec élément + Bond)
+- IA ennemie scriptable
 - DA et assets visuels

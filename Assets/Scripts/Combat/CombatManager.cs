@@ -18,12 +18,12 @@ namespace RoguelikeTCG.Combat
         public static CombatManager Instance { get; private set; }
 
         [Header("Systèmes")]
-        public GridManager     gridManager;
-        public DeckManager     playerDeck;
-        public DeckManager     enemyDeck;
-        public ManaManager     manaManager;
-        public TurnManager     turnManager;
-        public EnemyAI         enemyAI;
+        public GridManager  gridManager;
+        public DeckManager  playerDeck;
+        public DeckManager  enemyDeck;
+        public ManaManager  manaManager;
+        public TurnManager  turnManager;
+        public EnemyAI      enemyAI;
 
         [Header("UI")]
         public CombatUI        combatUI;
@@ -34,32 +34,32 @@ namespace RoguelikeTCG.Combat
         public RectTransform   endTurnButtonRT;
         public RectTransform   deckZoneRT;
         public CombatAnimator  combatAnimator;
-        public PatternDisplayUI patternDisplayUI;
 
         [Header("Personnages")]
-        public CharacterData   playerCharacter;
-        public CharacterData   enemyCharacter;
+        public CharacterData playerCharacter;
+        public CharacterData enemyCharacter;
 
-        [Header("HP Ennemi")]
-        public int enemyMaxHP     = 30;
+        [Header("HP Ennemi (configuré selon node type)")]
+        public int enemyMaxHP     = 20;
         public int enemyCurrentHP;
 
         [Header("Récompenses")]
         public List<CardData>  rewardCardPool;
         public List<RelicData> relicRewardPool;
-        private const int      RewardCount = 3;
+        private const int RewardCount = 3;
 
-        // ── État joueur ───────────────────────────────────────────────────────
+        // ── État joueur ────────────────────────────────────────────────────────
         public int playerHP;
         public int playerMaxHP;
 
-        // ── Interne ───────────────────────────────────────────────────────────
+        // ── État de tour ───────────────────────────────────────────────────────
         private bool _gameOver;
-        private int  _lastGoldEarned;
-        private GridCellUI[] _allCells;
         private bool _playerPlayedUnitThisTurn;
         private bool _isFirstPlayerTurn = true;
-        private int  _pendingATKBuff = 0; // buff "prochaine unité jouée" accumulé par les sorts
+        private int  _lastGoldEarned;
+        private int  _pendingATKBuff = 0; // buff "prochaine unité jouée"
+
+        private GridCellUI[] _allCells;
 
         // ─────────────────────────────────────────────────────────────────────
         // LIFECYCLE
@@ -75,7 +75,6 @@ namespace RoguelikeTCG.Combat
         {
             _allCells = FindObjectsByType<GridCellUI>(FindObjectsInactive.Include);
 
-            // Trouve CadreDeckAllié automatiquement si deckZoneRT n'est pas câblé
             if (deckZoneRT == null)
             {
                 var go = GameObject.Find("CadreDeckAllié");
@@ -91,9 +90,9 @@ namespace RoguelikeTCG.Combat
             var nodeType = RunPersistence.Instance?.CurrentNode?.type;
             enemyMaxHP = nodeType switch
             {
-                NodeType.Elite => 45,
-                NodeType.Boss  => 70,
-                _              => 30,
+                NodeType.Elite => 35,
+                NodeType.Boss  => 50,
+                _              => 20,
             };
             enemyCurrentHP = enemyMaxHP;
         }
@@ -101,9 +100,9 @@ namespace RoguelikeTCG.Combat
         private void InitializeCombat()
         {
             SessionLogger.Instance?.StartSession();
-            _gameOver = false;
+            _gameOver                 = false;
             _playerPlayedUnitThisTurn = false;
-            _isFirstPlayerTurn = true;
+            _isFirstPlayerTurn        = true;
 
             var persistence = RunPersistence.Instance;
             if (persistence?.SelectedCharacter != null)
@@ -115,16 +114,16 @@ namespace RoguelikeTCG.Combat
             else if (playerCharacter?.cardPool?.Count > 0)
                 rewardCardPool = new List<CardData>(playerCharacter.cardPool);
 
-            // HP joueur
+            // HP joueur (30 HP global persistant)
+            playerMaxHP = 30;
             if (persistence != null && persistence.PlayerHP > 0)
             {
-                playerMaxHP = persistence.PlayerMaxHP;
+                playerMaxHP = persistence.PlayerMaxHP > 0 ? persistence.PlayerMaxHP : 30;
                 playerHP    = persistence.PlayerHP;
             }
             else
             {
-                playerMaxHP = persistence?.PlayerMaxHP ?? 80;
-                playerHP    = playerMaxHP;
+                playerHP = playerMaxHP;
             }
 
             // Decks
@@ -150,38 +149,13 @@ namespace RoguelikeTCG.Combat
             // Mana
             manaManager.Initialize();
 
-            // Motifs de scoring — tirage unique pour tout le combat
-            gridManager.patternManager?.DrawPatterns();
-
             // IA
             enemyAI.Initialize(enemyDeck, gridManager, manaManager);
 
             AudioManager.Instance.PlayMusic("music_combat");
             Log("Combat commencé !");
 
-            // Coin flip
-            bool playerFirst = Random.value >= 0.5f;
-            Log(playerFirst ? "Pile — vous commencez !" : "Face — l'ennemi commence !");
-
-            StartNewRound(playerFirst);
-        }
-
-        // ─────────────────────────────────────────────────────────────────────
-        // ROUND FLOW
-        // ─────────────────────────────────────────────────────────────────────
-
-        private void StartNewRound(bool playerFirst)
-        {
-            Log($"=== Manche {turnManager.CurrentRound} ===");
-            gridManager.ResetRoundTracking();
-            manaManager.ResetForNewRound();
-            turnManager.ResetRound();
-            _playerPlayedUnitThisTurn = false;
-
-            if (playerFirst)
-                StartPlayerTurn();
-            else
-                StartCoroutine(EnemyTurnSequence());
+            StartPlayerTurn();
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -191,6 +165,7 @@ namespace RoguelikeTCG.Combat
         private void StartPlayerTurn()
         {
             if (_gameOver) return;
+
             manaManager.OnPlayerTurnStart();
 
             int bonusMana = RelicManager.Instance?.GetBonusStartMana() ?? 0;
@@ -199,10 +174,16 @@ namespace RoguelikeTCG.Combat
             turnManager.StartPlayerTurn();
             _playerPlayedUnitThisTurn = false;
 
-            int extraDraw = RelicManager.Instance?.GetExtraDrawPerTurn() ?? 0;
-            int drawCount = _isFirstPlayerTurn ? playerDeck.initialDraw : playerDeck.drawPerTurn;
+            // Bonds passifs début de tour (GivreVivant)
+            BondSystem.RefreshPassiveBonds(gridManager, Log);
+
+            // Reset flags de dégâts de tour
+            gridManager.ResetTurnFlags();
+
+            int extraDraw  = RelicManager.Instance?.GetExtraDrawPerTurn() ?? 0;
+            int drawCount  = _isFirstPlayerTurn ? playerDeck.initialDraw : playerDeck.drawPerTurn;
             _isFirstPlayerTurn = false;
-            int prevCount = playerDeck.Hand.Count;
+            int prevCount  = playerDeck.Hand.Count;
             playerDeck.DrawCards(drawCount + extraDraw);
             int drawn = playerDeck.Hand.Count - prevCount;
 
@@ -215,9 +196,7 @@ namespace RoguelikeTCG.Combat
                     playerDeck.Hand.Count,
                     drawFrom, handView));
 
-            Log($"--- Votre tour ({TurnManager.TURNS_PER_ROUND - turnManager.PlayerTurnsLeft + 1}/{TurnManager.TURNS_PER_ROUND}) ---");
-            // Si l'animation de pioche est en cours, on ne refresh pas la main
-            // (RefreshHand détruirait les cartes invisibles créées par InsertCardsInvisible)
+            Log("--- Votre tour ---");
             if (playingDrawAnim)
                 RefreshAllUIExceptHand();
             else
@@ -234,25 +213,192 @@ namespace RoguelikeTCG.Combat
             AudioManager.Instance.PlaySFX("sfx_end_turn");
             Log("--- Fin de votre tour ---");
             turnManager.EndPlayerTurn();
-            StartCoroutine(PlayerTurnResolution());
+            StartCoroutine(ResolveAttacks());
         }
 
-        private IEnumerator PlayerTurnResolution()
+        // ─────────────────────────────────────────────────────────────────────
+        // RÉSOLUTION DES ATTAQUES (cœur du nouveau système)
+        // ─────────────────────────────────────────────────────────────────────
+
+        private IEnumerator ResolveAttacks()
         {
-            // Tick countdowns + attaques
-            yield return StartCoroutine(ProcessAttacks());
+            // 1. Bonds passifs avant attaque
+            BondSystem.RefreshPassiveBonds(gridManager, Log);
+
+            // 2. Collecter les attaques ennemies AVANT que les unités ennemies meurent
+            //    (on stocke les attaquants qui sont vivants au moment de la résolution)
+            var pendingEnemyAttacks = new List<(CardInstance attacker, int col)>();
+            for (int c = 0; c < GridManager.COLS; c++)
+            {
+                var enemy = gridManager.GetUnit(0, c);
+                if (enemy != null && enemy.IsAlive && !enemy.isFrozen)
+                    pendingEnemyAttacks.Add((enemy, c));
+            }
+
+            // 3. Attaques joueur col par col
+            for (int c = 0; c < GridManager.COLS; c++)
+            {
+                var player = gridManager.GetUnit(1, c);
+                if (player == null || !player.IsAlive) continue;
+
+                yield return StartCoroutine(ExecutePlayerAttack(player, c));
+                if (_gameOver) yield break;
+            }
+
+            // 4. Attaques ennemies — seulement celles qui étaient vivantes AVANT
+            foreach (var (attacker, col) in pendingEnemyAttacks)
+            {
+                // L'ennemi a pu être tué par une attaque joueur — on ne réplique pas
+                if (!attacker.IsAlive || !attacker.IsOnGrid) continue;
+
+                yield return StartCoroutine(ExecuteEnemyAttack(attacker, col));
+                if (_gameOver) yield break;
+            }
+
+            // 5. Lane leaks restantes (unités sans opposant)
+            yield return StartCoroutine(ProcessLaneLeaks());
             if (_gameOver) yield break;
+
+            // 6. Cleanup des morts résiduels
+            CleanupDeadUnits();
 
             RefreshAllUI();
 
-            if (turnManager.PlayerTurnsLeft <= 0 && turnManager.EnemyTurnsLeft <= 0)
+            // 7. Tour ennemi
+            yield return StartCoroutine(EnemyTurnSequence());
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // ATTAQUE D'UNE UNITÉ JOUEUR
+        // ─────────────────────────────────────────────────────────────────────
+
+        private IEnumerator ExecutePlayerAttack(CardInstance attacker, int col)
+        {
+            var target = gridManager.GetUnit(0, col);
+
+            // Calcul des bonds avec les voisins
+            var neighbors  = gridManager.GetAdjacentSameRow(1, col);
+            CardInstance leftNeighbor  = col > 0 ? gridManager.GetUnit(1, col - 1) : null;
+            CardInstance rightNeighbor = col < GridManager.COLS - 1 ? gridManager.GetUnit(1, col + 1) : null;
+
+            BondType leftBond  = leftNeighbor  != null ? BondSystem.GetBond(attacker.data.element, leftNeighbor.data.element)  : BondType.None;
+            BondType rightBond = rightNeighbor != null ? BondSystem.GetBond(attacker.data.element, rightNeighbor.data.element) : BondType.None;
+
+            // On prend le bond le plus fort (le premier trouvé gauche > droite)
+            BondType activeBond = leftBond  != BondType.None ? leftBond :
+                                  rightBond != BondType.None ? rightBond : BondType.None;
+            CardInstance bondNeighbor = activeBond == leftBond ? leftNeighbor : rightNeighbor;
+
+            if (target != null)
             {
-                yield return StartCoroutine(ResolveRound());
-                yield break;
+                int dmg = attacker.currentATK;
+
+                // Bonds d'attaque avant impact (FoudreNoire s'applique sur la cible avant les dégâts)
+                if (activeBond != BondType.None && BondSystem.GetTiming(activeBond) == BondTiming.OnAttack)
+                    BondSystem.ApplyAttackBond(activeBond, attacker, bondNeighbor, target, gridManager, ref dmg, Log);
+
+                var attackerCell = GetCellUI(1, col);
+                var defenderCell = GetCellUI(0, col);
+                if (combatAnimator != null && attackerCell != null)
+                    yield return StartCoroutine(combatAnimator.PlayAttackAnimGrid(attackerCell, defenderCell, dmg));
+
+                bool killed = DamageUnit(target, 0, col, killedByPlayer: true, dmg, attacker);
+
+                // Bond Cendres : si kill → Shadow adjacente +1 ATK
+                if (killed && activeBond == BondType.Cendres)
+                {
+                    var shadowNeighbor = FindShadowNeighbor(attacker, 1, col);
+                    if (shadowNeighbor != null)
+                    {
+                        shadowNeighbor.AddATKBonus(1);
+                        Log($"  [Bond Cendres] {shadowNeighbor.data.cardName} gagne +1 ATK permanent");
+                    }
+                }
+
+                // Bond EclairArdent : ricochet sur c±1
+                if (activeBond == BondType.EclairArdent && !killed)
+                {
+                    yield return StartCoroutine(ApplyEclairArdentRicochet(attacker, 0, col));
+                }
+
+                // Bond Abîme : drain après les dégâts
+                if (activeBond == BondType.Abime && target != null)
+                    BondSystem.ApplyAttackBond(BondType.Abime, attacker, bondNeighbor, target, gridManager, ref dmg, Log);
+            }
+            else
+            {
+                // Pas de cible en face → lane leak : 1 dégât direct aux HP ennemis
+                Log($"  Lane leak colonne {col} — joueur inflige 1 dégât direct");
+                DamageEnemy(1);
+
+                if (_gameOver) yield break;
             }
 
-            // Tour ennemi
-            yield return StartCoroutine(EnemyTurnSequence());
+            RefreshAllUI();
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // ATTAQUE D'UNE UNITÉ ENNEMIE
+        // ─────────────────────────────────────────────────────────────────────
+
+        private IEnumerator ExecuteEnemyAttack(CardInstance attacker, int col)
+        {
+            var target = gridManager.GetUnit(1, col);
+
+            if (target != null)
+            {
+                int dmg = attacker.currentATK;
+
+                // Bonds ennemis (mêmes règles, mais côté Row 0)
+                CardInstance leftNeighbor  = col > 0 ? gridManager.GetUnit(0, col - 1) : null;
+                CardInstance rightNeighbor = col < GridManager.COLS - 1 ? gridManager.GetUnit(0, col + 1) : null;
+
+                BondType leftBond  = leftNeighbor  != null ? BondSystem.GetBond(attacker.data.element, leftNeighbor.data.element)  : BondType.None;
+                BondType rightBond = rightNeighbor != null ? BondSystem.GetBond(attacker.data.element, rightNeighbor.data.element) : BondType.None;
+
+                BondType activeBond = leftBond  != BondType.None ? leftBond :
+                                      rightBond != BondType.None ? rightBond : BondType.None;
+                CardInstance bondNeighbor = activeBond == leftBond ? leftNeighbor : rightNeighbor;
+
+                if (activeBond != BondType.None && BondSystem.GetTiming(activeBond) == BondTiming.OnAttack)
+                    BondSystem.ApplyAttackBond(activeBond, attacker, bondNeighbor, target, gridManager, ref dmg, Log);
+
+                var attackerCell = GetCellUI(0, col);
+                var defenderCell = GetCellUI(1, col);
+                if (combatAnimator != null && attackerCell != null)
+                    yield return StartCoroutine(combatAnimator.PlayAttackAnimGrid(attackerCell, defenderCell, dmg));
+
+                bool killed = DamageUnit(target, 1, col, killedByPlayer: false, dmg, attacker);
+
+                if (killed && activeBond == BondType.Cendres)
+                {
+                    var shadowNeighbor = FindShadowNeighbor(attacker, 0, col);
+                    if (shadowNeighbor != null)
+                    {
+                        shadowNeighbor.AddATKBonus(1);
+                        Log($"  [Bond Cendres] {shadowNeighbor.data.cardName} gagne +1 ATK permanent");
+                    }
+                }
+            }
+            else
+            {
+                // Lane leak ennemi : 1 dégât direct au joueur
+                Log($"  Lane leak colonne {col} (ennemi) — 1 dégât direct au joueur");
+                DamagePlayer(1);
+                if (_gameOver) yield break;
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // LANE LEAKS RÉSIDUELS
+        // ─────────────────────────────────────────────────────────────────────
+
+        private IEnumerator ProcessLaneLeaks()
+        {
+            // Unités joueur face à case ennemie vide (déjà gérées dans ExecutePlayerAttack)
+            // Ici on vérifie les cas résiduels après les morts
+            // Note : les lane leaks sont déjà traités col par col dans ExecutePlayerAttack/EnemyAttack
+            yield return null;
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -263,97 +409,45 @@ namespace RoguelikeTCG.Combat
         {
             if (_gameOver) yield break;
 
-            manaManager.EnemyTurnRegen();
-            turnManager.StartEnemyTurn();
             Log("--- Tour ennemi ---");
-
             enemyAI.PlayTurn();
             RefreshAllUI();
             yield return new WaitForSeconds(0.5f);
 
-            // Tick countdowns + attaques
-            yield return StartCoroutine(ProcessAttacks());
             if (_gameOver) yield break;
-
-            turnManager.EndEnemyTurn();
-            RefreshAllUI();
-
-            if (turnManager.PlayerTurnsLeft <= 0 && turnManager.EnemyTurnsLeft <= 0)
-            {
-                yield return StartCoroutine(ResolveRound());
-                yield break;
-            }
 
             // Retour au tour joueur
             StartPlayerTurn();
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // ATTAQUES (Tick Countdown)
+        // BOND ÉCLAIR ARDENT — ricochet
         // ─────────────────────────────────────────────────────────────────────
 
-        private IEnumerator ProcessAttacks()
+        private IEnumerator ApplyEclairArdentRicochet(CardInstance attacker, int enemyRow, int hitCol)
         {
-            // Les attaques se produisent à la pose — rien à faire en fin de tour
-            yield break;
-        }
-
-        private IEnumerator ExecuteAttack(CardInstance attacker)
-        {
-            if (!attacker.IsOnGrid) yield break;
-            int row = attacker.gridRow;
-            int col = attacker.gridCol;
-            var dirs = attacker.data.attackDirections;
-            var targets = gridManager.GetAttackTargets(row, col, dirs);
-            int dmg = 1 + attacker.currentATKBoost;
-            bool hasImpact = attacker.data.keyword == UnitKeyword.Impact;
-            bool impactUsed = false;
-
-            string side = attacker.isPlayerCard ? "Joueur" : "Ennemi";
-            Log($"  {side} {attacker.data.cardName} ({row},{col}) → {targets.Count} case(s)");
-
-            foreach (var (tr, tc) in new List<(int, int)>(targets))
+            // Frappe les colonnes hitCol-1 et hitCol+1 (1 dégât chacun)
+            int[] ricoCols = new[] { hitCol - 1, hitCol + 1 };
+            foreach (int rc in ricoCols)
             {
-                var defender = gridManager.GetUnit(tr, tc);
-                if (defender == null) { Log($"    ({tr},{tc}) vide"); continue; }
-                if (defender.isPlayerCard == attacker.isPlayerCard) { Log($"    ({tr},{tc}) allié — ignoré"); continue; }
+                if (!GridManager.InBounds(enemyRow, rc)) continue;
+                var ricoTarget = gridManager.GetUnit(enemyRow, rc);
+                if (ricoTarget == null) continue;
 
-                int actualDmg = (hasImpact && !impactUsed) ? dmg + 1 : dmg;
-                if (hasImpact && !impactUsed) { impactUsed = true; Log($"  [Impact] +1 dégât bonus !"); }
-
-                var attackerCell = GetCellUI(row, col);
-                var defenderCell = GetCellUI(tr, tc);
+                Log($"  [Bond Éclair Ardent] Ricochet sur ({enemyRow},{rc}) — 1 dégât");
+                var attackerCell = GetCellUI(attacker.isPlayerCard ? 1 : 0, attacker.col);
+                var defenderCell = GetCellUI(enemyRow, rc);
                 if (combatAnimator != null && attackerCell != null)
-                    yield return StartCoroutine(
-                        combatAnimator.PlayAttackAnimGrid(attackerCell, defenderCell, actualDmg));
+                    yield return StartCoroutine(combatAnimator.PlayAttackAnimGrid(attackerCell, defenderCell, 1));
 
-                bool killed = DamageUnit(defender, tr, tc, attacker.isPlayerCard, actualDmg, attacker);
-
-                if (killed && attacker.data.keyword == UnitKeyword.Percée && attacker.IsAlive)
-                {
-                    foreach (AttackDirection dir in new[] {
-                        AttackDirection.Up, AttackDirection.Down,
-                        AttackDirection.Left, AttackDirection.Right })
-                    {
-                        if ((dirs & dir) == 0) continue;
-                        var (nr, nc) = ScoringSystem.GetCellInDirection(tr, tc, dir);
-                        if (nr < 0) continue;
-                        var behind = gridManager.GetUnit(nr, nc);
-                        if (behind == null || behind.isPlayerCard == attacker.isPlayerCard) continue;
-                        Log($"  [Percée] {attacker.data.cardName} enchaîne sur {behind.data.cardName}");
-                        DamageUnit(behind, nr, nc, attacker.isPlayerCard, dmg, attacker);
-                    }
-                    yield return null;
-                }
+                DamageUnit(ricoTarget, enemyRow, rc, attacker.isPlayerCard, 1, attacker);
             }
-
-            RefreshAllUI();
-            if (_gameOver) yield break;
-            if (playerHP <= 0)        { OnDefeat();  yield break; }
-            if (enemyCurrentHP <= 0)  { OnVictory(); yield break; }
         }
 
-        /// <summary>Inflige des dégâts à une unité. Déclenche la mort si HP <= 0. Retourne true si tuée.</summary>
+        // ─────────────────────────────────────────────────────────────────────
+        // DÉGÂTS UNITÉS
+        // ─────────────────────────────────────────────────────────────────────
+
         private bool DamageUnit(CardInstance defender, int dr, int dc, bool killedByPlayer, int amount, CardInstance attacker = null)
         {
             bool died = defender.TakeDamage(amount);
@@ -362,20 +456,8 @@ namespace RoguelikeTCG.Combat
             if (died)
             {
                 Log($"  {defender.data.cardName} est détruit !");
-                TriggerOnDeathKeyword(defender, dr, dc, attacker);
                 gridManager.RemoveUnit(dr, dc);
                 SendToDiscard(defender);
-
-                if (killedByPlayer)
-                {
-                    gridManager.PlayerRoundScore++;
-                    Log($"  Kill ! Score joueur +1 ({gridManager.PlayerRoundScore} pts)");
-                }
-                else
-                {
-                    gridManager.EnemyRoundScore++;
-                    Log($"  Kill ! Score ennemi +1 ({gridManager.EnemyRoundScore} pts)");
-                }
 
                 var cell = GetCellUI(dr, dc);
                 if (combatAnimator != null && cell != null)
@@ -386,32 +468,20 @@ namespace RoguelikeTCG.Combat
             return died;
         }
 
-        private void TriggerOnDeathKeyword(CardInstance dead, int dr, int dc, CardInstance attacker = null)
-        {
-            switch (dead.data.keyword)
-            {
-                case UnitKeyword.Épine:
-                {
-                    // Inflige 1 dégât à l'unité attaquante
-                    if (attacker != null && attacker.IsAlive && attacker.IsOnGrid)
-                    {
-                        Log($"  [Épine] {dead.data.cardName} inflige 1 dégât à {attacker.data.cardName}");
-                        DamageUnit(attacker, attacker.gridRow, attacker.gridCol, dead.isPlayerCard, 1);
-                    }
-                    break;
-                }
+        // ─────────────────────────────────────────────────────────────────────
+        // CLEANUP
+        // ─────────────────────────────────────────────────────────────────────
 
-                case UnitKeyword.Explosion:
+        private void CleanupDeadUnits()
+        {
+            for (int r = 0; r < GridManager.ROWS; r++)
+            for (int c = 0; c < GridManager.COLS; c++)
+            {
+                var u = gridManager.GetUnit(r, c);
+                if (u != null && !u.IsAlive)
                 {
-                    // Inflige 1 dégât à toutes les unités adjacentes (alliées + ennemies)
-                    foreach (var (nr, nc) in ScoringSystem.GetAllNeighbors(dr, dc))
-                    {
-                        var adj = gridManager.GetUnit(nr, nc);
-                        if (adj == null || !adj.IsAlive) continue;
-                        Log($"  [Explosion] {dead.data.cardName} inflige 1 dégât à {adj.data.cardName}");
-                        DamageUnit(adj, nr, nc, dead.isPlayerCard, 1);
-                    }
-                    break;
+                    gridManager.RemoveUnit(r, c);
+                    SendToDiscard(u);
                 }
             }
         }
@@ -425,10 +495,10 @@ namespace RoguelikeTCG.Combat
             if (!CanPlay()) return false;
             if (!card.IsUnit) return false;
             if (_playerPlayedUnitThisTurn) return false;
+            if (row != 1) return false; // joueur pose uniquement en Row 1
             if (!gridManager.IsEmpty(row, col)) return false;
-            if (!manaManager.CanAfford(card.data.manaCost)) return false;
 
-            manaManager.Spend(card.data.manaCost);
+            // Les unités ne coûtent pas de mana
             gridManager.PlaceUnit(card, row, col);
             playerDeck.RemoveFromHand(card);
             _playerPlayedUnitThisTurn = true;
@@ -436,30 +506,24 @@ namespace RoguelikeTCG.Combat
             // Consomme le buff ATK en attente
             if (_pendingATKBuff > 0)
             {
-                card.currentATKBoost += _pendingATKBuff;
+                card.AddATKBonus(_pendingATKBuff);
                 Log($"  Buff ATK +{_pendingATKBuff} appliqué à {card.data.cardName}");
                 _pendingATKBuff = 0;
             }
 
             Log($"> Vous posez {card.data.cardName} en ({row},{col})");
 
-            CheckPositionalPassive(card, GridManager.ToIndex(row, col), isPlayerUnit: true);
-            TriggerOnPlaceKeyword(card, row, col, isPlayer: true);
+            // Bonds à la pose (ForetDense, Decomposition)
+            BondSystem.ApplyOnPlaceBonds(card, gridManager, Log);
 
-            // Score immédiat si motif complété (scoring à la pose)
-            int pts = gridManager.CheckAndScorePlayer(row, col);
-            if (pts > 0) Log($"  Motif complété ! +{pts} pts (total manche : {gridManager.PlayerRoundScore})");
-
-            // Keyword Combo : +1 pt bonus si la pose complète une ligne/diag/carré
-            if (card.data.keyword == UnitKeyword.Combo && pts > 0)
+            // Keyword Inspiration : pioche 1 carte
+            if (card.data.keyword == UnitKeyword.Inspiration)
             {
-                gridManager.PlayerRoundScore++; // +1 bonus direct
-                Log($"  [Combo] Bonus +1 pt !");
+                playerDeck.DrawCards(1);
+                Log($"  [Inspiration] {card.data.cardName} : pioche 1 carte");
             }
 
             AudioManager.Instance.PlaySFX("sfx_card_place");
-            // Attaque immédiate à la pose
-            StartCoroutine(ExecuteAttack(card));
             if (!skipRefresh) RefreshAllUI();
             return true;
         }
@@ -505,17 +569,14 @@ namespace RoguelikeTCG.Combat
             return true;
         }
 
-        /// <summary>
-        /// Joue une Carte Repioche : mélange la main dans le deck, pioche autant.
-        /// </summary>
         public bool TryPlayRepioche(CardInstance card)
         {
             if (!CanPlay()) return false;
             if (!manaManager.CanAfford(card.data.manaCost)) return false;
 
             manaManager.Spend(card.data.manaCost);
-            playerDeck.PlayCard(card);          // retire Repioche de la main → défausse
-            playerDeck.ReshuffleHandAndRedraw(); // mélange le reste, repioche autant
+            playerDeck.PlayCard(card);
+            playerDeck.ReshuffleHandAndRedraw();
             Log($"> Carte Repioche jouée — main mélangée et repigée.");
             AudioManager.Instance.PlaySFX("sfx_card_place");
             RefreshAllUI();
@@ -524,8 +585,7 @@ namespace RoguelikeTCG.Combat
 
         /// <summary>
         /// Joue une carte Utilitaire de type Déplacement.
-        /// Déplace l'unité alliée en (fromR,fromC) vers (toR,toC), reset son CD,
-        /// réévalue le passif positionnel, puis défausse la carte.
+        /// Déplace l'unité alliée en (fromR,fromC) vers (toR,toC).
         /// </summary>
         public bool TryPlayUtility(CardInstance card, int fromR, int fromC, int toR, int toC)
         {
@@ -537,22 +597,14 @@ namespace RoguelikeTCG.Combat
             if (unit == null || !unit.isPlayerCard) return false;
             if (!gridManager.IsEmpty(toR, toC)) return false;
 
-            // Désactiver le passif positionnel sur la case source avant le déplacement
-            if (unit.positionalPassiveActive)
-            {
-                unit.positionalPassiveActive = false;
-                ApplyPositionalEffect(unit, isPlayerUnit: true, activate: false);
-                Log($"  [Passif] {unit.data.cardName} : passif désactivé (déplacement)");
-            }
-
             manaManager.Spend(card.data.manaCost);
             bool moved = gridManager.MoveUnit(fromR, fromC, toR, toC);
-            if (!moved) { manaManager.AddBonus(card.data.manaCost); return false; } // remboursement en cas d'échec
+            if (!moved) { manaManager.AddBonus(card.data.manaCost); return false; }
 
             Log($"> Carte Déplacement : {unit.data.cardName} ({fromR},{fromC}) → ({toR},{toC})");
 
-            // Réévaluer le passif positionnel sur la case destination
-            CheckPositionalPassive(unit, GridManager.ToIndex(toR, toC), isPlayerUnit: true);
+            // Bonds passifs réévalués à la nouvelle position
+            BondSystem.ApplyOnPlaceBonds(unit, gridManager, Log);
 
             playerDeck.PlayCard(card);
             AudioManager.Instance.PlaySFX("sfx_card_place");
@@ -566,19 +618,15 @@ namespace RoguelikeTCG.Combat
 
         public void EnemyPlaceUnit(CardInstance card, int row, int col)
         {
+            if (row != 0) return; // ennemi pose uniquement en Row 0
             if (!gridManager.IsEmpty(row, col)) return;
             gridManager.PlaceUnit(card, row, col);
             enemyDeck.RemoveFromHand(card);
-            manaManager.Spend(card.data.manaCost);
+
             Log($"  Ennemi pose {card.data.cardName} en ({row},{col})");
-            // Attaque immédiate à la pose
-            StartCoroutine(ExecuteAttack(card));
 
-            CheckPositionalPassive(card, GridManager.ToIndex(row, col), isPlayerUnit: false);
-            TriggerOnPlaceKeyword(card, row, col, isPlayer: false);
-
-            int ptsEnemy = gridManager.CheckAndScoreEnemy(row, col);
-            if (ptsEnemy > 0) Log($"  Score ennemi +{ptsEnemy} pts (motif)");
+            // Bonds à la pose côté ennemi
+            BondSystem.ApplyOnPlaceBonds(card, gridManager, Log);
 
             RefreshAllUI();
         }
@@ -587,7 +635,6 @@ namespace RoguelikeTCG.Combat
         {
             var target = gridManager.GetUnit(row, col);
             if (target == null) return;
-            manaManager.Spend(card.data.manaCost);
             Log($"  Ennemi lance {card.data.cardName} sur {target.data.cardName}");
             ApplyAllEffectsEnemy(card, row, col);
             enemyDeck.PlayCard(card);
@@ -596,191 +643,10 @@ namespace RoguelikeTCG.Combat
 
         public void EnemyCastSpell(CardInstance card)
         {
-            manaManager.Spend(card.data.manaCost);
             Log($"  Ennemi lance {card.data.cardName}");
             ApplyAllEffectsEnemy(card, -1, -1);
             enemyDeck.PlayCard(card);
             RefreshAllUI();
-        }
-
-        // ─────────────────────────────────────────────────────────────────────
-        // KEYWORDS À LA POSE
-        // ─────────────────────────────────────────────────────────────────────
-
-        private void TriggerOnPlaceKeyword(CardInstance unit, int r, int c, bool isPlayer)
-        {
-            switch (unit.data.keyword)
-            {
-                case UnitKeyword.Inspiration:
-                    if (isPlayer)
-                    {
-                        playerDeck.DrawCards(1);
-                        Log($"  [Inspiration] {unit.data.cardName} : pioche 1 carte");
-                    }
-                    break;
-
-                case UnitKeyword.Essaim:
-                {
-                    int allies = CountAdjacentAllies(r, c, isPlayer);
-                    if (allies > 0)
-                    {
-                        unit.currentATKBoost += allies;
-                        Log($"  [Essaim] {unit.data.cardName} : +{allies} ATK bonus");
-                    }
-                    break;
-                }
-
-                case UnitKeyword.Réveil:
-                {
-                    foreach (var (nr, nc) in ScoringSystem.GetOrthogonalNeighbors(r, c))
-                    {
-                        var adj = gridManager.GetUnit(nr, nc);
-                        if (adj != null && adj.isPlayerCard == isPlayer)
-                        {
-                            Log($"  [Réveil] {adj.data.cardName} attaque à nouveau !");
-                            StartCoroutine(ExecuteAttack(adj));
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-
-        // ─────────────────────────────────────────────────────────────────────
-        // PASSIFS POSITIONNELS
-        // ─────────────────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Détermine si la position cellIndex active le passif positionnel de l'unité.
-        /// Active ou désactive l'effet selon la correspondance condition/position.
-        /// Appeler à la pose ET lors d'un déplacement (Carte Déplacement).
-        /// </summary>
-        public void CheckPositionalPassive(CardInstance unit, int cellIndex, bool isPlayerUnit)
-        {
-            if (unit.data.positionalCondition == PositionalCondition.None) return;
-
-            bool matches = GetPositionalCondition(cellIndex) == unit.data.positionalCondition;
-
-            if (matches && !unit.positionalPassiveActive)
-            {
-                unit.positionalPassiveActive = true;
-                ApplyPositionalEffect(unit, isPlayerUnit, activate: true);
-                Log($"  [Passif] {unit.data.cardName} : {unit.data.positionalEffect} activé");
-            }
-            else if (!matches && unit.positionalPassiveActive)
-            {
-                unit.positionalPassiveActive = false;
-                ApplyPositionalEffect(unit, isPlayerUnit, activate: false);
-                Log($"  [Passif] {unit.data.cardName} : {unit.data.positionalEffect} désactivé");
-            }
-        }
-
-        private static PositionalCondition GetPositionalCondition(int cellIndex)
-        {
-            // Coins : 0, 2, 6, 8 — Bords : 1, 3, 5, 7 — Centre : 4
-            return cellIndex switch
-            {
-                0 or 2 or 6 or 8 => PositionalCondition.Corner,
-                1 or 3 or 5 or 7 => PositionalCondition.Edge,
-                4                => PositionalCondition.Center,
-                _                => PositionalCondition.None,
-            };
-        }
-
-        private void ApplyPositionalEffect(CardInstance unit, bool isPlayerUnit, bool activate)
-        {
-            switch (unit.data.positionalEffect)
-            {
-                case PositionalEffect.PlusOneATK:
-                    unit.currentATKBoost = activate ? 1 : 0;
-                    break;
-
-                case PositionalEffect.PlusOneHP:
-                    if (activate)
-                    {
-                        unit.currentHP = System.Math.Min(unit.data.hp + 1, unit.currentHP + 1);
-                        Log($"  [Passif] {unit.data.cardName} : +1 HP");
-                    }
-                    break;
-
-                case PositionalEffect.DrawCard:
-                    if (activate && isPlayerUnit)
-                    {
-                        playerDeck.DrawCards(1);
-                        Log($"  [Passif] Pioche 1 carte");
-                    }
-                    break;
-
-                case PositionalEffect.PlusOnePoint:
-                    if (activate)
-                    {
-                        if (isPlayerUnit) gridManager.PlayerRoundScore++;
-                        else              gridManager.EnemyRoundScore++;
-                        Log($"  [Passif] +1 pt {(isPlayerUnit ? "joueur" : "ennemi")}");
-                    }
-                    break;
-            }
-        }
-
-        private int CountAdjacentAllies(int r, int c, bool isPlayer)
-        {
-            int count = 0;
-            foreach (var (nr, nc) in ScoringSystem.GetOrthogonalNeighbors(r, c))
-            {
-                var u = gridManager.GetUnit(nr, nc);
-                if (u != null && u.isPlayerCard == isPlayer) count++;
-            }
-            return count;
-        }
-
-        // ─────────────────────────────────────────────────────────────────────
-        // RÉSOLUTION DE FIN DE MANCHE
-        // ─────────────────────────────────────────────────────────────────────
-
-        private IEnumerator ResolveRound()
-        {
-            Log("=== Fin de manche ===");
-
-            // Dominance : +1 pt par unité survivante ayant le keyword
-            int playerDom = gridManager.ScoreDominance(isPlayer: true);
-            int enemyDom  = gridManager.ScoreDominance(isPlayer: false);
-            if (playerDom > 0) Log($"  [Dominance] +{playerDom} pts joueur");
-            if (enemyDom  > 0) Log($"  [Dominance] +{enemyDom} pts ennemi");
-
-            int playerScore = gridManager.PlayerRoundScore;
-            int enemyScore  = gridManager.EnemyRoundScore;
-
-            Log($"  Score : Joueur {playerScore} — Ennemi {enemyScore}");
-
-            if (playerScore > enemyScore)
-            {
-                DamageEnemy(playerScore);
-                Log($"  Vous remportez la manche ! Infligez {playerScore} dmg au héros ennemi ({enemyCurrentHP}/{enemyMaxHP})");
-            }
-            else if (enemyScore > playerScore)
-            {
-                DamagePlayer(enemyScore);
-                Log($"  L'ennemi remporte la manche ! Inflige {enemyScore} dmg à votre héros ({playerHP}/{playerMaxHP})");
-            }
-            else
-            {
-                Log("  Égalité — aucun dégât.");
-            }
-
-            if (playerHP <= 0) { OnDefeat(); yield break; }
-            if (enemyCurrentHP <= 0) { OnVictory(); yield break; }
-
-            // Vider la grille → défausse
-            var survivors = gridManager.ClearGrid();
-            foreach (var unit in survivors)
-                SendToDiscard(unit);
-
-            Log($"  {survivors.Count} unité(s) survivante(s) → défausse.");
-
-            yield return new WaitForSeconds(0.5f);
-
-            RefreshAllUI();
-            StartNewRound(playerFirst: true); // le joueur commence toujours la manche suivante
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -792,12 +658,15 @@ namespace RoguelikeTCG.Combat
             if (amount <= 0) return;
             playerHP = Mathf.Max(0, playerHP - amount);
             Log($"  Votre héros : {playerHP}/{playerMaxHP} HP");
+            if (playerHP <= 0) OnDefeat();
         }
 
         public void DamageEnemy(int amount)
         {
             if (amount <= 0) return;
             enemyCurrentHP = Mathf.Max(0, enemyCurrentHP - amount);
+            Log($"  Héros ennemi : {enemyCurrentHP}/{enemyMaxHP} HP");
+            if (enemyCurrentHP <= 0) OnVictory();
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -854,7 +723,7 @@ namespace RoguelikeTCG.Combat
                         ? gridManager.GetAllUnits(false)
                         : gridManager.GetAllUnits(true);
                     foreach (var t in new List<CardInstance>(targets))
-                        ApplyEffectToUnit(eff, t, t.gridRow, t.gridCol, playerCasting);
+                        ApplyEffectToUnit(eff, t, t.row, t.col, playerCasting);
                     break;
                 }
 
@@ -864,7 +733,7 @@ namespace RoguelikeTCG.Combat
                         ? gridManager.GetAllUnits(true)
                         : gridManager.GetAllUnits(false);
                     foreach (var t in new List<CardInstance>(targets))
-                        ApplyEffectToUnit(eff, t, t.gridRow, t.gridCol, playerCasting);
+                        ApplyEffectToUnit(eff, t, t.row, t.col, playerCasting);
                     break;
                 }
             }
@@ -883,8 +752,11 @@ namespace RoguelikeTCG.Combat
                     break;
                 case EffectType.DrawCard:
                     if (playerCasting) { playerDeck.DrawCards(eff.value); Log($"  Pioche {eff.value} carte(s)"); }
-                    else               { /* ennemi pioche — géré ailleurs */ }
                     break;
+                case EffectType.BuffATK:
+                    if (playerCasting) { _pendingATKBuff += eff.value; Log($"  Buff ATK +{eff.value} en attente"); }
+                    break;
+                // Compatibilité anciens EffectType
                 case EffectType.BuffNextUnitATK:
                     if (playerCasting) { _pendingATKBuff += eff.value; Log($"  Buff ATK +{eff.value} en attente"); }
                     break;
@@ -906,8 +778,6 @@ namespace RoguelikeTCG.Combat
         {
             if (target == null || !target.IsAlive) return;
 
-            var cellRT = GetCellUI(tr, tc)?.GetComponent<RectTransform>();
-
             switch (eff.effectType)
             {
                 case EffectType.DestroyUnit:
@@ -916,6 +786,20 @@ namespace RoguelikeTCG.Combat
                     break;
                 case EffectType.Damage:
                     DamageUnit(target, tr, tc, playerCasting, eff.value);
+                    break;
+                case EffectType.BuffATK:
+                    target.AddATKBonus(eff.value);
+                    Log($"  {target.data.cardName} +{eff.value} ATK → {target.currentATK}");
+                    break;
+                case EffectType.BuffHP:
+                {
+                    target.currentHP = System.Math.Min(target.data.hp + eff.value, target.currentHP + eff.value);
+                    Log($"  {target.data.cardName} +{eff.value} HP → {target.currentHP}");
+                    break;
+                }
+                case EffectType.Freeze:
+                    target.isFrozen = true;
+                    Log($"  {target.data.cardName} gelé — passera son prochain tour d'attaque");
                     break;
                 case EffectType.BuffNextUnitATK:
                     _pendingATKBuff += eff.value;
@@ -927,21 +811,38 @@ namespace RoguelikeTCG.Combat
                     foreach (var ally in gridManager.GetAllUnits(isPlayerCaster))
                     {
                         ally.currentHP = System.Math.Min(ally.data.hp + 1, ally.currentHP + eff.value);
-                        Log($"  {ally.data.cardName} +{eff.value} HP → {ally.currentHP}/{ally.data.hp + 1}");
+                        Log($"  {ally.data.cardName} +{eff.value} HP → {ally.currentHP}");
                     }
                     break;
                 }
                 case EffectType.TriggerAllAllyAttack:
                 {
-                    bool isPlayerCaster = playerCasting;
-                    foreach (var ally in new System.Collections.Generic.List<CardInstance>(gridManager.GetAllUnits(isPlayerCaster)))
-                    {
-                        Log($"  [TriggerAllAllyAttack] {ally.data.cardName} attaque à nouveau !");
-                        StartCoroutine(ExecuteAttack(ally));
-                    }
+                    // Dans le nouveau système, les attaques se font en fin de tour — on peut ajouter un trigger immédiat ici
+                    Log($"  [TriggerAllAllyAttack] sort appliqué");
                     break;
                 }
             }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // HELPERS BOND
+        // ─────────────────────────────────────────────────────────────────────
+
+        private CardInstance FindShadowNeighbor(CardInstance unit, int row, int col)
+        {
+            if (col > 0)
+            {
+                var left = gridManager.GetUnit(row, col - 1);
+                if (left != null && left.data.element == Element.Shadow && left.isPlayerCard == unit.isPlayerCard)
+                    return left;
+            }
+            if (col < GridManager.COLS - 1)
+            {
+                var right = gridManager.GetUnit(row, col + 1);
+                if (right != null && right.data.element == Element.Shadow && right.isPlayerCard == unit.isPlayerCard)
+                    return right;
+            }
+            return null;
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -950,6 +851,7 @@ namespace RoguelikeTCG.Combat
 
         private void OnVictory()
         {
+            if (_gameOver) return;
             _gameOver = true;
             AudioManager.Instance.StopMusic();
             AudioManager.Instance.PlaySFX("sfx_victory");
@@ -975,6 +877,7 @@ namespace RoguelikeTCG.Combat
 
         private void OnDefeat()
         {
+            if (_gameOver) return;
             _gameOver = true;
             AudioManager.Instance.StopMusic();
             AudioManager.Instance.PlaySFX("sfx_defeat");
@@ -1010,14 +913,9 @@ namespace RoguelikeTCG.Combat
                     manaManager.CurrentMana, manaManager.MaxMana);
                 combatUI.RefreshGold(RunPersistence.Instance?.PlayerGold ?? 0);
                 combatUI.RefreshCemetery(0, playerDeck.DiscardCount);
-                combatUI.RefreshScores(gridManager.PlayerRoundScore, gridManager.EnemyRoundScore);
-                combatUI.RefreshRoundInfo(turnManager.CurrentRound, turnManager.PlayerTurnsLeft);
+                combatUI.RefreshScores(0, 0);
+                combatUI.RefreshRoundInfo(1, 0);
             }
-
-            if (patternDisplayUI != null && gridManager?.patternManager != null)
-                patternDisplayUI.Refresh(
-                    gridManager.patternManager.ActivePatterns,
-                    gridManager.patternManager.ClosedBySnapshot);
 
             if (_allCells != null)
                 foreach (var cell in _allCells)
@@ -1037,14 +935,9 @@ namespace RoguelikeTCG.Combat
                     manaManager.CurrentMana, manaManager.MaxMana);
                 combatUI.RefreshGold(RunPersistence.Instance?.PlayerGold ?? 0);
                 combatUI.RefreshCemetery(0, playerDeck.DiscardCount);
-                combatUI.RefreshScores(gridManager.PlayerRoundScore, gridManager.EnemyRoundScore);
-                combatUI.RefreshRoundInfo(turnManager.CurrentRound, turnManager.PlayerTurnsLeft);
+                combatUI.RefreshScores(0, 0);
+                combatUI.RefreshRoundInfo(1, 0);
             }
-
-            if (patternDisplayUI != null && gridManager?.patternManager != null)
-                patternDisplayUI.Refresh(
-                    gridManager.patternManager.ActivePatterns,
-                    gridManager.patternManager.ClosedBySnapshot);
 
             if (handView != null)
                 handView.RefreshHand(playerDeck.Hand);
@@ -1166,7 +1059,7 @@ namespace RoguelikeTCG.Combat
 
             for (int i = 0; i < options.Count; i++)
             {
-                var card = options[i];
+                var card  = options[i];
                 float xMin = startX + i * (cardW + gap), xMax = xMin + cardW;
 
                 var cardGO = new GameObject($"RewardCard_{i}", typeof(RectTransform));

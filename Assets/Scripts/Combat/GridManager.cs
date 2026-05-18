@@ -6,242 +6,182 @@ using RoguelikeTCG.Data;
 namespace RoguelikeTCG.Combat
 {
     /// <summary>
-    /// Gère la grille 3x3 partagée entre joueur et ennemi.
-    /// Les cases sont indexées 0-8 en row-major (0=TL, 4=centre, 8=BR).
-    /// N'est PAS un singleton — composant attaché à un GO en scène, référencé par CombatManager.
+    /// Grille 2x5 : Row 0 = ligne ennemie, Row 1 = ligne joueur.
+    /// Chaque case [1,c] fait face à [0,c] — duel de colonne.
+    /// 1 unité max par case.
     /// </summary>
     public class GridManager : MonoBehaviour
     {
-        public const int GRID_SIZE  = 3;
-        public const int CELL_COUNT = GRID_SIZE * GRID_SIZE; // 9
+        public const int ROWS = 2;  // 0 = ennemi, 1 = joueur
+        public const int COLS = 5;
 
-        [Header("Système de motifs")]
-        public PatternManager patternManager;
+        // Stockage interne : [row, col]
+        private CardInstance[,] _grid = new CardInstance[ROWS, COLS];
 
-        // Grille interne — tableau 1D, index = row*GRID_SIZE + col
-        private CardInstance[] _grid = new CardInstance[CELL_COUNT];
+        // ── Bounds ─────────────────────────────────────────────────────────────
 
-        // Scores de la manche courante
-        public int PlayerRoundScore { get; set; }
-        public int EnemyRoundScore  { get; set; }
+        public static bool InBounds(int row, int col) =>
+            row >= 0 && row < ROWS && col >= 0 && col < COLS;
 
-        // ── Conversion index ↔ row/col ────────────────────────────────────────
+        // ── Accès ──────────────────────────────────────────────────────────────
 
-        public static int ToIndex(int r, int c) => r * GRID_SIZE + c;
-        public static (int r, int c) ToRowCol(int index) => (index / GRID_SIZE, index % GRID_SIZE);
-        private static bool InBounds(int index) => index >= 0 && index < CELL_COUNT;
-        public static bool InBounds(int r, int c) => r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE;
-
-        // ── Accès à la grille ─────────────────────────────────────────────────
-
-        public bool IsEmpty(int index)
+        public bool IsEmpty(int row, int col)
         {
-            if (!InBounds(index)) return false;
-            return _grid[index] == null;
+            if (!InBounds(row, col)) return false;
+            return _grid[row, col] == null;
         }
 
-        public bool IsEmpty(int r, int c) => IsEmpty(ToIndex(r, c));
+        public bool IsPlayerRow(int row) => row == 1;
+        public bool IsEnemyRow(int row)  => row == 0;
 
-        public CardInstance GetUnit(int index)
+        public CardInstance GetUnit(int row, int col)
         {
-            if (!InBounds(index)) return null;
-            return _grid[index];
+            if (!InBounds(row, col)) return null;
+            return _grid[row, col];
         }
 
-        public CardInstance GetUnit(int r, int c) => GetUnit(ToIndex(r, c));
+        // ── Placement ──────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Place une unité sur une case. Retourne false si occupée ou hors limites.
-        /// Met à jour gridRow/gridCol sur l'instance.
-        /// </summary>
-        public bool PlaceUnit(CardInstance card, int r, int c)
+        /// <summary>Place une unité sur une case. Retourne false si occupée ou hors limites.</summary>
+        public bool PlaceUnit(CardInstance card, int row, int col)
         {
-            int index = ToIndex(r, c);
-            if (!InBounds(index)) return false;
-            if (_grid[index] != null) return false;
+            if (!InBounds(row, col)) return false;
+            if (_grid[row, col] != null) return false;
 
-            _grid[index]  = card;
-            card.gridRow  = r;
-            card.gridCol  = c;
+            _grid[row, col] = card;
+            card.row        = row;
+            card.col        = col;
             return true;
         }
 
-        public bool PlaceUnit(CardInstance card, int index)
+        /// <summary>Retire une unité de la case et libère row/col.</summary>
+        public void RemoveUnit(int row, int col)
         {
-            var (r, c) = ToRowCol(index);
-            return PlaceUnit(card, r, c);
-        }
-
-        /// <summary>
-        /// Retire une unité de la case et libère gridRow/gridCol.
-        /// N'envoie PAS en défausse — responsabilité de l'appelant.
-        /// </summary>
-        public void RemoveUnit(int r, int c)
-        {
-            int index = ToIndex(r, c);
-            if (!InBounds(index)) return;
-            var unit = _grid[index];
-            if (unit != null)
-            {
-                unit.gridRow = -1;
-                unit.gridCol = -1;
-            }
-            _grid[index] = null;
-        }
-
-        public void RemoveUnit(int index)
-        {
-            var (r, c) = ToRowCol(index);
-            RemoveUnit(r, c);
-        }
-
-        /// <summary>
-        /// Déplace une unité de (fromR,fromC) vers (toR,toC).
-        /// La case destination doit être vide.
-        /// Retourne false si la source est vide ou la destination occupée.
-        /// </summary>
-        public bool MoveUnit(int fromR, int fromC, int toR, int toC)
-        {
-            if (!InBounds(fromR, fromC) || !InBounds(toR, toC)) return false;
-            var unit = GetUnit(fromR, fromC);
-            if (unit == null) return false;
-            if (!IsEmpty(toR, toC)) return false;
-
-            RemoveUnit(fromR, fromC);
-            PlaceUnit(unit, toR, toC);
-            return true;
+            if (!InBounds(row, col)) return;
+            var unit = _grid[row, col];
+            if (unit != null) { unit.row = -1; unit.col = -1; }
+            _grid[row, col] = null;
         }
 
         /// <summary>Retire l'unité par référence directe.</summary>
         public void RemoveUnit(CardInstance unit)
         {
             if (unit == null) return;
-            if (InBounds(unit.gridRow, unit.gridCol))
-                RemoveUnit(unit.gridRow, unit.gridCol);
+            if (InBounds(unit.row, unit.col))
+                RemoveUnit(unit.row, unit.col);
         }
 
-        // ── Enumération ───────────────────────────────────────────────────────
+        /// <summary>Déplace une unité de (fromRow,fromCol) vers (toRow,toCol).</summary>
+        public bool MoveUnit(int fromRow, int fromCol, int toRow, int toCol)
+        {
+            if (!InBounds(fromRow, fromCol) || !InBounds(toRow, toCol)) return false;
+            var unit = GetUnit(fromRow, fromCol);
+            if (unit == null) return false;
+            if (!IsEmpty(toRow, toCol)) return false;
+
+            RemoveUnit(fromRow, fromCol);
+            PlaceUnit(unit, toRow, toCol);
+            return true;
+        }
+
+        // ── Enumération ────────────────────────────────────────────────────────
 
         public List<CardInstance> GetAllUnits(bool isPlayer)
         {
             var result = new List<CardInstance>();
-            for (int i = 0; i < CELL_COUNT; i++)
+            for (int r = 0; r < ROWS; r++)
+            for (int c = 0; c < COLS; c++)
             {
-                var u = _grid[i];
+                var u = _grid[r, c];
                 if (u != null && u.isPlayerCard == isPlayer)
                     result.Add(u);
             }
             return result;
         }
 
+        public List<CardInstance> GetPlayerUnits() => GetAllUnits(true);
+        public List<CardInstance> GetEnemyUnits()  => GetAllUnits(false);
+
         public List<CardInstance> GetAllUnitsOnGrid()
         {
             var result = new List<CardInstance>();
-            for (int i = 0; i < CELL_COUNT; i++)
-                if (_grid[i] != null) result.Add(_grid[i]);
+            for (int r = 0; r < ROWS; r++)
+            for (int c = 0; c < COLS; c++)
+                if (_grid[r, c] != null) result.Add(_grid[r, c]);
             return result;
         }
 
-        // ── Scoring via PatternManager ────────────────────────────────────────
+        // ── Adjacence (même ligne, gauche/droite) ─────────────────────────────
 
-        /// <summary>
-        /// Vérifie si la pose en (r,c) complète un motif ouvert côté joueur.
-        /// Retourne les points encaissés et met à jour PlayerRoundScore.
-        /// </summary>
-        public int CheckAndScorePlayer(int r, int c)
+        /// <summary>Retourne les voisins gauche et droit d'une case (même ligne).</summary>
+        public List<CardInstance> GetAdjacentSameRow(int row, int col)
         {
-            if (patternManager == null) return 0;
-            int pts = patternManager.CheckAndScore(
-                ToIndex(r, c),
-                isPlayer: true,
-                GetOwnerAt);
-            PlayerRoundScore += pts;
-            return pts;
+            var result = new List<CardInstance>();
+            if (InBounds(row, col - 1) && _grid[row, col - 1] != null)
+                result.Add(_grid[row, col - 1]);
+            if (InBounds(row, col + 1) && _grid[row, col + 1] != null)
+                result.Add(_grid[row, col + 1]);
+            return result;
         }
 
-        /// <summary>
-        /// Vérifie si la pose en (r,c) complète un motif ouvert côté ennemi.
-        /// Retourne les points encaissés et met à jour EnemyRoundScore.
-        /// </summary>
-        public int CheckAndScoreEnemy(int r, int c)
-        {
-            if (patternManager == null) return 0;
-            int pts = patternManager.CheckAndScore(
-                ToIndex(r, c),
-                isPlayer: false,
-                GetOwnerAt);
-            EnemyRoundScore += pts;
-            return pts;
-        }
+        // ── Lane leak ──────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Score le keyword Dominance : +1 pt par unité survivante ayant ce keyword.
+        /// Case joueur [1,c] occupée ET case ennemie [0,c] vide
+        /// → l'unité joueur pourrait faire un lane leak vers l'ennemi.
         /// </summary>
-        public int ScoreDominance(bool isPlayer)
-        {
-            int pts = 0;
-            foreach (var u in GetAllUnits(isPlayer))
-                if (u.data.keyword == UnitKeyword.Dominance)
-                    pts++;
-            if (isPlayer) PlayerRoundScore += pts;
-            else          EnemyRoundScore  += pts;
-            return pts;
-        }
-
-        // ── Fin de manche ─────────────────────────────────────────────────────
+        public bool IsPlayerLaneLeak(int col) =>
+            InBounds(1, col) && _grid[1, col] != null &&
+            InBounds(0, col) && _grid[0, col] == null;
 
         /// <summary>
-        /// Vide la grille et retourne toutes les unités (à envoyer en défausse).
+        /// Case ennemie [0,c] occupée ET case joueur [1,c] vide
+        /// → l'unité ennemie pourrait faire un lane leak vers le joueur.
         /// </summary>
+        public bool IsEnemyLaneLeak(int col) =>
+            InBounds(0, col) && _grid[0, col] != null &&
+            InBounds(1, col) && _grid[1, col] == null;
+
+        // ── Vide la grille ─────────────────────────────────────────────────────
+
+        /// <summary>Vide la grille et retourne toutes les unités (à envoyer en défausse).</summary>
         public List<CardInstance> ClearGrid()
         {
-            var survivors = GetAllUnitsOnGrid();
-            for (int i = 0; i < CELL_COUNT; i++)
+            var all = GetAllUnitsOnGrid();
+            for (int r = 0; r < ROWS; r++)
+            for (int c = 0; c < COLS; c++)
             {
-                var u = _grid[i];
-                if (u != null) { u.gridRow = -1; u.gridCol = -1; }
-                _grid[i] = null;
+                var u = _grid[r, c];
+                if (u != null) { u.row = -1; u.col = -1; }
+                _grid[r, c] = null;
             }
-            return survivors;
+            return all;
         }
 
-        /// <summary>Reset les scores de manche et réouvre les motifs.</summary>
-        public void ResetRoundTracking()
+        // ── Reset flags de tour ────────────────────────────────────────────────
+
+        /// <summary>Reset les flags de tour (tookDamageThisTurn, isFrozen) sur toutes les unités.</summary>
+        public void ResetTurnFlags()
         {
-            PlayerRoundScore = 0;
-            EnemyRoundScore  = 0;
-            patternManager?.ResetRound();
+            for (int r = 0; r < ROWS; r++)
+            for (int c = 0; c < COLS; c++)
+            {
+                var u = _grid[r, c];
+                if (u != null)
+                {
+                    u.tookDamageThisTurn = false;
+                    u.isFrozen           = false;
+                }
+            }
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────────
+        // ── Helpers pour CombatAnimator ────────────────────────────────────────
 
-        /// <summary>
-        /// Retourne le propriétaire d'une case : -1=vide, 0=joueur, 1=ennemi.
-        /// Utilisé par PatternManager.CheckAndScore.
-        /// </summary>
-        public int GetOwnerAt(int cellIndex)
-        {
-            if (!InBounds(cellIndex)) return -1;
-            var u = _grid[cellIndex];
-            if (u == null) return -1;
-            return u.isPlayerCard ? 0 : 1;
-        }
+        /// <summary>Retourne la grille brute (lecture seule, pour les animations).</summary>
+        public CardInstance[,] GetGridRef() => _grid;
 
-        /// <summary>Retourne les cibles d'attaque selon les directions de l'unité.</summary>
-        public List<(int r, int c)> GetAttackTargets(int r, int c, AttackDirection dirs)
-        {
-            var targets = new List<(int, int)>();
-            if ((dirs & AttackDirection.Up)    != 0 && r > 0)              targets.Add((r - 1, c));
-            if ((dirs & AttackDirection.Down)  != 0 && r < GRID_SIZE - 1)  targets.Add((r + 1, c));
-            if ((dirs & AttackDirection.Left)  != 0 && c > 0)              targets.Add((r, c - 1));
-            if ((dirs & AttackDirection.Right) != 0 && c < GRID_SIZE - 1)  targets.Add((r, c + 1));
-            return targets;
-        }
-
-        /// <summary>
-        /// Retourne la grille brute (lecture seule, pour les animations).
-        /// Index = row*GRID_SIZE + col.
-        /// </summary>
-        public CardInstance[] GetGridRef() => _grid;
+        // ── Compatibilité API (ScoringSystem) — supprimée ─────────────────────
+        // Les méthodes liées aux motifs (CheckAndScorePlayer, etc.) sont supprimées.
+        // GetAttackTargets est supprimée — remplacée par la logique colonne-vs-colonne dans CombatManager.
     }
 }

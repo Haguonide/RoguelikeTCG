@@ -4,69 +4,45 @@ using UnityEngine;
 namespace RoguelikeTCG.Combat
 {
     /// <summary>
-    /// Mana croissant 1→6, reset complet au début de chaque manche (pas chaque tour).
-    /// +1 par tour joueur, cap à 6.
+    /// Mana croissant : 1 au tour 1, +1 par tour joueur, cap à 6.
+    /// Régénère entièrement au début de chaque tour joueur.
+    /// Les unités ont manaCost=0 et ne consomment pas de mana.
     /// </summary>
     public class ManaManager : MonoBehaviour
     {
         private const int MAX_CAP = 6;
 
-        private int _manaCap;
+        private int _turnManaLevel; // niveau croissant : 1, 2, 3, ... 6
         private int _currentMana;
-        private int _turnCount; // nombre de tours joueur dans la manche courante
 
         public int CurrentMana => _currentMana;
-        public int MaxMana     => _manaCap;
+        public int MaxMana     => _turnManaLevel;
 
         public event Action OnManaChanged;
 
         /// <summary>Initialise le ManaManager (appelé une fois au démarrage du combat).</summary>
         public void Initialize()
         {
-            _manaCap     = 0;
-            _currentMana = 0;
-            _turnCount   = 0;
+            _turnManaLevel = 0;
+            _currentMana   = 0;
             OnManaChanged?.Invoke();
         }
 
         /// <summary>
-        /// Appelé au début de chaque manche.
-        /// Reset mana à 1 et repart du turnCount = 1.
-        /// </summary>
-        public void ResetForNewRound()
-        {
-            _turnCount   = 1;
-            _manaCap     = 1;
-            _currentMana = 1;
-            OnManaChanged?.Invoke();
-        }
-
-        /// <summary>
-        /// Appelé au début de chaque tour joueur dans une manche.
-        /// Mana = min(turnCount, 6), puis turnCount++.
+        /// Appelé au début de chaque tour joueur.
+        /// Incrémente le niveau de mana (1, 2, 3 … 6) et régénère entièrement.
         /// </summary>
         public void OnPlayerTurnStart()
         {
-            _manaCap     = Mathf.Min(_turnCount, MAX_CAP);
-            _currentMana = _manaCap;
-            _turnCount++;
+            _turnManaLevel = Mathf.Min(_turnManaLevel + 1, MAX_CAP);
+            _currentMana   = _turnManaLevel;
             OnManaChanged?.Invoke();
         }
 
-        /// <summary>Compatibilité ancienne API.</summary>
-        public void PlayerTurnRegen() => OnPlayerTurnStart();
-
-        /// <summary>L'ennemi utilise le même pool de mana.</summary>
-        public void EnemyTurnRegen()
-        {
-            _currentMana = _manaCap;
-            OnManaChanged?.Invoke();
-        }
-
-        /// <summary>Bonus de relique — ajoute du mana sans changer le cap.</summary>
+        /// <summary>Bonus de relique — ajoute du mana sans changer le niveau de tour.</summary>
         public void AddBonus(int amount)
         {
-            _currentMana = Mathf.Min(_manaCap + amount, _currentMana + amount);
+            _currentMana = Mathf.Min(_currentMana + amount, _turnManaLevel + amount);
             OnManaChanged?.Invoke();
         }
 
@@ -77,5 +53,16 @@ namespace RoguelikeTCG.Combat
             _currentMana = Mathf.Max(0, _currentMana - cost);
             OnManaChanged?.Invoke();
         }
+
+        /// <summary>L'ennemi n'a pas de mana dans le nouveau système.</summary>
+        public void EnemyTurnRegen() { }
+
+        // ── Compatibilité ancienne API ─────────────────────────────────────────
+
+        /// <summary>Compatibilité — redirige vers OnPlayerTurnStart.</summary>
+        public void PlayerTurnRegen() => OnPlayerTurnStart();
+
+        /// <summary>Compatibilité — no-op (plus de manches).</summary>
+        public void ResetForNewRound() { }
     }
 }

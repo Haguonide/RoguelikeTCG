@@ -7,17 +7,17 @@ namespace RoguelikeTCG.Combat
 {
     /// <summary>
     /// Gestion du deck, de la main, et de la défausse.
-    /// Plus de cimetière : toutes les morts vont en défausse (recyclable).
+    /// Pas de cimetière : toutes les morts vont en défausse (recyclable).
     /// </summary>
     public class DeckManager : MonoBehaviour
     {
         public int maxHandSize = 10;
-        public int drawPerTurn = 1;    // 1 carte par tour joueur dans le nouveau système
-        public int initialDraw = 4;
+        public int drawPerTurn = 2;    // 2 cartes par tour dans le nouveau système
+        public int initialDraw = 4;    // 4 cartes au premier tour
 
         private List<CardInstance> deck    = new();
         private List<CardInstance> hand    = new();
-        private List<CardInstance> discard = new();  // toutes les cartes jouées/mortes
+        private List<CardInstance> discard = new();
 
         public List<CardInstance> Hand         => hand;
         public int                DeckCount    => deck.Count;
@@ -55,7 +55,7 @@ namespace RoguelikeTCG.Combat
         /// <summary>Unité posée sur la grille → retirée de la main seulement.</summary>
         public void RemoveFromHand(CardInstance card) => hand.Remove(card);
 
-        /// <summary>Unité morte OU unité ayant survécu à une manche → défausse.</summary>
+        /// <summary>Unité morte → défausse (recyclable).</summary>
         public void AddToDiscard(CardInstance card)
         {
             hand.Remove(card);
