@@ -32,11 +32,11 @@ namespace RoguelikeTCG.UI
             if (Instance != null) { Destroy(this); return; }
             Instance = this;
 
-            _allyCardView  = allyPanel?.GetComponentInChildren<CardView>(true);
-            _enemyCardView = enemyPanel?.GetComponentInChildren<CardView>(true);
+            _allyCardView  = allyPanel  ? allyPanel.GetComponentInChildren<CardView>(true)  : null;
+            _enemyCardView = enemyPanel ? enemyPanel.GetComponentInChildren<CardView>(true) : null;
 
-            allyPanel?.SetActive(false);
-            enemyPanel?.SetActive(false);
+            if (allyPanel)  allyPanel.SetActive(false);
+            if (enemyPanel) enemyPanel.SetActive(false);
         }
 
         private void OnDestroy()
@@ -50,7 +50,7 @@ namespace RoguelikeTCG.UI
 
             if (card.isPlayerCard)
             {
-                enemyPanel?.SetActive(false);
+                if (enemyPanel) enemyPanel.SetActive(false);
                 if (_allyCardView != null)
                 {
                     _allyCardView.Setup(card);
@@ -58,11 +58,11 @@ namespace RoguelikeTCG.UI
                 }
                 if (cardNameAlly)        cardNameAlly.text        = card.data.cardName;
                 if (cardDescriptionAlly) cardDescriptionAlly.text = card.data.description;
-                allyPanel?.SetActive(true);
+                if (allyPanel) allyPanel.SetActive(true);
             }
             else
             {
-                allyPanel?.SetActive(false);
+                if (allyPanel) allyPanel.SetActive(false);
                 if (_enemyCardView != null)
                 {
                     _enemyCardView.Setup(card);
@@ -70,14 +70,14 @@ namespace RoguelikeTCG.UI
                 }
                 if (cardNameEnemy)        cardNameEnemy.text        = card.data.cardName;
                 if (cardDescriptionEnemy) cardDescriptionEnemy.text = card.data.description;
-                enemyPanel?.SetActive(true);
+                if (enemyPanel) enemyPanel.SetActive(true);
             }
         }
 
         public void Hide()
         {
-            allyPanel?.SetActive(false);
-            enemyPanel?.SetActive(false);
+            if (allyPanel)  allyPanel.SetActive(false);
+            if (enemyPanel) enemyPanel.SetActive(false);
         }
     }
 }

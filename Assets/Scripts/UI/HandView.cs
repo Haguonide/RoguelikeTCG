@@ -30,7 +30,7 @@ namespace RoguelikeTCG.UI
         public void SlideExistingCards(int totalFinalCount)
         {
             if (cardViews.Count == 0) return;
-            float cardW = 160f, spacing = cardSpacing;
+            float cardW = 120f, spacing = cardSpacing;
             float totalW = totalFinalCount * cardW + (totalFinalCount - 1) * spacing;
             float startX = -totalW / 2f + cardW / 2f;
 
@@ -49,7 +49,7 @@ namespace RoguelikeTCG.UI
         public RectTransform[] InsertCardsInvisible(
             List<CardInstance> newCards, int existingCount, int totalFinalCount)
         {
-            float cardW = 160f, cardH = 160f, spacing = cardSpacing;
+            float cardW = 120f, cardH = 168f, spacing = cardSpacing;
             float totalW = totalFinalCount * cardW + (totalFinalCount - 1) * spacing;
             float startX = -totalW / 2f + cardW / 2f;
 
@@ -88,7 +88,7 @@ namespace RoguelikeTCG.UI
             int count = hand?.Count ?? 0;
             if (count == 0) return;
 
-            float cardW = 160f, cardH = 160f, spacing = cardSpacing;
+            float cardW = 120f, cardH = 168f, spacing = cardSpacing;
             float totalW = count * cardW + (count - 1) * spacing;
             float startX = -totalW / 2f + cardW / 2f;
 
