@@ -1,4 +1,4 @@
-# CLAUDE.md — Roguelike Deckbuilder Fantasy (Sorciers)
+# CLAUDE.md — Roguelike Card Game (Unity Prototype)
 
 ---
 
@@ -31,272 +31,256 @@
 
 ---
 
-## 🎮 Description générale du jeu
+## 🎮 Concept du jeu
 
-Roguelike deckbuilder stratégique, inspiré de **Slay the Spire** et **Wildfrost**.
-
-- **Univers** : Fantasy médiéval — sorciers, nécromanciens, créatures magiques. Ton léger et burlesque.
-- **Style graphique** : **Wildfrost** — chibi animal, flat cartoon, thick black outlines, sticker style avec contour blanc. Palette vive par personnage. Lisibilité avant tout.
-- **Plateau** : Table d'enchantement vue de dessus — bords décorés (bougies, grimoires, gemmes), centre épuré.
-- **Couleurs** : Bois sombre, lueur teal/cyan pour les runes, ambre chaud pour les bougies.
-- **Structure narrative** : Progression roguelike à chapitres. Prototype : 1 chapitre fonctionnel.
+Roguelike à base de cartes, inspiré de **Slay the Spire**, **Rogue Lords** et **Wildfrost**.
+Pas de direction artistique définie pour l'instant — focus total sur le gameplay.
 
 ---
 
-## ⚔️ Système de combat
+## 🗺️ Map & Structure de la Run
 
-### Structure de la grille
-
-Le combat se joue sur une **grille 2×5** : 2 lignes (joueur / ennemi), 5 colonnes chacune.
-
-```
-┌──────────────────────────────────────┐
-│  HP Ennemi : ████████████░░░░  14/20 │
-├──────┬──────┬──────┬──────┬──────────┤
-│  E0  │  E1  │  E2  │  E3  │   E4    │  ← Row 0 : ligne ennemie
-├──────┼──────┼──────┼──────┼──────────┤
-│  P0  │  P1  │  P2  │  P3  │   P4    │  ← Row 1 : ligne joueur
-└──────┴──────┴──────┴──────┴──────────┘
-│  HP Joueur : ████████████████  30/30 │
-└──────────────────────────────────────┘
-```
-
-- **Duel de colonne** : chaque unité joueur [1,c] fait face à l'unité ennemie [0,c]
-- **1 unité maximum par case**
-- Les unités survivantes **restent en jeu** d'un tour à l'autre — pas de reset de manches
-- **Pas de manches** : le combat dure jusqu'à ce qu'un camp tombe à 0 HP
-
-### Structure d'un tour
-
-**Tour joueur :**
-1. **Pioche** — 2 cartes (4 au premier tour du combat)
-2. **Pose** — 1 unité sur une case Row 1 vide (coût 0, gratuit)
-3. **Sorts** — 0-N sorts (limité par le mana disponible)
-4. **Fin de Tour** → phase d'attaque simultanée résolue
-
-**Phase d'attaque simultanée :**
-- Chaque unité [1,c] attaque [0,c] :
-  - Unité ennemie présente → elle perd HP (mort si HP ≤ 0, elle ne réplique pas)
-  - Case ennemie vide → **fuite de lane** : 1 dégât direct aux HP ennemis
-- En parallèle, chaque unité [0,c] encore vivante attaque [1,c] :
-  - Unité joueur présente → elle perd HP
-  - Case joueur vide → **fuite de lane** : 1 dégât direct aux HP joueur
-- Les **Bonds d'attaque** se déclenchent avant la résolution des dégâts
-
-**Tour ennemi (après résolution) :**
-- L'IA pose 1 unité sur Row 0, joue des sorts
-- Pas de phase d'attaque supplémentaire (l'attaque est simultanée dans le tour joueur)
-
-### Mana
-
-- **Pour les sorts uniquement** — les unités sont gratuites
-- Croissant : 1 mana au tour 1, +1 par tour joueur, **plafond à 6**
-- Se régénère entièrement au début de chaque tour joueur
-
-### Éléments (5)
-
-| Icône | Nom       | Archétype       |
-|-------|-----------|-----------------|
-| 🔥    | Feu       | Offensif        |
-| ❄️    | Glace     | Contrôle        |
-| ⚡    | Foudre    | Chain / burst   |
-| 🌑    | Ombre     | Drain / debuff  |
-| 🌿    | Nature    | Support / heal  |
-
-### Système de Bonds d'adjacence
-
-Deux unités **adjacentes** (gauche/droite sur la même ligne) avec des éléments compatibles déclenchent un **Bond**.
-
-**Règle de cumul :** une unité encadrée par deux éléments différents déclenche les deux Bonds simultanément.
-
-| Paire              | Nom            | Type    | Effet                                                       |
-|--------------------|----------------|---------|-------------------------------------------------------------|
-| 🔥 + 🔥            | Embrasement    | Attaque | +1 ATK, splash 1 dégât aux cases ennemies adjacentes        |
-| ❄️ + ❄️            | Blizzard       | Attaque | Freeze : la cible passe son prochain tour d'attaque          |
-| ⚡ + ⚡            | Surcharge      | Attaque | +2 ATK si l'ennemi en face a déjà subi des dégâts ce tour   |
-| 🌑 + 🌑            | Abîme          | Attaque | Drain : soigne 1 HP à l'unité attaquante                    |
-| 🌿 + 🌿            | Forêt dense    | Passif  | +1 HP max aux deux unités 🌿                                |
-| ⚡ + 🔥 ou 🔥 + ⚡ | Éclair ardent  | Attaque | L'attaque saute sur l'unité ennemie en colonne adjacente    |
-| ⚡ + 🌑 ou 🌑 + ⚡ | Foudre noire   | Attaque | Ignore les HP bonus de la cible, dégâts bruts               |
-| ❄️ + 🌿 ou 🌿 + ❄️ | Givre vivant   | Passif  | La 🌿 régénère 1 HP/tour si adjacente à ❄️                  |
-| 🔥 + 🌑 ou 🌑 + 🔥 | Cendres        | Attaque | Si kill : la 🌑 adjacente gagne +1 ATK permanent            |
-| 🌿 + 🌑 ou 🌑 + 🌿 | Décomposition  | Passif  | Les unités ennemies en face perdent 1 HP max                |
-
-### Anatomie d'une carte unité
-
-```
-┌─────────────┐
-│  Nom unité  │
-│  [Élément]  │
-│             │
-│  ATK : X    │
-│  HP  : X    │
-│             │
-│  "Bond :    │
-│   effet si  │
-│   adjacent" │
-└─────────────┘
-  (gratuite à poser)
-```
-
-- **Coût** : 0 mana — les unités sont gratuites
-- **ATK / HP** : stats de l'unité (ATK 1-3, HP 1-5)
-- **Bond** : effet déclenché si un voisin compatible est présent
-
-### Anatomie d'une carte sort
-
-```
-┌─────────────┐
-│  Nom sort   │
-│  [Élément]  │
-│             │
-│  "Effet"    │
-└─────────────┘
-   Coût : X mana
-```
-
-- **Sorts offensifs** : dégâts directs (HP ennemis ou unité ennemie)
-- **Sorts utilitaires** : buffs, debuffs, déplacement d'unité, soins
-
-### Deck et main
-
-- **Taille du deck** : 20 cartes minimum
-- **Répartition** : libre selon le personnage
-- **Main de départ** : 4 cartes
-- **Pioche** : 2 cartes au début de chaque tour joueur
-- **Main maximale** : 10 cartes
-- Deck vide → défausse mélangée pour reformer un nouveau deck
-
-### HP des camps
-
-| Type de combat | HP ennemi |
-|----------------|-----------|
-| Combat normal  | 20 HP     |
-| Combat élite   | 35 HP     |
-| Boss           | 50 HP     |
-
-- **HP joueur** : **30 HP** global persistant entre combats — récupération uniquement via nœud Repos
-
-### IA ennemie
-
-- Chaque ennemi a un **`EnemyBehaviorData`** ScriptableObject : deck + stratégie (Aggressive / Defensive / SynergySeeker)
-- L'ennemi pose 1 unité sur Row 0, joue des sorts depuis son deck
-- Les intentions ennemies ne sont **pas visibles**
-
----
-
-## 🖥️ Interface de combat
-
-### Layout cible
-
-```
-[ HP Ennemi — barre de vie ]
-
-[Portrait joueur]  [  Grille 2×5  ]  [Portrait ennemi]
-     HP ↓          [ Row 0 ennemi ]       HP ↓
-                   [ Row 1 joueur ]
-
-[Mana / Deck / Défausse]    [ Main du joueur ]    [Fin de Tour]
-      ↑ bas-gauche              ↑ centré bas          ↑ bas-droite
-```
-
-### Hiérarchie Canvas (scène Combat — état actuel)
-
-```
-Canvas/
-  FullBG                      — fond plein écran
-  GridArea                    — grille 2×5, anchor centré (ACTIF)
-    GridAreaToPlay
-      GridRow_0               — 5 cases ennemies (Cell_0_0..Cell_0_4)
-      GridRow_1               — 5 cases joueur (Cell_1_0..Cell_1_4)
-  PortraitPlayer              — anchor gauche (portraits, HP, mana, BtnPass)
-  PortraitEnemy               — anchor droite
-  CombatUI                    — GO logique, refs TMP câblées
-  Hand                        — main joueur, centré bas
-  CardSelector                — gestion clics cartes et cellules
-  SpellArrow                  — flèche de ciblage pour les sorts
-  CardZoomPanel               — zoom clic droit sur une carte
-  RelicBar                    — barre or/reliques
-  RelicTooltipUI              — tooltip hover reliques
-  PauseMenu                   — menu pause
-  ScanlinesOverlay            — overlay CRT (inactif)
-```
-
-- **BtnPass** (dans PortraitPlayer) → appelle `CombatManager.EndPlayerTurn()`
-- **GridCellUI** sur chaque cellule : `row` (0=ennemi, 1=joueur), `col` (0-4)
-
----
-
-## 🗺️ Système de progression (Roguelike)
-
-### Carte de run
-
-- Forme : arbre vertical scrollable (style Slay the Spire), entièrement visible dès le début
-- Un nœud visité est bloqué définitivement
-- Chapitre introductif : 10 lignes, maximum 4 nœuds par ligne
+- **3 actes** par run
+- Navigation à choix de chemin (style Slay the Spire)
 
 ### Types de nœuds
 
-| Nœud              | Récompense                             |
-|-------------------|----------------------------------------|
-| Combat normal     | Choix de cartes + or                   |
-| Combat élite      | Relique + or                           |
-| Boss              | Relique + or                           |
-| Événement narratif| Texte + choix avec conséquences        |
-| Marchand          | Acheter carte / relique, vendre carte  |
-| Forge             | 3 copies identiques → 1 carte upgradée |
-| Repos / Soin      | Gain de HP + suppression d'une carte   |
-| Mystère           | Inconnu jusqu'à l'arrivée              |
+| Nœud           | Récompense                                    |
+|----------------|-----------------------------------------------|
+| Départ         | —                                             |
+| Combat Facile  | Or + choix de cartes                          |
+| Combat Élite   | Or + choix de cartes (plus intéressant)       |
+| Boss           | Relique de run                                |
+| Forge          | Dépenser des Runes → choisir un sort permanent|
+| Boutique       | Acheter cartes / reliques ; vendre cartes     |
+| Repos          | Supprimer une carte du deck (+ options TBD)   |
 
-### Forge — Système de fusion
+---
 
-- **3 copies identiques** → **1 exemplaire upgradé (+)**
-- Coût : 0 or — le coût c'est le sacrifice des 3 copies
-- Fusion bloquée si le deck descend sous 20 cartes
-- Une seule chaîne d'upgrade : Normal → + (pas de ++)
+## ⚔️ Système de Combat
 
-### Récompenses de combat
+### Board
 
-- Après victoire : choisir 1 carte parmi 3 proposées
-- Bouton "Vendre" : Commune 25 or, Uncommon 37 or, Rare 50 or, Epic 75 or, Legendary 100 or
+```
+┌──────────────────────────────────────────────┐
+│  HP Héros Ennemi                             │
+├──────┬──────┬──────┬──────┬──────┬───────────┤
+│  E0  │  E1  │  E2  │  E3  │  E4  │ Terrain E │  ← Board ennemi
+├──────┼──────┼──────┼──────┼──────┼───────────┤
+│  P0  │  P1  │  P2  │  P3  │  P4  │ Terrain J │  ← Board joueur
+└──────┴──────┴──────┴──────┴──────┴───────────┘
+│  HP Héros Joueur                             │
+└──────────────────────────────────────────────┘
+```
+
+- **5 emplacements** de jeu par camp (colonnes 0–4) — 1 unité max par emplacement
+- **1 case Terrain** par camp — seul le joueur utilise les Terrains pour l'instant
+- Les unités survivantes **restent en jeu** d'un tour à l'autre
+- **Duel de colonne** : une unité en P[c] fait face à l'unité en E[c]
+
+### Tour de jeu
+
+- Le joueur qui commence est déterminé **aléatoirement**
+- Chaque tour : le joueur joue ses cartes depuis sa main, puis déclare **Fin de Tour**
+
+**Tour joueur :**
+1. **Pioche** — +1 carte (+ effets additionnels)
+2. **Phase de jeu** — jouer des cartes (unités, terrain, sorts) en dépensant du mana
+3. **Fin de Tour** → résolution des attaques
+
+**Résolution des attaques (fin du tour joueur) :**
+- Chaque unité alliée P[c] attaque l'unité ennemie E[c] :
+  - Unité ennemie présente → perd des PV. Si elle **survit**, elle **contre-attaque** (inflige son ATK à P[c])
+  - Case ennemie vide → **attaque directe** aux HP du héros ennemi
+- Les unités ennemies non engagées (dont la case alliée en face est vide) **n'attaquent pas** à ce moment
+
+**Tour ennemi :**
+- L'IA joue ses cartes depuis son deck
+- **Fin du tour ennemi** → même logique de résolution dans l'autre sens
+
+**Conditions de fin :**
+- **Victoire** : HP du héros ennemi à 0
+- **Défaite** : HP du héros joueur à 0
+
+### Mana
+
+- Tour 1 : **1 mana**
+- +1 mana par tour, **plafond à 10**
+- Mana non utilisé **ne se cumule pas** — se réinitialise chaque tour
+
+---
+
+## 🃏 Types de Cartes
+
+### Unités
+- Coût en **mana**
+- Stats : **ATK** et **PV**
+- Peuvent avoir des **effets** et **mots-clés** (à définir lors de la phase mécanique)
+- Posées sur un emplacement libre du board
+- Attaquent chaque fin de tour
+- À la mort → **défausse**
+
+```
+┌─────────────┐
+│  [Coût] 🔥  │
+│  Nom unité  │
+│             │
+│  ATK : X    │
+│  PV  : X    │
+│             │
+│  [Effet /   │
+│   Mot-clé]  │
+└─────────────┘
+```
+
+### Terrain
+- Coût en **mana**
+- **1 seul actif** à la fois sur la case Terrain du joueur (remplace l'actif si besoin)
+- Déclenche une **mission** à accomplir pendant le combat
+- À la complétion → **récompense** immédiate, puis **défausse**
+- L'ennemi ne joue **pas** de Terrain (pour l'instant)
+
+```
+┌─────────────┐
+│  [Coût]     │
+│  Nom terrain│
+│             │
+│  MISSION :  │
+│  "..."      │
+│             │
+│  RÉCOMPENSE:│
+│  "..."      │
+└─────────────┘
+```
+
+**Exemples de missions :**
+- "Éliminer 2 unités ennemies en 3 tours" → Piocher 2 cartes
+- "Avoir 4 unités alliées simultanément" → Obtenir un sort éphémère
+- "Infliger 8 dégâts en un seul tour" → +2 mana ce tour
+
+**Exemples de récompenses :**
+- Piocher X cartes
+- Obtenir un sort éphémère (usage unique ce combat)
+- Bonus de mana temporaire
+- Soigner X HP au héros
+
+### Sorts
+- **Absents du deck de départ**
+- Deux origines :
+  1. **Permanent** — craftés à la Forge avec des Runes (rejoignent le deck définitivement)
+  2. **Éphémère** — récompense de mission Terrain (hors deck, usage unique ce combat)
+- Une fois joués → **défausse**
+
+```
+┌─────────────┐
+│  [Coût]  ⚡ │
+│  Nom sort   │
+│  ÉPHÉMÈRE   │  ← si applicable
+│             │
+│  "Effet"    │
+└─────────────┘
+```
+
+---
+
+## 🔄 Gestion du Deck
+
+| Événement          | Destination |
+|--------------------|-------------|
+| Unité tuée         | Défausse    |
+| Terrain complété   | Défausse    |
+| Sort joué          | Défausse    |
+| Deck vide          | Défausse mélangée → nouveau Deck |
+
+- **Deck de départ** : 15 cartes
+- **Taille max** : aucune
+- **Main de départ** : 4 cartes
+- **Pioche par tour** : +1 carte (+ effets additionnels)
+- **Copies sur le board** : plusieurs exemplaires de la même carte autorisés, sans limite
+
+---
+
+## 💰 Économie
+
+### Mana
+- Tour 1 : **1 mana** — +1 par tour — **cap à 10** — se réinitialise chaque tour
+
+### Or
+- Gagné pendant la run (combats, événements…)
+- Dépensable à la **Boutique**
+- Les cartes peuvent être **revendues** contre de l'or
+
+### Runes
+- **Plusieurs types** de runes (types à définir lors de la phase mécanique)
+- Gagnées en **tuant des unités ennemies** pendant les combats
+- Utilisées à la **Forge** pour obtenir des sorts permanents
+
+---
+
+## 🔨 Nœud Forge
+
+- Le joueur dépense des **runes** pour obtenir un sort permanent
+- Le joueur choisit parmi **plusieurs sorts proposés** (pas de craft libre)
+
+---
+
+## 🛒 Nœud Boutique
+
+- Achat de cartes, reliques, objets avec de l'or
+- Revente de cartes du deck contre de l'or
+
+---
+
+## 🛌 Nœud Repos
+
+- Permet de **supprimer une carte** du deck
+- Autres options à définir (soin, recyclage ?)
+
+---
+
+## 🏆 Récompenses
+
+| Source         | Récompense                              |
+|----------------|-----------------------------------------|
+| Combat Facile  | Or + choix de cartes                    |
+| Combat Élite   | Or + choix de cartes (plus intéressant) |
+| Boss           | Relique de run                          |
 
 ---
 
 ## 💎 Reliques
 
-- Obtenues via combats élite, boss, et leveling de compte
-- Effets : `DrawExtraCardPerTurn`, `StartWithBonusMana`, `MaxHPBonus`, `HealAfterCombat`
+### Reliques de Run
+- Obtenues en **récompense de Boss**
+- Actives **uniquement pour la run en cours**
+- Effets variés (à définir lors de la phase mécanique / héros)
+
+### Progression de Compte
+- Chaque compte possède un **niveau global**
+- En montant de niveau, on déverrouille :
+  - **Passifs globaux** (actifs sur toutes les runs) — ex : +1 mana de départ, +100 or de départ…
+  - **Reliques de départ par héros** — chaque héros a ses propres reliques de départ déverrouillables
 
 ---
 
-## 🦸 Personnages jouables (prototype)
+## 🦸 Héros
 
-### CatSorcerer — Élément : 🔥 Feu
+- **5 héros jouables** (classes / archétypes de deck)
+- Dont **1 classe hybride** qui se combine bien avec toutes les mécaniques
+- Détails des héros et decks de départ à définir lors de la phase de design des mécaniques
 
-Sorcier chat. Offensif, explosif. Bonds naturels : Embrasement (🔥+🔥), Éclair ardent (⚡+🔥), Cendres (🔥+🌑).
+---
 
-**Cartes test disponibles :** `Assets/Data/Cards/CatSorcerer/`
-- Flamme (Unit, Fire, 1/1)
-- Brasier (Unit, Fire, 2/1)
-- Embrasement (Unit, Fire, 1/2 — Uncommon)
-- Boule de Feu (Spell, Fire, 2 mana — 3 dégâts héros ennemi)
+## 📌 Ce qui reste à définir (hors scope prototype initial)
 
-### RaccoonNecromancer — Élément : 🌑 Ombre
-
-Nécromancien raton laveur. Drain, debuff. Bonds naturels : Abîme (🌑+🌑), Foudre noire (⚡+🌑), Décomposition (🌿+🌑).
-
-**Cartes test disponibles :** `Assets/Data/Cards/RaccoonNecromancer/`
-- Ombre (Unit, Shadow, 1/1)
-- Draine-Âme (Unit, Shadow, 1/2)
-- Spectre (Unit, Shadow, 2/1 — Uncommon)
-- Drain de Vie (Spell, Shadow, 2 mana — 2 dégâts unité + soins 1)
-
-### Ennemi test
-
-**Cartes test disponibles :** `Assets/Data/Cards/Enemies/TestEnemy/`
-- Grunt (Unit, None, 1/1)
-- Brute (Unit, None, 2/2)
-- Fireball (Spell, Fire, 2 mana — 2 dégâts héros joueur)
+- Mots-clés des unités
+- Types de runes et coûts des sorts à la Forge
+- Détail des 5 héros et leurs decks de départ
+- Exemples de missions Terrain et récompenses
+- Contenu de la Boutique
+- Options du nœud Repos (soin ?)
+- Reliques spécifiques
+- Direction artistique
 
 ---
 
@@ -314,8 +298,6 @@ Assets/
 ├── Art/
 │   ├── Cards/
 │   ├── Characters/
-│   │   ├── CatSorcerer/
-│   │   └── RaccoonNecromancer/
 │   ├── Enemies/
 │   ├── UI/
 │   ├── Boards/
@@ -325,9 +307,6 @@ Assets/
 │   └── SFX/
 ├── Data/
 │   ├── Cards/
-│   │   ├── CatSorcerer/
-│   │   ├── RaccoonNecromancer/
-│   │   └── Enemies/
 │   ├── Relics/
 │   ├── Characters/
 │   └── Events/
@@ -340,12 +319,11 @@ Assets/
 │   ├── Combat/
 │   └── RunMap/
 ├── Scripts/
-│   ├── Combat/        — CombatManager, GridManager, BondSystem, DeckManager, ManaManager, TurnManager
+│   ├── Combat/        — CombatManager, BoardManager, TerrainSystem, RuneSystem, DeckManager, ManaManager, TurnManager, EnemyAI
 │   ├── Cards/         — CardInstance, CardView
-│   ├── AI/            — EnemyAI, EnemyBehaviorData
+│   ├── Data/          — CardData, CardEnums, RelicData, CharacterData, EnemyBehaviorData
 │   ├── RunMap/        — RunMapManager, NodeView, EdgeView, etc.
-│   ├── Data/          — CardData, CardEnums, CardEffect, RelicData, CharacterData, EnemyBehaviorData
-│   ├── UI/            — CombatUI, HandView, CardSelector, GridCellUI, etc.
+│   ├── UI/            — CombatUI, HandView, CardSelector, BoardSlotUI, etc.
 │   ├── SaveSystem/    — DiskSave, AccountSave
 │   └── Core/          — RunPersistence, AudioManager, SessionLogger
 ├── Resources/
@@ -356,32 +334,32 @@ Assets/
 
 ## 📋 État d'avancement
 
-### ✅ Réalisé
+### ✅ Réalisé (hors combat)
 
 - Scène RunMap (arbre de progression, nœuds, scroll, animation intro, états visuels) ✅
 - Scènes MainMenu + CharacterSelect ✅
-- Nœuds non-combat (Rest, Forge, Shop, Event, Mystery) — 12 événements narratifs ✅
+- Nœuds non-combat (Rest, Forge, Shop, Event) — événements narratifs ✅
 - Système or, reliques (avec tooltip hover), sauvegarde disque, leveling de compte ✅
 - SessionLogger ✅
-- **Système de combat 2×5** : GridManager, CombatManager, BondSystem, EnemyAI scriptable ✅
-- **CardData** : nouveau format (Element, ATK, HP, sans keyword/passif positionnel) ✅
-- **Scène Combat** : grille 2×5 câblée, portraits, main, bouton fin de tour ✅
-- **Cartes test** : CatSorcerer (4 cartes), RaccoonNecromancer (4 cartes), TestEnemy (3 cartes) ✅
 
-### 🔄 Priorités actuelles
+### 🔄 À repartir de zéro (combat)
 
-1. **CharacterData** pour CatSorcerer et RaccoonNecromancer (startingDeck, portrait)
-2. **Premier test de combat** — assigner playerCharacter dans CombatManager Inspector
-3. **Decks complets** — 20 cartes par personnage
-4. **CardView / CardUIBuilder** — adapter l'affichage des cartes au nouveau format (Element, ATK, pas de flèches)
-5. **BondSystem feedback visuel** — indicateurs de bonds actifs sur la grille
-6. **IA ennemie** — créer un EnemyBehaviorData pour le combat test
+Le système de combat est à reconstruire entièrement pour correspondre aux nouvelles règles :
+- Board 5+1 (slots + Terrain) par camp
+- Unités avec coût mana
+- Résolution attaque → contre-attaque (pas simultané)
+- Mana cap 10
+- Deck 15 cartes, pioche +1/tour
 
-### 📌 Post-prototype
+### 📌 Priorités prototype
 
-- Éléments Glace, Foudre, Nature (personnages supplémentaires)
-- Chapitres 2+
-- Système d'Ascension
+1. **CardData** — nouveau format (ATK, PV, coût mana, type : Unit / Terrain / Spell)
+2. **BoardManager** — 5 slots + 1 Terrain par camp, logique de combat
+3. **CombatManager** — gestion des tours, mana, pioche, fin de tour
+4. **TerrainSystem** — mission + récompense + défausse à complétion
+5. **EnemyAI** — pose d'unités, gestion de sorts
+6. **RuneSystem** — compteur de Runes, persistant entre combats
+7. **Forge** — sélection parmi sorts proposés via Runes
 
 ---
 
@@ -398,7 +376,7 @@ Assets/
 
 | Agent | Usage |
 |---|---|
-| `combat-coder` | Toute feature du système de combat (grille 2×5, bonds, IA) |
+| `combat-coder` | Toute feature du système de combat (board, terrains, runes, IA) |
 | `ui-flow-coder` | RunMap, menus, nodes, sauvegarde, futurs écrans |
 | `card-balancer` | Design et équilibrage des cartes / decks |
 | `unity-builder` | Configuration scènes via Unity MCP |

@@ -1,0 +1,110 @@
+================================================================================
+  PROMPT DE CONTEXTE — À COLLER EN DÉBUT DE CONVERSATION CLAUDE (navigateur)
+  Sujet : Univers, personnages, ambiance et histoire du jeu
+================================================================================
+
+Voici le prompt à copier-coller dans une nouvelle conversation Claude.ai :
+
+────────────────────────────────────────────────────────────────────────────────
+
+Je développe un jeu vidéo roguelike deckbuilder (en Unity, C#) et je veux
+travailler avec toi sur l'univers, les personnages, l'ambiance et l'histoire
+du jeu. Je vais te donner le contexte existant, puis on va approfondir ensemble.
+
+---
+
+## LE JEU — CONTEXTE GÉNÉRAL
+
+Le jeu s'appelle (titre provisoire) : **Tournoi des Figures Historiques**.
+
+C'est un roguelike deckbuilder de type stratégique, inspiré de Slay the Spire
+et The Royal Writ.
+
+**Genre / Gameplay :**
+- Combat au tour par tour sur 1 à 3 "boards" (plateaux) simultanés selon la
+  difficulté.
+- Chaque board a 3 lanes côté joueur et 3 lanes côté ennemi.
+- 2 types de cartes : Unités (placées sur les lanes, coût 0 mana) et Sorts
+  (coûtent du mana, effets immédiats).
+- Deck de 20 cartes, main de 8 max, pioche de 2 par tour, max 2 cartes jouées
+  par tour.
+- Mana : se régénère de 1 par tour jusqu'à un plafond configurable.
+- Raretés : Commune → Peu Commune → Rare → Légendaire.
+- Les cartes peuvent être upgradées.
+- Progression roguelike sur une carte de run (style Rogue Lords) avec des noeuds :
+  combats, événements narratifs, marchand, forge, repos/soin, mystère.
+
+**Style visuel :**
+- Illustration papier, grainée et texturée, sobre, légèrement désaturée.
+- Textures papier, grain, hachures légères, contours doux légèrement irréguliers.
+- Ambiance médiévale / taverne. Sérieuse avec touches d'humour subtil.
+- Vue top-down, le plateau ressemble à une table de taverne ou une arène.
+- Cohérence graphique stricte sur tous les éléments.
+
+---
+
+## CE QUI EST DÉFINI POUR L'INSTANT
+
+**Personnages du chapitre introductif :**
+- Joueur : **Léonard de Vinci**
+- Ennemis / mini-boss / boss : **Jules César**
+
+**Mécanique de deck de base (pour Léonard de Vinci et Jules César) :**
+- 46 cartes déjà définies (unités et sorts) réparties entre les deux personnages,
+  avec des thèmes distincts (génie / invention pour De Vinci, conquête / légions
+  pour César).
+- Chaque personnage a une relique de départ unique.
+
+**Structure d'un run (chapitre introductif) :**
+- 10 lignes de progression, max 4 noeuds par ligne.
+- Un mini-boss (Jules César intermédiaire) qui donne une relique.
+- Un boss final (Jules César).
+
+**12 événements narratifs** déjà écrits pour le chapitre introductif.
+
+---
+
+## CE QUE JE VEUX EXPLORER AVEC TOI
+
+Je veux approfondir et définir :
+
+1. **L'histoire et le cadre narratif** : Qu'est-ce que ce "tournoi" exactement ?
+   Qui l'organise ? Pourquoi des figures historiques s'y affrontent-elles ?
+   Y a-t-il une mythologie interne au jeu ? Un enjeu narratif global ?
+
+2. **Les personnages** : Leur personnalité dans le jeu, leur façon de parler,
+   leurs motivations, comment ils interagissent. Je veux qu'ils soient des
+   versions fictionnalisées des figures historiques réelles, pas des copies
+   exactes — avec de la profondeur, de l'humour parfois, mais une cohérence
+   d'ensemble.
+
+3. **L'ambiance et le ton** : Comment doser le sérieux et l'humour ? Quelle
+   atmosphère pour les événements narratifs ? Quel registre pour les dialogues ?
+
+4. **Les futurs personnages** : Au-delà de De Vinci et César, quelles figures
+   historiques pourraient participer au tournoi ? Avec quels archétypes de deck ?
+
+Je ne veux pas que tu génères tout d'un coup — on va construire ça ensemble,
+en échangeant. Commence par me poser des questions sur ma vision du jeu pour
+qu'on soit alignés, puis on développera dans la direction qui me correspond.
+
+────────────────────────────────────────────────────────────────────────────────
+
+FIN DU PROMPT
+================================================================================
+
+NOTES MÉCANIQUES (pour référence future — règles de base du jeu)
+================================================================================
+
+  Règles rappel :
+  - Deck 20 cartes | Main max 8 | Pioche 2/tour | Max 2 cartes jouées/tour
+  - Unités : coût 0 mana, posées sur un slot de lane (ATK / HP)
+  - Sorts : coûtent du mana, effets immédiats simples
+  - Mana : +1/tour (plafond configurable)
+  - Raretés : Commune (C) | Peu Commune (PC) | Rare (R) | Légendaire (L)
+  - Les cartes peuvent être upgradées
+  - Résolution des attaques : toutes les unités attaquent simultanément en fin
+    de tour. Si la lane en face est vide, dégâts directs au héros adverse.
+  - Victoire : tous les EnemyHP à 0. Défaite : PlayerHP global à 0.
+
+================================================================================

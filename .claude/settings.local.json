@@ -41,7 +41,30 @@
       "Bash(sed -i 's/passiveType: 14/passiveType: 13/' /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/Chardassaut.asset /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/ChardassautPlus.asset)",
       "Bash(sed -i 's/passiveType: 10/passiveType: 9/' /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/Chiendegarde.asset /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/ChiendegardePlus.asset)",
       "Bash(sed -i 's/passiveType: 1/passiveType: 4/' /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/Dragon.asset /c/Users/hugod/RoguelikeTCG/Assets/Data/Cards/DeVinci/DragonPlus.asset)",
-      "mcp__unity-mcp__Unity_ReadResource"
+      "mcp__unity-mcp__Unity_ReadResource",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\hugod\\\\RoguelikeTCG\\\\Assets\\\\Data\\\\Patterns\" -Filter \"*.asset\")",
+      "Bash(Measure-Object)",
+      "Bash(Select-Object -ExpandProperty Count)",
+      "Bash(Find C:\\\\Users\\\\hugod\\\\RoguelikeTCG\\\\Assets\\\\Scripts\\\\Combat *)",
+      "mcp__unity-mcp__Unity_ManageScript",
+      "Bash(dir C:\\\\Users\\\\hugod\\\\AppData\\\\LocalLow\\\\DefaultCompany\\\\RoguelikeTCG\\\\logs *)",
+      "Bash(dir \"C:\\\\Users\\\\hugod\\\\AppData\\\\LocalLow\\\\DefaultCompany\\\\RoguelikeTCG\\\\logs\" /b /o-d)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\hugod\\\\RoguelikeTCG\" -Name | Where-Object { $_ -match \"deck|doc\" })",
+      "Bash(grep -v \"^$\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\hugod\\\\RoguelikeTCG\\\\Assets\\\\Scripts\\\\Combat\" -File -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(grep -E \"\\\\.cs$\")",
+      "Bash(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\hugod\\\\RoguelikeTCG\\\\Assets\\\\Shaders\" -Force)",
+      "Bash(Out-Null)",
+      "Bash(Write-Output \"ok\")",
+      "Bash(cmd.exe *)",
+      "Bash(powershell.exe *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\hugod\\\\RoguelikeTCG\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "WebFetch(domain:store.steampowered.com)",
+      "Bash(Get-Content \"C:\\\\Users\\\\hugod\\\\RoguelikeTCG\\\\Packages\\\\manifest.json\")",
+      "Bash(Select-String \"render|urp|universal\" -i)",
+      "PowerShell(Remove-Item *)"
     ]
   }
 }

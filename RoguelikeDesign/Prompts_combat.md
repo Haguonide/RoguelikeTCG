@@ -11,12 +11,30 @@ Style global : scène de combat posée sur un tableau d'affichage corporate, 2D 
 
 ### Midjourney
 ```
-corporate office bulletin board, cork board texture, warm beige and brown tones, slightly worn fabric surface, a few scattered pins and staples, flat 2D illustration style, retro lo-fi aesthetic, muted warm colors, game UI background, no text, no characters, clean readable composition --ar 16:9 --v 6.1 --style raw
+extreme close-up of a modern office whiteboard surface filling the entire frame, clean off-white matte texture, slightly worn from regular use, no frame or border visible, one small folded sticky note partially cut off in the top-right corner as if going off-screen, two or three small round colored magnets scattered at different spots on the surface, nothing else, flat 2D illustration style, modern workplace aesthetic, muted off-white and light grey tones, game UI background --ar 16:9 --v 6.1 --style raw
 ```
 
 ### Leonardo AI (Phoenix 1.0)
 ```
-Corporate office bulletin board as a 2D game background, cork texture surface, warm beige and dark tan colors, slightly worn and used aesthetic, small scattered pins and staples visible, flat 2D illustration style, retro lo-fi corporate feel, no text, no characters, clean and readable as a game UI backdrop, warm ambient lighting, landscape orientation 16:9
+Extreme close-up of a modern office whiteboard surface filling the entire image, clean off-white matte texture with subtle wear marks from regular use, no frame or border visible anywhere, one small folded sticky note partially going off-screen in the top-right corner, two or three small round colored magnets (red, blue, yellow) scattered at a few spots on the surface, nothing else, flat 2D illustration style, clean modern workplace corporate aesthetic, game UI background, landscape 16:9, minimal and readable
+```
+
+---
+
+## 1b. Quadrillage 3×3 (Overlay grille de combat)
+
+**Usage :** Image transparente posée par-dessus le fond tableau — les lignes du quadrillage 3×3 dessinées au feutre sur le whiteboard  
+**Dimensions cibles :** 1920×1080 (même format que le fond, pour alignement parfait)  
+**Export :** PNG fond transparent — générer sur fond blanc puis retirer le fond
+
+### Midjourney
+```
+hand-drawn 3x3 grid on a white background, two vertical lines and two horizontal lines forming nine equal squares, drawn with a dark navy blue dry-erase marker, slightly wobbly imperfect lines with natural pressure variation, ink slightly thicker at line crossings, faint marker stroke texture, no color fill, no text, no extra elements, flat 2D illustration, isolated on white background --ar 16:9 --v 6.1 --style raw
+```
+
+### Leonardo AI (Phoenix 1.0)
+```
+A hand-drawn 3x3 grid on a pure white background, two vertical lines and two horizontal lines creating nine equal cells, drawn with a dark navy blue dry-erase whiteboard marker, slightly wobbly and imperfect lines with natural hand-drawn variation, ink slightly thicker at intersections, subtle dry marker texture visible along the strokes, no fill, no shading, no text, no other elements, flat 2D illustration style, isolated on white background, full landscape 16:9 format, the grid centered and large, clean minimal asset
 ```
 
 ---

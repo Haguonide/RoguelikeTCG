@@ -1,0 +1,304 @@
+========================================================
+TOPO DU PROJET — Roguelike Deckbuilder Fantasy (Sorciers)
+Pour démarrer une conversation GDD sur navigateur Claude
+========================================================
+
+OBJECTIF DE CETTE SESSION
+--------------------------
+Je veux faire un Game Design Document complet pour mon jeu. Je vais te donner
+le topo de tout ce qui a été décidé et implémenté pour qu'on puisse travailler
+à partir de là sans repartir de zéro.
+
+---
+
+DESCRIPTION GÉNÉRALE
+---------------------
+Roguelike deckbuilder stratégique. Inspiré de Slay the Spire et Wildfrost.
+
+Univers : Fantasy médiéval — sorciers, nécromanciens, créatures magiques. Ton léger et burlesque.
+Style graphique : Wildfrost — chibi animal, flat cartoon, thick black outlines, sticker style avec
+contour blanc. Palette vive par personnage. Lisibilité avant tout.
+Plateau : Table d'enchantement vue de dessus (bords décorés : bougies, grimoires, gemmes).
+Couleurs : bois sombre, lueur teal/cyan pour les runes, ambre chaud pour les bougies.
+Structure narrative : Progression roguelike à chapitres. Prototype : 1 chapitre fonctionnel.
+
+---
+
+SYSTÈME DE COMBAT — GRILLE 2×5
+--------------------------------
+
+Plateau :
+
+  ┌──────────────────────────────────────┐
+  │  HP Ennemi : ████████████░░░░  14/20 │
+  ├──────┬──────┬──────┬──────┬──────────┤
+  │  E0  │  E1  │  E2  │  E3  │   E4    │  ← Row 0 : ligne ennemie
+  ├──────┼──────┼──────┼──────┼──────────┤
+  │  P0  │  P1  │  P2  │  P3  │   P4    │  ← Row 1 : ligne joueur
+  └──────┴──────┴──────┴──────┴──────────┘
+  │  HP Joueur : ████████████████  30/30 │
+  └──────────────────────────────────────┘
+
+- 10 cases totales : 5 joueur + 5 ennemi
+- Duel de colonne : chaque unité joueur [Row1,C] fait face à l'unité ennemie [Row0,C]
+- 1 unité maximum par case
+- Les unités survivantes RESTENT EN JEU d'un tour à l'autre (pas de reset)
+- Pas de manches : le combat dure jusqu'à ce qu'un camp tombe à 0 HP
+
+STRUCTURE D'UN TOUR
+--------------------
+
+Tour joueur :
+  1. Pioche — 2 cartes (4 au premier tour du combat)
+  2. Pose — 1 unité sur une case Row 1 vide (coût 0 mana, gratuit)
+  3. Sorts — 0-N sorts (limité par le mana disponible)
+  4. Fin de tour → phase d'attaque simultanée résolue
+
+Phase d'attaque simultanée :
+  - Chaque unité joueur attaque l'unité ennemie en face (si existante, elle perd des HP)
+  - Chaque unité ennemie encore vivante attaque l'unité joueur en face (simultané)
+  - Si une unité est tuée, elle ne réplique pas
+  - Bonds actifs se déclenchent AVANT la résolution des dégâts
+  - Case ennemie vide en face d'une alliée → 1 dégât direct HP ennemi ("lane leak")
+  - Case joueur vide en face d'une ennemie → 1 dégât direct HP joueur ("lane leak")
+
+Tour ennemi (après résolution) :
+  - L'IA pose 1 unité sur Row 0 selon sa stratégie
+  - L'IA joue 0-N sorts de son deck
+  - Pas de phase d'attaque supplémentaire (l'attaque est uniquement lors du tour joueur)
+
+MANA :
+  - Pour les sorts uniquement (les unités sont gratuites)
+  - Croissant : 1 au tour 1, +1 par tour joueur, plafond à 6
+  - Régénère entièrement au début de chaque tour joueur
+
+HP DES CAMPS :
+  - HP joueur : 30, PERSISTANT entre les combats (récupère uniquement via nœud Repos)
+  - Combat normal : 20 HP ennemi
+  - Combat élite : 35 HP ennemi
+  - Boss : 50 HP ennemi
+
+DECK ET MAIN :
+  - 20 cartes minimum par deck
+  - Main de départ : 4 cartes
+  - Pioche : +2 cartes au début de chaque tour joueur
+  - Main maximale : 10 cartes
+  - Deck vide → défausse mélangée pour reformer un nouveau deck
+
+---
+
+ANATOMIE DES CARTES
+--------------------
+
+Carte Unité :
+  ┌─────────────┐
+  │  Nom unité  │
+  │  [Élément]  │
+  │             │
+  │  ATK : X    │
+  │  HP  : X    │
+  │             │
+  │  "Bond :    │
+  │   effet si  │
+  │   adjacent" │
+  └─────────────┘
+    (gratuite à poser)
+
+  - Coût : 0 mana (toujours gratuit)
+  - ATK : 1 à 3 — dégâts infligés à l'unité en face
+  - HP : 1 à 3 — mort à HP = 0
+  - Bond : effet si un voisin compatible est adjacent
+
+Carte Sort :
+  ┌─────────────┐
+  │  Nom sort   │
+  │  [Élément]  │
+  │             │
+  │  "Effet"    │
+  └─────────────┘
+     Coût : X mana
+
+  - Offensifs : dégâts directs (HP ennemis ou unité ennemie)
+  - Utilitaires : buffs, debuffs, déplacement d'unité, soins
+
+---
+
+LES 5 ÉLÉMENTS
+---------------
+
+  🔥 Feu      — Archétype offensif, splash damage
+  ❄️ Glace    — Contrôle, freeze
+  ⚡ Foudre   — Chain, burst, chaînes d'attaque
+  🌑 Ombre    — Drain, debuff
+  🌿 Nature   — Support, heal, régénération
+
+---
+
+SYSTÈME DE BONDS (synergies d'adjacence)
+-----------------------------------------
+
+Deux unités adjacentes (gauche/droite sur la même ligne) avec éléments compatibles → Bond activé.
+Une unité encadrée par deux éléments différents déclenche les DEUX Bonds simultanément.
+
+Exemple : [⚡][🔥][🌑] → Bond Éclair ardent (⚡+🔥) ET Bond Cendres (🔥+🌑) s'activent
+
+Table des 10 Bonds validés :
+
+  Paire            Nom             Type     Effet
+  ─────────────────────────────────────────────────────────────────────────────────────
+  🔥 + 🔥          Embrasement     Attaque  +1 ATK, splash 1 dégât aux cases ennemies adjacentes
+  ❄️ + ❄️          Blizzard        Attaque  Freeze : la cible passe son prochain tour d'attaque
+  ⚡ + ⚡          Surcharge       Attaque  +2 ATK si l'ennemi en face a déjà subi des dégâts ce tour
+  🌑 + 🌑          Abîme           Attaque  Drain : soigne 1 HP à l'unité attaquante
+  🌿 + 🌿          Forêt dense     Passif   +1 HP max aux deux unités 🌿
+  ⚡ + 🔥 / 🔥 + ⚡  Éclair ardent  Attaque  L'attaque saute sur l'unité ennemie en colonne adjacente
+  ⚡ + 🌑 / 🌑 + ⚡  Foudre noire   Attaque  Ignore les HP bonus de la cible, dégâts bruts
+  ❄️ + 🌿 / 🌿 + ❄️  Givre vivant   Passif   L'unité 🌿 régénère 1 HP/tour si adjacente à ❄️
+  🔥 + 🌑 / 🌑 + 🔥  Cendres        Attaque  Si kill : l'unité 🌑 adjacente gagne +1 ATK permanent
+  🌿 + 🌑 / 🌑 + 🌿  Décomposition  Passif   Les unités ennemies en face perdent 1 HP max
+
+TIMING : Bonds à l'attaque se déclenchent avant la résolution des dégâts.
+         Bonds passifs sont actifs en permanence tant que les deux unités sont vivantes et adjacentes.
+
+La tension centrale : "Où poser cette unité pour maximiser mes Bonds sans laisser de lanes vides
+qui saignent mes HP ?"
+
+  Exemple :
+  [ ][🔥][ ][ ][ ] ← P1 et P3-P5 vides, ⚡ en main
+  Option A : poser en P1 → bouche une fuite, pas de Bond
+  Option B : poser en P3 → Bond Éclair ardent activé, mais P1 continue de saigner 1 HP/tour
+  Option C : attendre un sort de déplacement pour repositionner 🔥 d'abord
+
+---
+
+PERSONNAGES JOUABLES (prototype)
+----------------------------------
+
+CatSorcerer — Élément 🔥 Feu
+  - Chat sorcier, style chibi Wildfrost
+  - Archétype : offensif, splash damage
+  - Bonds naturels : Embrasement (🔥+🔥), Éclair ardent (⚡+🔥), Cendres (🔥+🌑)
+  - Cartes de test actuelles :
+      Flamme       — Unité, 🔥, ATK 1 / HP 1 (Commune)
+      Brasier      — Unité, 🔥, ATK 2 / HP 1 (Commune)
+      Embrasement  — Unité, 🔥, ATK 1 / HP 2 (Peu commune)
+      Boule de Feu — Sort,  🔥, 2 mana → 3 dégâts HP ennemi
+
+RaccoonNecromancer — Élément 🌑 Ombre
+  - Raton laveur nécromancien, style chibi Wildfrost
+  - Archétype : drain, debuff
+  - Bonds naturels : Abîme (🌑+🌑), Foudre noire (⚡+🌑), Décomposition (🌿+🌑)
+  - Cartes de test actuelles :
+      Ombre        — Unité,  🌑, ATK 1 / HP 1 (Commune)
+      Draine-Âme   — Unité,  🌑, ATK 1 / HP 2 (Commune)
+      Spectre      — Unité,  🌑, ATK 2 / HP 1 (Peu commune)
+      Drain de Vie — Sort,   🌑, 2 mana → 2 dégâts unité + soins 1
+
+Ennemi test :
+  - 3 cartes : Grunt (None, 1/1), Brute (None, 2/2), Fireball (Sort, 🔥, 2 mana → 2 dégâts joueur)
+  - Stratégie : Aggressive (par défaut)
+
+---
+
+IA ENNEMIE
+-----------
+
+Chaque ennemi a un ScriptableObject EnemyBehaviorData : deck + stratégie + HP.
+  - Agressif : priorité lanes vides pour faire des dégâts directs
+  - Défensif : priorité bloquer les lanes joueur occupées
+  - SynergySeeker : cherche à construire des Bonds dans sa ligne
+
+Les intentions ennemies ne sont pas visibles pour le joueur.
+
+---
+
+PROGRESSION ROGUELIKE
+----------------------
+
+Structure : arbre vertical scrollable (style Slay the Spire), entièrement visible dès le début.
+Un nœud visité est bloqué définitivement.
+Chapitre introductif : 10 lignes, max 4 nœuds par ligne.
+
+Types de nœuds :
+  Combat normal    → Choix de carte parmi 3 + or
+  Combat élite     → Relique + or
+  Boss             → Relique + or
+  Événement narratif → Texte + choix avec conséquences
+  Marchand         → Acheter carte/relique, vendre carte
+  Forge            → 3 copies identiques → 1 carte upgradée (+)
+  Repos / Soin     → Gain HP + suppression d'une carte
+  Mystère          → Inconnu jusqu'à l'arrivée
+
+Récompenses de combat : choisir 1 carte parmi 3 proposées.
+Vente de cartes : Commune 25or / Peu commune 37or / Rare 50or / Épique 75or / Légendaire 100or.
+
+Forge — Système de fusion :
+  - 3 copies identiques → 1 exemplaire upgradé (+)
+  - Coût : 0 or (le coût = sacrifier les 3 copies)
+  - Fusion bloquée si le deck descend sous 20 cartes
+  - Une seule chaîne d'upgrade : Normal → + (pas de ++)
+
+---
+
+RELIQUES
+---------
+
+Obtenues via combats élite, boss, leveling de compte.
+Effets actuels : DrawExtraCardPerTurn, StartWithBonusMana, MaxHPBonus, HealAfterCombat
+
+---
+
+CE QUI EST IMPLÉMENTÉ (état au 2026-05-29)
+-------------------------------------------
+
+✅ Scène RunMap (arbre, nodes, scroll, animations, états visuels)
+✅ Scènes MainMenu + CharacterSelect
+✅ Nœuds non-combat (Rest, Forge, Shop, Event, Mystery — 12 événements narratifs)
+✅ Système or, reliques avec tooltip hover, sauvegarde disque, leveling de compte
+✅ SessionLogger
+✅ Système de combat 2×5 : grille, CombatManager, BondSystem, EnemyAI scriptable
+✅ CardData nouveau format (Element, ATK, HP, Bond)
+✅ Scène Combat : grille câblée, portraits, main, bouton fin de tour
+✅ 11 cartes de test (CatSorcerer, RaccoonNecromancer, TestEnemy)
+
+À FAIRE :
+- CharacterData ScriptableObjects pour CatSorcerer et RaccoonNecromancer
+- Decks complets 20 cartes par personnage (actuellement 4 cartes chacun)
+- CardView / CardUIBuilder adapté au nouveau format (Element, ATK, pas de flèches)
+- Feedback visuel Bonds (glow / ligne colorée quand un Bond est actif)
+- EnemyBehaviorData complet pour l'ennemi test
+- Éléments Glace, Foudre, Nature → personnages supplémentaires (post-prototype)
+
+---
+
+BOUCLE DE JEU COMPLÈTE
+-----------------------
+
+  DÉPART
+    │
+    ▼
+  ┌─────────────┐    victoire    ┌──────────────┐
+  │   Combat    │ ─────────────► │  Récompense  │
+  │  (2×5 grid) │                │  (1 carte    │
+  └─────────────┘                │   parmi 3)   │
+         │ défaite               └──────┬───────┘
+         ▼                              │
+     Game Over              ┌───────────▼──────────┐
+                             │      Carte de run    │
+                             │  Combat / Shop /     │
+                             │  Repos / Forge / etc │
+                             └──────────────────────┘
+
+---
+
+NOTES TECHNIQUES (si besoin de contexte)
+------------------------------------------
+
+- Unity 2D, C# from scratch, namespaces : RoguelikeTCG.Combat / .RunMap / .UI / .Core / .Data
+- ScriptableObjects pour toutes les données (cartes, reliques, persos, events, IA)
+- DOTween pour toutes les animations
+- Sauvegarde : run_save.json + account_save.json dans persistentDataPath
+
+---
+
+FIN DU TOPO
