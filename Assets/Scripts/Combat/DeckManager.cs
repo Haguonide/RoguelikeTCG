@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RoguelikeTCG.Data;
 using RoguelikeTCG.Cards;
@@ -9,6 +10,8 @@ namespace RoguelikeTCG.Combat
         public List<CardInstance> Deck { get; private set; } = new();
         public List<CardInstance> Hand { get; private set; } = new();
         public List<CardInstance> Discard { get; private set; } = new();
+
+        public event Action<List<CardInstance>> OnHandChanged;
 
         public int DeckCount => Deck.Count;
         public int HandCount => Hand.Count;
@@ -37,6 +40,7 @@ namespace RoguelikeTCG.Combat
             var card = Deck[0];
             Deck.RemoveAt(0);
             Hand.Add(card);
+            OnHandChanged?.Invoke(Hand);
             return card;
         }
 
@@ -50,6 +54,7 @@ namespace RoguelikeTCG.Combat
         public void PlayCard(CardInstance card)
         {
             Hand.Remove(card);
+            OnHandChanged?.Invoke(Hand);
         }
 
         // Envoie une carte en défausse (sorts éphémères sont détruits, pas mis en défausse)
@@ -58,12 +63,14 @@ namespace RoguelikeTCG.Combat
             Hand.Remove(card);
             if (!card.IsEphemeral)
                 Discard.Add(card);
+            OnHandChanged?.Invoke(Hand);
         }
 
         // Appelé par TerrainSystem quand une mission est complétée
         public void AddEphemeralToHand(CardData spellData)
         {
             Hand.Add(new CardInstance(spellData, isEphemeral: true));
+            OnHandChanged?.Invoke(Hand);
         }
 
         public void ReshuffleDiscardIntoDeck()
