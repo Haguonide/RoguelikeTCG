@@ -20,6 +20,7 @@ namespace RoguelikeTCG.UI
                 return;
 
             CombatManager.Instance.OnTurnStarted += OnTurnStarted;
+            CombatManager.Instance.Board.OnBoardChanged += RefreshAll;
             CombatManager.Instance.Board.OnUnitDied += OnUnitDied;
             CombatManager.Instance.Board.OnTerrainDiscarded += OnTerrainDiscarded;
             CombatManager.Instance.Board.OnDamageDealt += OnDamageDealt;
@@ -33,6 +34,7 @@ namespace RoguelikeTCG.UI
                 return;
 
             CombatManager.Instance.OnTurnStarted -= OnTurnStarted;
+            CombatManager.Instance.Board.OnBoardChanged -= RefreshAll;
             CombatManager.Instance.Board.OnUnitDied -= OnUnitDied;
             CombatManager.Instance.Board.OnTerrainDiscarded -= OnTerrainDiscarded;
             CombatManager.Instance.Board.OnDamageDealt -= OnDamageDealt;

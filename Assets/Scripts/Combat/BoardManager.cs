@@ -23,6 +23,8 @@ namespace RoguelikeTCG.Combat
         public event Action<int, TurnSide> OnDamageDealt;
         // (carte unité, camp propriétaire) — déclenché juste avant l'attaque de Ruée
         public event Action<CardInstance, TurnSide> OnChargeAttack;
+        // déclenché après tout changement d'état du board (pose unité, pose terrain)
+        public event Action OnBoardChanged;
 
         // ── Placement ────────────────────────────────────────────────────────
 
@@ -34,6 +36,7 @@ namespace RoguelikeTCG.Combat
             if (slots[slot] != null) return false;
 
             slots[slot] = unit;
+            OnBoardChanged?.Invoke();
 
             if (unit.HasKeyword(KeywordType.Charge))
             {
@@ -58,6 +61,7 @@ namespace RoguelikeTCG.Combat
                     OnTerrainDiscarded?.Invoke(EnemyTerrain, TurnSide.Enemy);
                 EnemyTerrain = terrain;
             }
+            OnBoardChanged?.Invoke();
         }
 
         public void ClearTerrain(TurnSide side)
