@@ -22,7 +22,7 @@ namespace RoguelikeTCG.Combat
         // (dégâts, camp attaquant) — tout dégât infligé, unité ou direct
         public event Action<int, TurnSide> OnDamageDealt;
         // (carte unité, camp propriétaire) — déclenché juste avant l'attaque de Ruée
-        public event Action<CardInstance, TurnSide> OnRueeAttack;
+        public event Action<CardInstance, TurnSide> OnChargeAttack;
 
         // ── Placement ────────────────────────────────────────────────────────
 
@@ -35,9 +35,9 @@ namespace RoguelikeTCG.Combat
 
             slots[slot] = unit;
 
-            if (unit.HasKeyword(KeywordType.Ruee))
+            if (unit.HasKeyword(KeywordType.Charge))
             {
-                OnRueeAttack?.Invoke(unit, side);
+                OnChargeAttack?.Invoke(unit, side);
                 ResolveSlotAttack(slot, side);
             }
 

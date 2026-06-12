@@ -255,8 +255,16 @@ namespace RoguelikeTCG.Combat
             if (terrain == null) return;
 
             var mana = side == TurnSide.Player ? PlayerMana : EnemyMana;
+            var deck  = side == TurnSide.Player ? PlayerDeck : EnemyDeck;
             switch (terrain.Data.rewardType)
             {
+                case TerrainRewardType.DrawCards:
+                    for (int i = 0; i < terrain.Data.rewardValue; i++)
+                    {
+                        var drawn = deck.DrawCard();
+                        if (drawn != null) OnCardDrawn?.Invoke(side, drawn);
+                    }
+                    break;
                 case TerrainRewardType.BonusMana:
                     mana.AddMana(terrain.Data.rewardValue);
                     break;

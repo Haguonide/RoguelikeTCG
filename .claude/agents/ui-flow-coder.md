@@ -23,6 +23,9 @@ RunMap
   └─ VisitNode(node) → RecordNodeVisited(), node.state=Visited, unlock children
       ├─ Combat/Elite/Boss → LoadScene("Combat")
       └─ Rest/Forge/Shop/Event/Mystery → NodeEventManager.ShowNode(type)
+          ├─ Forge → dépenser Runes (RunPersistence.SpendRunes) → AddCardToDeck(sort permanent)
+          ├─ Shop  → SpendGold / AddCardToDeck / AddRelic / vendre carte (AddGold + RemoveCard)
+          └─ Rest  → RemoveCardFromDeck (ou autres options TBD)
 
 Combat (géré par combat-coder)
   ├─ OnVictory() → RecordCombatWin(nodeType), SavePlayerHP, AddGold
@@ -54,6 +57,7 @@ int PlayerHP, PlayerMaxHP, PlayerGold
 List<CardData> PlayerDeck
 CharacterData SelectedCharacter
 List<RelicData> PlayerRelics
+Dictionary<RuneType, int> PlayerRunes  // Runes persistantes entre combats
 bool IsNewRun
 float MapScrollPosition
 
@@ -61,6 +65,7 @@ void InitRun(CharacterData)      // point d'entrée unique nouvelle run
 void SavePlayerHP(int hp, int maxHP)
 void AddGold(int amount) / SpendGold(int amount)
 void AddRelic(RelicData) / AddCardToDeck(CardData)
+void AddRune(RuneType, int amount) / SpendRunes(RuneType, int amount)
 void RecordNodeVisited()
 void RecordCombatWin(NodeType)
 void AwardRunXPAndReset()        // calcule XP, appelle AccountData.AddXP(), puis ResetRun()

@@ -10,45 +10,86 @@ Tu es le QA Lead de RoguelikeTCG, un roguelike deckbuilder Unity (C#). Tu ne mod
 
 ## CHECKLIST STANDARD — FEATURE COMBAT
 
-Pour chaque feature touchant au système de combat :
+### Design — Board et résolution
 
-### Design
-- [ ] Respecte les règles de lanes (6 cases, avancement, summoning sickness, clash simultané) ?
-- [ ] Respecte l'économie (mana croissant cap 6, 2 piochés/tour, max 10 en main) ?
-- [ ] Les keywords utilisés sont bien dans la liste des 16 validés ?
-- [ ] Cimetière vs défausse : distinction respectée (tué → cimetière, traversé → défausse) ?
-- [ ] Structure combat correcte (Normal 2 lanes, Elite 3 lanes, Boss 4 lanes) ?
+- [ ] Board = 5 slots + 1 Terrain par camp (pas 6 lanes, pas d'avancement) ?
+- [ ] 1 unité max par slot ?
+- [ ] Unités persistent entre les tours (pas de mouvement) ?
+- [ ] Résolution attaque **non simultanée** : attaque → check survie → contre-attaque si vivant ?
+- [ ] Colonne ennemie vide → attaque directe sur HP héros ennemi ?
+- [ ] Unités non-engagées (colonne alliée vide) n'attaquent **pas** pendant le tour adverse ?
+
+### Design — Économie
+
+- [ ] Mana : tour 1 = 1 mana, +1/tour, **cap 10**, reset chaque tour (non cumulable) ?
+- [ ] Deck de départ : **15 cartes** ?
+- [ ] Main de départ : **4 cartes** ?
+- [ ] Pioche par tour : **+1 carte** (pas +2) ?
+- [ ] Deck vide → défausse mélangée → nouveau deck ?
+
+### Design — Types de cartes
+
+- [ ] Unité : ATK + PV + coût mana, posée sur slot libre, meurt → défausse ?
+- [ ] Terrain : 1 seul actif, mission trackée, complétion → récompense + défausse ?
+- [ ] Spell : absent du deck de départ, joué → défausse ? Éphémère = hors deck, usage unique ?
+- [ ] L'ennemi ne joue **pas** de Terrain ?
+
+### Design — Keywords
+
+- [ ] Les keywords utilisés sont dans la liste des 15 validés ?
+- [ ] Pas de keyword référençant un système d'avancement (l'ancien système de lanes) ?
+- [ ] **Charge** = attaque le tour de pose (plus "avance ce tour") ?
+- [ ] **Irradiation** = dmg début de chaque tour (pas fin) ?
+- [ ] **Percée** = overkill saigne sur HP héros (pas "continue d'avancer") ?
+
+### Design — Terrain et TerrainSystem
+
+- [ ] Une seule mission active à la fois — le nouveau Terrain remplace l'ancien ?
+- [ ] La récompense est déclenchée à la complétion, pas en fin de combat ?
+- [ ] Le TerrainSystem écoute les événements du board via événements C# (pas de polling) ?
+
+### Design — Runes
+
+- [ ] Runes gagnées quand une unité ennemie est tuée ?
+- [ ] Runes persistantes entre combats (sauvegardées dans RunPersistence) ?
+- [ ] RuneSystem ne gère pas la persistance lui-même — délègue à RunPersistence ?
 
 ### Code
+
 - [ ] Namespace `RoguelikeTCG.Combat` ?
 - [ ] Pas de Coroutine pour les animations → DOTween uniquement ?
-- [ ] ScriptableObjects pour toutes les données de cartes (`CardData`) ?
+- [ ] ScriptableObjects pour toutes les données (`CardData`, `CharacterData`) ?
 - [ ] Pas de logique UI dans les scripts de logique de combat ?
-- [ ] Les erreurs de compilation Unity sont à 0 ?
+- [ ] UI = refs public assignées depuis la scène, pas construite dans `Start()` ?
+- [ ] 0 erreurs de compilation Unity ?
 
 ### Intégration run
-- [ ] `OnVictory()` appelle bien `RecordCombatWin(nodeType)` ?
-- [ ] `OnDefeat()` appelle bien `AwardRunXPAndReset()` avant de charger MainMenu ?
-- [ ] `SavePlayerHP()` est appelé après chaque combat ?
+
+- [ ] `OnVictory()` appelle `RecordCombatWin(nodeType)` et `SavePlayerHP()` ?
+- [ ] `OnDefeat()` appelle `AwardRunXPAndReset()` avant de charger MainMenu ?
+- [ ] Les Runes sont bien ajoutées via `RuneSystem.Instance.AddRune()` ?
 
 ---
 
 ## CHECKLIST STANDARD — FEATURE UI/FLOW
 
 ### Design
-- [ ] Le flux de scènes est respecté (MainMenu → CharacterSelect → RunMap → Combat → RunMap) ?
-- [ ] Les états de nœuds sont corrects (Locked/Available/Visited) ?
-- [ ] Les couleurs de nœuds respectent la convention (Gris/Vert foncé/Vert clair) ?
-- [ ] La sauvegarde est déclenchée aux bons moments ?
+
+- [ ] Flux scènes respecté : MainMenu → CharacterSelect → RunMap → Combat → RunMap ?
+- [ ] États de nœuds corrects (Locked/Available/Visited) ?
+- [ ] Couleurs de nœuds : Gris=Locked, Vert foncé=Visited, Vert clair=Available ?
+- [ ] Sauvegarde déclenchée aux bons moments (VisitNode, SavePlayerHP, AddCard, AddRelic, AddGold) ?
 
 ### Code
-- [ ] Singleton pattern correct (`Destroy(this)` sur Canvas, jamais `Destroy(gameObject)`) ?
-- [ ] Boutons câblés via `onClick` persistants, pas `AddListener` en code ?
+
+- [ ] Singleton sur Canvas : `Destroy(this)` + `OnDestroy()`, jamais `Destroy(gameObject)` ?
+- [ ] Boutons câblés via `onClick` persistants (UnityEventTools), pas `AddListener` en code ?
 - [ ] UI construite dans la scène, pas en code dans `Start()` ?
 - [ ] Canvas layout différé d'un frame si nécessaire (`yield return null`) ?
 - [ ] Pas de doublon (Canvas, Camera, EventSystem, Managers) dans la scène ?
 
 ### Sauvegarde
+
 - [ ] `run_save.json` sauvegardé aux bons événements ?
 - [ ] `DiskSave.HasSave()` vérifié avant `LoadInto()` ?
 - [ ] `ResetRun()` supprime bien le fichier de save ?
@@ -57,16 +98,26 @@ Pour chaque feature touchant au système de combat :
 
 ## CHECKLIST STANDARD — DESIGN DE CARTES
 
-### Balancing
-- [ ] Les stats de l'unité sont dans les fourchettes par coût (1m: ~2/2, 2-3m: ~3/4, 4-5m: ~5/5+) ?
-- [ ] Le fantasy du personnage est distinct des autres personnages du roster ?
-- [ ] Pas de doublon de keyword signature entre personnages ?
-- [ ] César a bien +20% stats vs decks jouables ?
-- [ ] La carte upgradée (+) est significativement meilleure mais pas game-breaking ?
+### Balancing (formules BSV)
 
-### Cohérence narrative
-- [ ] Le nom de la carte est dans le ton absurde anachronique du jeu ?
-- [ ] La description est flavourful et lisible en un coup d'œil ?
+- [ ] Budget BSV calculé = `(coût × 3) + 1`, stats dans la plage attendue ?
+- [ ] Si keyword présent : coût keyword déduit du budget BSV, stats réduites en conséquence ?
+- [ ] Profil ATK/PV cohérent avec l'archétype du héros (tank = ratio 1:2, aggro = 1:1) ?
+- [ ] Sorts : efficacité dans la formule `1 mana = 3 dmg` (ou justification dérogation) ?
+- [ ] Sorts éphémères : bonus de puissance ≤ 30% vs sort permanent de même coût ?
+- [ ] Courbe de mana du deck : coût moyen 2.0–2.5, min 3 cartes à 1 mana, max 2 cartes à 4+ mana ?
+
+### Cohérence cross-roster
+
+- [ ] Le fantasy du héros est distinct des autres héros confirmés (CatSorcerer/RaccoonNecromancer) ?
+- [ ] Pas de doublon de mécanique signature entre personnages ?
+- [ ] Pas de combo broken avec les keywords du même deck (Percée + Charge ≤ 3 mana, etc.) ?
+
+### Lisibilité
+
+- [ ] La carte a un rôle clair dans la courbe de mana du deck ?
+- [ ] Le texte de l'effet est lisible en un coup d'œil (pas de paragraphe) ?
+- [ ] Le nom et la description correspondent à l'univers Wildfrost fantasy médiéval (chibi animal) ?
 
 ---
 
@@ -75,12 +126,13 @@ Pour chaque feature touchant au système de combat :
 Quand on te demande un audit général :
 
 1. **Console Unity** : 0 erreurs, 0 warnings critiques
-2. **Architecture** : tous les scripts dans les bons namespaces et dossiers
-3. **Singletons** : pas de doublon, bonne persistance
-4. **Scènes** : pas de fichier `.unity` en double à la racine `Assets/`
+2. **Architecture** : scripts dans les bons namespaces et dossiers (`Combat/`, `AI/`, `UI/`, `Core/`, `Data/`)
+3. **Singletons** : pas de doublon, bonne persistance (`DontDestroyOnLoad` uniquement sur les bons objets)
+4. **Scènes** : pas de fichier `.unity` en double à la racine `Assets/` — sauvegardes avec `Path` explicite
 5. **Resources** : `CardRegistry`, `CharacterRegistry`, `LevelRewards/` correctement peuplés
-6. **Build Settings** : les 4 scènes sont bien dans le build dans le bon ordre
+6. **Build Settings** : les 4 scènes dans le build dans le bon ordre (MainMenu=0, RunMap=1, Combat=2, CharacterSelect=3)
 7. **DOTween** : importé, `DOTween.Init()` appelé au démarrage
+8. **Combat scene** : scène Combat reconstruite — vérifier présence BoardManager, TurnManager, ManaManager, DeckManager, TerrainSystem, RuneSystem, EnemyAI dans la hiérarchie
 
 ---
 

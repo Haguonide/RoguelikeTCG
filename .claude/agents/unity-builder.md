@@ -48,11 +48,17 @@ Tu es le Technical Artist de RoguelikeTCG, un roguelike deckbuilder Unity. Tu co
 | `RunPersistence` | DontDestroyOnLoad |
 | `AccountData` | DontDestroyOnLoad |
 | `CombatManager` | Combat uniquement |
+| `BoardManager` | Combat uniquement |
+| `TurnManager` | Combat uniquement |
+| `ManaManager` | Combat uniquement |
+| `DeckManager` | Combat uniquement |
+| `TerrainSystem` | Combat uniquement |
+| `RuneSystem` | Combat uniquement |
+| `EnemyAI` | Combat uniquement |
+| `RelicManager` | Combat uniquement |
 | `RunMapManager` | RunMap uniquement |
 | `RunMapUI` | RunMap uniquement |
 | `NodeEventManager` | RunMap uniquement |
-| `CardZoomPanel` | Combat uniquement |
-| `RelicManager` | Combat uniquement |
 | `OptionsPanel` | Toutes scènes sauf MainMenu |
 | `PauseMenu` | Combat, RunMap, CharacterSelect |
 
@@ -113,14 +119,16 @@ Nouvelles valeurs d'enum inaccessibles avant domain reload → utiliser cast int
 
 ```
 Assets/Art/
-├── Cards/Units/          ← illustrations cartes unités
-├── Cards/Spells/         ← illustrations cartes sorts
+├── Cards/
+│   ├── Units/            ← illustrations cartes unités
+│   ├── Spells/           ← illustrations cartes sorts
+│   └── Terrains/         ← illustrations cartes Terrain
 ├── Characters/
-│   ├── LeonardDeVinci/   ← portrait ✅
-│   ├── MarieCurie/       ← portrait ✅
-│   └── JulesCesar/       ← portrait ✅
+│   ├── CatSorcerer/      ← portrait héros jouable (🔥 Feu)
+│   └── RaccoonNecromancer/ ← portrait héros jouable (🌑 Ombre)
+├── Enemies/              ← portraits ennemis (TestEnemy, Boss actes…)
 ├── UI/
-├── Boards/
+├── Boards/               ← fond de table combat
 ├── Icons/NodeIcons/
 └── Effects/
 ```

@@ -1420,6 +1420,7 @@ GameObject:
   - component: {fileID: 136485154}
   - component: {fileID: 136485156}
   - component: {fileID: 136485155}
+  - component: {fileID: 136485157}
   m_Layer: 0
   m_Name: CombatManager
   m_TagString: Untagged
@@ -1470,6 +1471,20 @@ MonoBehaviour:
   playerCharacter: {fileID: 0}
   enemyData: {fileID: 0}
   enemyAI: {fileID: 136485155}
+--- !u!114 &136485157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136485153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ef1d9b00ee38bf4c977b212e7e92c75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoguelikeTCG.Combat.CombatBootstrap
+  playerCharacter: {fileID: 11400000, guid: 2a1033a9ab8580d47901618ace4121fd, type: 2}
+  enemyData: {fileID: 11400000, guid: 59082c04b1fa8a84e80fff7e88d1e569, type: 2}
 --- !u!1 &152956348
 GameObject:
   m_ObjectHideFlags: 0
