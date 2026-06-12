@@ -31,6 +31,9 @@ namespace RoguelikeTCG.UI
 
         private void RebuildHand(List<CardInstance> hand)
         {
+            // Déselectionner avant de détruire les CardViews
+            CardSelectionManager.Instance?.Deselect();
+
             foreach (Transform child in cardContainer)
                 Destroy(child.gameObject);
 
@@ -42,31 +45,15 @@ namespace RoguelikeTCG.UI
                 var btn = view.GetComponent<Button>();
                 if (btn == null) btn = view.gameObject.AddComponent<Button>();
 
-                var captured = instance;
-                btn.onClick.AddListener(() => OnCardClicked(captured));
+                var capturedInstance = instance;
+                var capturedView     = view;
+                btn.onClick.AddListener(() => OnCardClicked(capturedInstance, capturedView));
             }
         }
 
-        private void OnCardClicked(CardInstance instance)
+        private void OnCardClicked(CardInstance instance, CardView view)
         {
-            var combat = CombatManager.Instance;
-            if (combat == null) return;
-
-            var data = instance.Data;
-
-            if (instance.IsUnit)
-            {
-                int slot = combat.Board.GetFirstEmptySlot(TurnSide.Player);
-                if (slot != -1) combat.PlayUnit(instance, slot);
-            }
-            else if (instance.IsTerrain)
-            {
-                combat.PlayTerrain(instance);
-            }
-            else if (instance.IsSpell)
-            {
-                combat.PlaySpell(instance);
-            }
+            CardSelectionManager.Instance?.ToggleSelect(instance, view);
         }
     }
 }

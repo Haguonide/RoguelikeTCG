@@ -7,6 +7,7 @@ namespace RoguelikeTCG.UI
 {
     public class BoardSlotUI : MonoBehaviour
     {
+        [Header("Display")]
         public TMP_Text unitNameText;
         public TMP_Text unitAtkText;
         public TMP_Text unitHpText;
@@ -14,8 +15,35 @@ namespace RoguelikeTCG.UI
         public GameObject emptySlotIndicator;
         public GameObject unitPanel;
 
+        [Header("Slot Identity")]
+        public bool isPlayerSlot;
+        public bool isTerrain;
+        public int slotIndex;
+
         private static readonly Color _degradedColor = Color.red;
         private static readonly Color _normalColor   = Color.white;
+
+        private void Awake()
+        {
+            var btn = GetComponent<Button>();
+            if (btn != null) btn.onClick.AddListener(OnSlotClicked);
+        }
+
+        public void OnSlotClicked()
+        {
+            var mgr = CardSelectionManager.Instance;
+            if (mgr == null) return;
+
+            if (isPlayerSlot)
+            {
+                if (isTerrain) mgr.OnPlayerTerrainSlotClicked();
+                else           mgr.OnPlayerUnitSlotClicked(slotIndex);
+            }
+            else
+            {
+                mgr.OnEnemyZoneClicked();
+            }
+        }
 
         public void Refresh(CardInstance unit)
         {
