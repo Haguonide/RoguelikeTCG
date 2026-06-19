@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using RoguelikeTCG.Cards;
 using RoguelikeTCG.Data;
+using RoguelikeTCG.UI;
 
 namespace RoguelikeTCG.Combat
 {
@@ -37,6 +39,9 @@ namespace RoguelikeTCG.Combat
         public event Action<bool> OnCombatEnded;               // true = player won
         public event Action<TurnSide, CardInstance> OnCardDrawn;
         public event Action<TurnSide> OnMissionCompleted;
+        public event Action OnCombatStateChanged;
+
+        public bool IsResolvingCombat { get; private set; }
 
         private bool _combatOver;
 
@@ -88,7 +93,6 @@ namespace RoguelikeTCG.Combat
 
             TurnManager = new TurnManager();
             TurnManager.OnTurnStart += HandleTurnStart;
-            TurnManager.OnTurnEnd += HandleTurnEnd;
 
             // Main de départ
             PlayerDeck.DrawCards(4);
@@ -122,20 +126,11 @@ namespace RoguelikeTCG.Combat
                 enemyAI.PlayTurn();
         }
 
-        private void HandleTurnEnd(TurnSide side)
-        {
-            if (_combatOver) return;
-            Terrain.OnTurnEnd(side);
-            Board.ResolveAttacks(side);
-            OnTurnEnded?.Invoke(side);
-            CheckWinCondition();
-        }
-
         // Bouton "Fin de Tour" dans l'UI
         public void EndPlayerTurn()
         {
-            if (_combatOver || TurnManager.CurrentSide != TurnSide.Player) return;
-            TurnManager.EndTurn();
+            if (_combatOver || TurnManager.CurrentSide != TurnSide.Player || IsResolvingCombat) return;
+            StartCoroutine(EndTurnCoroutine(TurnSide.Player));
         }
 
         // ── Jouer des cartes ──────────────────────────────────────────────────
@@ -195,8 +190,66 @@ namespace RoguelikeTCG.Combat
 
         public void EndEnemyTurn()
         {
-            if (_combatOver || TurnManager.CurrentSide != TurnSide.Enemy) return;
-            TurnManager.EndTurn();
+            if (_combatOver || TurnManager.CurrentSide != TurnSide.Enemy || IsResolvingCombat) return;
+            StartCoroutine(EndTurnCoroutine(TurnSide.Enemy));
+        }
+
+        private IEnumerator EndTurnCoroutine(TurnSide side)
+        {
+            IsResolvingCombat = true;
+            OnCombatStateChanged?.Invoke();
+
+            Terrain.OnTurnEnd(side);
+            yield return StartCoroutine(AttackPhaseCoroutine(side));
+
+            OnTurnEnded?.Invoke(side);
+            CheckWinCondition();
+
+            IsResolvingCombat = false;
+            OnCombatStateChanged?.Invoke();
+
+            if (!_combatOver)
+                TurnManager.EndTurn();
+        }
+
+        private IEnumerator AttackPhaseCoroutine(TurnSide side)
+        {
+            for (int i = 0; i < BoardManager.SlotCount; i++)
+            {
+                if (Board.GetUnits(side)[i] == null) continue;
+
+                var preview = Board.PreviewSlotAttack(i, side);
+
+                // Animation d'attaque
+                if (CombatAnimator.Instance != null)
+                {
+                    bool done = false;
+                    CombatAnimator.Instance.PlayAttackAnim(i, side, () => done = true);
+                    yield return new WaitUntil(() => done);
+                }
+
+                // Animation de mort avant résolution (le panel est encore visible)
+                if (CombatAnimator.Instance != null)
+                {
+                    TurnSide defendingSide = BoardManager.Opposite(side);
+                    if (preview.DefenderDies && Board.GetUnits(defendingSide)[i] != null)
+                    {
+                        bool done = false;
+                        CombatAnimator.Instance.PlayDeathAnim(i, defendingSide, () => done = true);
+                        yield return new WaitUntil(() => done);
+                    }
+                    if (preview.AttackerDies && Board.GetUnits(side)[i] != null)
+                    {
+                        bool done = false;
+                        CombatAnimator.Instance.PlayDeathAnim(i, side, () => done = true);
+                        yield return new WaitUntil(() => done);
+                    }
+                }
+
+                Board.ResolveSlotAttack(i, side);
+
+                yield return new WaitForSeconds(0.08f);
+            }
         }
 
         private void PlayEnemyTerrain()

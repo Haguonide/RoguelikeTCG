@@ -17,6 +17,7 @@ namespace RoguelikeTCG.UI
 
             _turn = combat.TurnManager;
             _turn.OnTurnStart += OnTurnStart;
+            combat.OnCombatStateChanged += RefreshInteractable;
 
             if (button != null)
                 button.onClick.AddListener(OnClick);
@@ -27,11 +28,14 @@ namespace RoguelikeTCG.UI
         private void OnDestroy()
         {
             if (_turn != null) _turn.OnTurnStart -= OnTurnStart;
+            if (CombatManager.Instance != null)
+                CombatManager.Instance.OnCombatStateChanged -= RefreshInteractable;
             if (button != null) button.onClick.RemoveListener(OnClick);
         }
 
         private void OnClick()
         {
+            if (CombatManager.Instance?.IsResolvingCombat == true) return;
             CombatManager.Instance?.EndPlayerTurn();
         }
 
@@ -43,7 +47,8 @@ namespace RoguelikeTCG.UI
         private void RefreshInteractable()
         {
             if (button == null || _turn == null) return;
-            button.interactable = _turn.CurrentSide == TurnSide.Player;
+            button.interactable = _turn.CurrentSide == TurnSide.Player
+                && !(CombatManager.Instance?.IsResolvingCombat == true);
         }
     }
 }

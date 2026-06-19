@@ -25,6 +25,15 @@ namespace RoguelikeTCG.Combat
         public event Action<CardInstance, TurnSide> OnChargeAttack;
         // déclenché après tout changement d'état du board (pose unité, pose terrain)
         public event Action OnBoardChanged;
+        // (index slot, camp propriétaire) — déclenché à chaque pose d'unité
+        public event Action<int, TurnSide> OnUnitPlaced;
+
+        public struct SlotAttackPreview
+        {
+            public bool DefenderDies;
+            public bool AttackerDies;
+            public bool IsDirect;
+        }
 
         // ── Placement ────────────────────────────────────────────────────────
 
@@ -37,6 +46,7 @@ namespace RoguelikeTCG.Combat
 
             slots[slot] = unit;
             OnBoardChanged?.Invoke();
+            OnUnitPlaced?.Invoke(slot, side);
 
             if (unit.HasKeyword(KeywordType.Charge))
             {
@@ -78,7 +88,33 @@ namespace RoguelikeTCG.Combat
                 ResolveSlotAttack(i, attackingSide);
         }
 
-        private void ResolveSlotAttack(int slot, TurnSide attackingSide)
+        public SlotAttackPreview PreviewSlotAttack(int slot, TurnSide attackingSide)
+        {
+            var attackers = GetUnits(attackingSide);
+            var defenders = GetUnits(Opposite(attackingSide));
+
+            CardInstance attacker = attackers[slot];
+            if (attacker == null) return new SlotAttackPreview();
+
+            CardInstance defender = defenders[slot];
+
+            if (defender == null)
+                return new SlotAttackPreview { IsDirect = true };
+
+            bool defenderDies = defender.CurrentHP - attacker.CurrentATK <= 0;
+            bool attackerDies = false;
+            if (!defenderDies)
+                attackerDies = attacker.CurrentHP - defender.CurrentATK <= 0;
+
+            return new SlotAttackPreview
+            {
+                DefenderDies = defenderDies,
+                AttackerDies = attackerDies,
+                IsDirect = false
+            };
+        }
+
+        public void ResolveSlotAttack(int slot, TurnSide attackingSide)
         {
             var attackers = GetUnits(attackingSide);
             var defenders = GetUnits(Opposite(attackingSide));
@@ -138,7 +174,7 @@ namespace RoguelikeTCG.Combat
             return -1;
         }
 
-        private static TurnSide Opposite(TurnSide side) =>
+        public static TurnSide Opposite(TurnSide side) =>
             side == TurnSide.Player ? TurnSide.Enemy : TurnSide.Player;
     }
 }

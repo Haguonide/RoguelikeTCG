@@ -30,6 +30,7 @@ namespace RoguelikeTCG.UI
         // Appelé par HandView au clic sur une carte
         public void ToggleSelect(CardInstance card, CardView view)
         {
+            if (CombatManager.Instance?.IsResolvingCombat == true) return;
             if (SelectedCard == card) { Deselect(); return; }
 
             SetHighlight(_selectedView, false);
@@ -48,6 +49,7 @@ namespace RoguelikeTCG.UI
         // Slot unité joueur (index 0–4)
         public void OnPlayerUnitSlotClicked(int slotIndex)
         {
+            if (CombatManager.Instance?.IsResolvingCombat == true) return;
             if (SelectedCard == null || !SelectedCard.IsUnit) return;
             if (!IsPlayerTurn()) return;
 
@@ -58,6 +60,7 @@ namespace RoguelikeTCG.UI
         // Case Terrain joueur
         public void OnPlayerTerrainSlotClicked()
         {
+            if (CombatManager.Instance?.IsResolvingCombat == true) return;
             if (SelectedCard == null || !SelectedCard.IsTerrain) return;
             if (!IsPlayerTurn()) return;
 
@@ -68,6 +71,7 @@ namespace RoguelikeTCG.UI
         // Zone ennemie (sorts — pas de ciblage précis pour l'instant)
         public void OnEnemyZoneClicked()
         {
+            if (CombatManager.Instance?.IsResolvingCombat == true) return;
             if (SelectedCard == null || !SelectedCard.IsSpell) return;
             if (!IsPlayerTurn()) return;
 

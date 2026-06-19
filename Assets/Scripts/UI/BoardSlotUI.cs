@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using RoguelikeTCG.Cards;
 
 namespace RoguelikeTCG.UI
@@ -8,20 +7,15 @@ namespace RoguelikeTCG.UI
     public class BoardSlotUI : MonoBehaviour
     {
         [Header("Display")]
-        public TMP_Text unitNameText;
-        public TMP_Text unitAtkText;
-        public TMP_Text unitHpText;
-        public Image unitArtwork;
         public GameObject emptySlotIndicator;
-        public GameObject unitPanel;
+        public CardView cardViewPrefab;
 
         [Header("Slot Identity")]
         public bool isPlayerSlot;
         public bool isTerrain;
         public int slotIndex;
 
-        private static readonly Color _degradedColor = Color.red;
-        private static readonly Color _normalColor   = Color.white;
+        public CardView CurrentView { get; private set; }
 
         private void Awake()
         {
@@ -50,28 +44,19 @@ namespace RoguelikeTCG.UI
             bool occupied = unit != null;
 
             if (emptySlotIndicator != null) emptySlotIndicator.SetActive(!occupied);
-            if (unitPanel          != null) unitPanel.SetActive(occupied);
 
-            if (!occupied) return;
-
-            var data = unit.Data;
-
-            if (unitNameText != null) unitNameText.text = data.cardName;
-
-            if (unitAtkText != null)
+            // Détruire la vue précédente
+            if (CurrentView != null)
             {
-                unitAtkText.text  = unit.CurrentATK.ToString();
-                unitAtkText.color = unit.CurrentATK < data.atk ? _degradedColor : _normalColor;
+                Destroy(CurrentView.gameObject);
+                CurrentView = null;
             }
 
-            if (unitHpText != null)
-            {
-                unitHpText.text  = unit.CurrentHP.ToString();
-                unitHpText.color = unit.CurrentHP < data.maxHP ? _degradedColor : _normalColor;
-            }
+            if (!occupied || cardViewPrefab == null) return;
 
-            if (unitArtwork != null && data.artwork != null)
-                unitArtwork.sprite = data.artwork;
+            // Instancier la CardView et la binder
+            CurrentView = Instantiate(cardViewPrefab, transform);
+            CurrentView.Bind(unit);
         }
     }
 }
