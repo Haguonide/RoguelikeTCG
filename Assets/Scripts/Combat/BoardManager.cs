@@ -6,7 +6,7 @@ namespace RoguelikeTCG.Combat
 {
     public class BoardManager
     {
-        public const int SlotCount = 5;
+        public const int SlotCount = 4;
 
         public CardInstance[] PlayerUnits { get; } = new CardInstance[SlotCount];
         public CardInstance[] EnemyUnits { get; } = new CardInstance[SlotCount];

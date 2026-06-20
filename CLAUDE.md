@@ -62,18 +62,18 @@ Pas de direction artistique définie pour l'instant — focus total sur le gamep
 ### Board
 
 ```
-┌──────────────────────────────────────────────┐
-│  HP Héros Ennemi                             │
-├──────┬──────┬──────┬──────┬──────┬───────────┤
-│  E0  │  E1  │  E2  │  E3  │  E4  │ Terrain E │  ← Board ennemi
-├──────┼──────┼──────┼──────┼──────┼───────────┤
-│  P0  │  P1  │  P2  │  P3  │  P4  │ Terrain J │  ← Board joueur
-└──────┴──────┴──────┴──────┴──────┴───────────┘
-│  HP Héros Joueur                             │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────────────────┐
+│  HP Héros Ennemi                         │
+├──────┬──────┬──────┬──────┬──────────────┤
+│  E0  │  E1  │  E2  │  E3  │  Terrain E  │  ← Board ennemi
+├──────┼──────┼──────┼──────┼─────────────┤
+│  P0  │  P1  │  P2  │  P3  │  Terrain J  │  ← Board joueur
+└──────┴──────┴──────┴──────┴─────────────┘
+│  HP Héros Joueur                         │
+└──────────────────────────────────────────┘
 ```
 
-- **5 emplacements** de jeu par camp (colonnes 0–4) — 1 unité max par emplacement
+- **4 emplacements** de jeu par camp (colonnes 0–3) — 1 unité max par emplacement
 - **1 case Terrain** par camp — seul le joueur utilise les Terrains pour l'instant
 - Les unités survivantes **restent en jeu** d'un tour à l'autre
 - **Duel de colonne** : une unité en P[c] fait face à l'unité en E[c]
